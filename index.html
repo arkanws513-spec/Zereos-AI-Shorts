@@ -25,7 +25,7 @@
 <div class="panel hidden" id="tab-style"><h3 class="smalltitle">المظهر والحركة</h3><div class="fields">
 <div class="two"><div class="field"><label for="bgStyle">الخلفية السينمائية</label><select id="bgStyle"><option value="parchment">ورق بردي وضوء شمعة</option><option value="darkgold">ذهب ملكي مظلم</option><option value="mystic">معبد غامض</option></select></div><div class="field"><label for="fontFamily">الخط العربي</label><select id="fontFamily"><option value="Aref Ruqaa">عارف رقعة</option><option value="Amiri">أميري</option><option value="Tajawal">تجوال</option></select></div></div>
 <div class="field"><label for="fontSize">حجم الخط: <span id="fontSizeVal">43</span></label><input class="range" type="range" id="fontSize" min="30" max="58" value="43"></div>
-<div class="field"><label for="sceneSeconds">مدة كل مشهد: <span id="sceneSecondsVal">4</span> ثوانٍ</label><input class="range" type="range" id="sceneSeconds" min="2.5" max="6" step=".5" value="4"></div>
+<div class="field"><label for="sceneSeconds">مدة كل مشهد: <span id="sceneSecondsVal">4</span> ثوانٍ</label><input class="range" type="range" id="sceneSeconds" min="2.5" max="6" step=".5" value="4"></div><div class="field"><label for="imageMotion">حركة الخلفية والصورة</label><select id="imageMotion"><option value="cinematic">تقريب سينمائي بطيء</option><option value="drift">حركة جانبية هادئة</option><option value="static">ثابتة</option></select><p class="note">تُطبّق الحركة على الصورة التي تختارها من مكتبة الوسائط، وتظهر أيضًا في الفيديو المُصدّر.</p></div>
 <div class="checkrow"><label><input type="checkbox" id="dust" checked> جزيئات ذهبية</label><label><input type="checkbox" id="seal" checked> ختم ZEREOS</label><label><input type="checkbox" id="captions" checked> عرض النص</label></div>
 </div></div>
 <div class="panel hidden" id="tab-audio"><h3 class="smalltitle">الصوت والتعليق الصوتي</h3><div class="fields">
@@ -36,7 +36,7 @@
 <div class="two"><div class="field"><label for="rate">سرعة القراءة: <span id="rateVal">0.9</span></label><input class="range" id="rate" type="range" min=".7" max="1.2" step=".05" value=".9"></div><div class="field"><label for="pitch">حدة الصوت: <span id="pitchVal">0.9</span></label><input class="range" id="pitch" type="range" min=".5" max="1.2" step=".05" value=".85"></div></div>
 </div>
 <div class="field"><label for="narrationFile">إضافة تسجيل صوتي ليُضمّن في الفيديو</label><input id="narrationFile" type="file" accept="audio/*"><div class="filehint" id="fileStatus">اختر تسجيلًا بصيغة MP3 أو WAV. سيجهزه التطبيق قبل التصدير.</div></div>
-<div class="two"><div class="field"><label for="music">الموسيقى الخلفية</label><select id="music"><option value="ambient">نغمات هادئة</option><option value="dramatic">نغمات غامضة</option><option value="none">بدون موسيقى</option></select></div><div class="field"><label for="volume">مستوى الموسيقى: <span id="volumeVal">20%</span></label><input class="range" id="volume" type="range" min="0" max=".5" step=".025" value=".2"></div></div>
+<div class="field"><label for="narrationVolume">مستوى التعليق الصوتي: <span id="narrationVolumeVal">100%</span></label><input class="range" id="narrationVolume" type="range" min="0" max="1" step=".05" value="1"></div><div class="two"><div class="field"><label for="music">الموسيقى الخلفية</label><select id="music"><option value="ambient">نغمات هادئة</option><option value="dramatic">نغمات غامضة</option><option value="none">بدون موسيقى</option></select></div><div class="field"><label for="volume">مستوى الموسيقى: <span id="volumeVal">20%</span></label><input class="range" id="volume" type="range" min="0" max=".5" step=".025" value=".2"></div></div>
 </div></div>
 </section></main><footer class="footer">ZEREOS AI Shorts · استوديو فيديوهات عربية · 2026</footer>
 <script>
@@ -80,21 +80,23 @@ let importedSceneImage=null, importedSceneImageObject=null, importedSceneMediaId
 function drawImportedImage(elapsed){
  if(!importedSceneImageObject)return;
  ctx.save();ctx.globalAlpha=.86;
- const image=importedSceneImageObject,scale=Math.max(W/image.width,H/image.height),w=image.width*scale,h=image.height*scale;
- ctx.drawImage(image,(W-w)/2,(H-h)/2,w,h);
+ const image=importedSceneImageObject,sceneMs=Number($('sceneSeconds').value)*1000,local=(elapsed%sceneMs)/sceneMs,motion=$('imageMotion')?.value||'cinematic';
+ const base=Math.max(W/image.width,H/image.height),zoom=motion==='static'?1:motion==='drift'?1.035:1+local*.075, w=image.width*base*zoom,h=image.height*base*zoom;
+ const drift=motion==='drift'?(local-.5)*W*.035:0;
+ ctx.drawImage(image,(W-w)/2+drift,(H-h)/2,w,h);
  ctx.fillStyle='rgba(0,0,0,.42)';ctx.fillRect(0,0,W,H);
  ctx.restore();
 }
-function drawFrame(elapsed=0){const sceneLen=Number($('sceneSeconds').value)*1000,total=sceneLen*4,safeElapsed=Math.max(0,Math.min(Number(elapsed)||0,total)),t=Math.min(safeElapsed,Math.max(0,total-1));const scene=Math.min(3,Math.floor(t/sceneLen));currentScene=scene;ctx.clearRect(0,0,W,H);drawBackground(safeElapsed);drawImportedImage(safeElapsed);drawOrnament(safeElapsed);drawParticles(safeElapsed);const arr=texts();drawTextBlock(arr[scene]||'',scene,t);drawSeal();ctx.save();ctx.textAlign='center';ctx.direction='ltr';ctx.font='18px Tajawal';ctx.fillStyle='#e8c783';ctx.globalAlpha=.75;ctx.fillText('Z E R E O S   •   W I S D O M',W/2,H-65);ctx.restore();$('clock').textContent=formatTime(safeElapsed/1000)+' / '+formatTime(total/1000);$('progress').style.width=(safeElapsed/total*100)+'%'}
+function drawFrame(elapsed=0){const sceneLen=Number($('sceneSeconds').value)*1000,total=sceneLen*4,safeElapsed=Math.max(0,Math.min(Number(elapsed)||0,total)),t=Math.min(safeElapsed,Math.max(0,total-1));const scene=Math.min(3,Math.floor(t/sceneLen));currentScene=scene;ctx.clearRect(0,0,W,H);drawBackground(safeElapsed);drawImportedImage(safeElapsed);drawOrnament(safeElapsed);drawParticles(safeElapsed);const arr=texts();drawTextBlock(arr[scene]||'',scene,t);drawSeal();ctx.save();ctx.textAlign='center';ctx.direction='ltr';ctx.font='18px Tajawal';ctx.fillStyle='#e8c783';ctx.globalAlpha=.75;ctx.fillText('Z E R E O S   •   W I S D O M',W/2,H-65);ctx.restore();const edge=safeElapsed%sceneLen,fadeMs=320,fade=Math.max(0,1-Math.min(edge,sceneLen-edge)/fadeMs);if(safeElapsed>0&&safeElapsed<total&&fade>0){ctx.save();ctx.globalAlpha=fade*.48;ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);ctx.restore()}$('clock').textContent=formatTime(safeElapsed/1000)+' / '+formatTime(total/1000);$('progress').style.width=(safeElapsed/total*100)+'%'}
 function formatTime(s){s=Math.floor(Math.max(0,s));return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}
 function frameLoop(now){if(!playing)return;const elapsed=now-startAt,sceneLen=Number($('sceneSeconds').value)*1000,scene=Math.min(3,Math.floor(elapsed/sceneLen));drawFrame(elapsed);if(scene!==lastSpeak){lastSpeak=scene;const line=texts()[scene];if(line)speak(line)}if(elapsed>=totalMs()){playing=false;cancelAnimationFrame(raf);$('playBtn').textContent='▶ تشغيل المعاينة';if('speechSynthesis'in window)speechSynthesis.cancel();stopMusic();drawFrame(totalMs());$('status').textContent='انتهت المعاينة.';return}raf=requestAnimationFrame(frameLoop)}
 function startPreview(){if(playing){playing=false;cancelAnimationFrame(raf);$('playBtn').textContent='▶ تشغيل المعاينة';if('speechSynthesis'in window)speechSynthesis.cancel();stopMusic();$('status').textContent='تم إيقاف المعاينة.';return}try{const ac=ensureAudio();ac.resume();startMusic()}catch(e){console.warn('تعذر تشغيل موسيقى المعاينة:',e)}playing=true;lastSpeak=-1;startAt=performance.now();$('playBtn').textContent='Ⅱ إيقاف المعاينة';$('status').textContent='المعاينة تعمل مع الصوت…';raf=requestAnimationFrame(frameLoop)}
 function resetPreview(){playing=false;cancelAnimationFrame(raf);previewElapsed=0;lastSpeak=-1;if('speechSynthesis'in window)speechSynthesis.cancel();stopMusic();$('playBtn').textContent='▶ تشغيل المعاينة';drawFrame(0);$('status').textContent='تمت إعادة المعاينة.'}
 function fillPreset(p){$('scriptTitle').value=p.title;$('scriptBody1').value=p.body1;$('scriptBody2').value=p.body2;$('scriptCta').value=p.cta;drawFrame(0);$('status').textContent='تم تطبيق الحكمة.'}
 function renderPresets(){$('presets').innerHTML='';presets.forEach((p,i)=>{const b=document.createElement('button');b.className='preset';b.textContent=(i+1)+'. '+p.title;b.onclick=()=>fillPreset(p);$('presets').appendChild(b)})}
-function update(){ $('fontSizeVal').textContent=$('fontSize').value;$('sceneSecondsVal').textContent=$('sceneSeconds').value;$('rateVal').textContent=$('rate').value;$('pitchVal').textContent=$('pitch').value;$('volumeVal').textContent=Math.round(Number($('volume').value)*100)+'%';updateWordCount();saveDraft();drawFrame(0)}
+function update(){ $('fontSizeVal').textContent=$('fontSize').value;$('sceneSecondsVal').textContent=$('sceneSeconds').value;$('rateVal').textContent=$('rate').value;$('pitchVal').textContent=$('pitch').value;$('volumeVal').textContent=Math.round(Number($('volume').value)*100)+'%';if($('narrationVolumeVal'))$('narrationVolumeVal').textContent=Math.round(Number($('narrationVolume').value)*100)+'%';updateWordCount();saveDraft();drawFrame(0)}
 function updateWordCount(){const content=texts().filter(Boolean).join(' '),words=content.trim()?content.trim().split(/\s+/).length:0;$('wordCount').textContent=words+' كلمة · '+content.length+' حرف'}
-const draftIds=['scriptTitle','scriptBody1','scriptBody2','scriptCta','bulkText','bgStyle','fontFamily','fontSize','sceneSeconds','dust','seal','captions','music','volume','rate','pitch','voiceStyle'];
+const draftIds=['scriptTitle','scriptBody1','scriptBody2','scriptCta','bulkText','bgStyle','fontFamily','fontSize','sceneSeconds','imageMotion','dust','seal','captions','music','volume','narrationVolume','rate','pitch','voiceStyle'];
 function saveDraft(){try{const draft={};draftIds.forEach(id=>{const el=$(id);if(el)draft[id]=el.type==='checkbox'?el.checked:el.value});localStorage.setItem('zereos-shorts-draft-v2',JSON.stringify(draft));$('saveState').textContent='تم الحفظ تلقائيًا على هذا الجهاز.'}catch(error){$('saveState').textContent='الحفظ المحلي غير متاح في هذا المتصفح.'}}
 function restoreDraft(){try{const draft=JSON.parse(localStorage.getItem('zereos-shorts-draft-v2')||'{}');draftIds.forEach(id=>{const el=$(id);if(!el||!(id in draft))return;if(el.type==='checkbox')el.checked=Boolean(draft[id]);else el.value=draft[id]});if(Object.keys(draft).length)$('saveState').textContent='تم استرجاع مسودتك المحفوظة على هذا الجهاز.'}catch(error){console.warn('تعذر استرجاع المسودة:',error)}}
 function distributeScript(){const raw=$('bulkText').value.trim();if(!raw){$('status').textContent='الصق النص الطويل أولًا.';return}let chunks=raw.match(/[^.!؟?]+[.!؟?]*/g)||[raw];chunks=chunks.map(x=>x.trim()).filter(Boolean);const scenes=['','','',''];if(chunks.length<4){const words=raw.split(/\s+/),size=Math.ceil(words.length/4);for(let i=0;i<4;i++)scenes[i]=words.slice(i*size,(i+1)*size).join(' ')}else{let index=0,used=0,target=raw.length/4;chunks.forEach(part=>{if(index<3&&used>=target*(index+1))index++;scenes[index]+=(scenes[index]?' ':'')+part;used+=part.length})}['scriptTitle','scriptBody1','scriptBody2','scriptCta'].forEach((id,i)=>$(id).value=scenes[i]);update();$('status').textContent='تم توزيع النص على المشاهد الأربعة. راجع التقسيم قبل التصدير.'}
@@ -123,7 +125,7 @@ if($('narrationFile').files?.[0]&&!narrationBuffer)throw Error('ملف التع�
 stopMusic();musicGain.gain.setValueAtTime(Number($('volume').value),ac.currentTime);
 if(narrationBuffer){
 narrationSource=ac.createBufferSource();narrationSource.buffer=narrationBuffer;
-const voiceGain=ac.createGain();voiceGain.gain.value=1;
+const voiceGain=ac.createGain();voiceGain.gain.value=Number($('narrationVolume')?.value??1);
 narrationSource.connect(voiceGain);voiceGain.connect(ac.destination);voiceGain.connect(recordingDestination);
 }
 startMusic();
@@ -178,7 +180,7 @@ recording=false;$('exportBtn').disabled=false;$('exportBtn').textContent='● إ
 document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
 $('playBtn').addEventListener('click',startPreview);$('resetBtn').addEventListener('click',resetPreview);$('exportBtn').addEventListener('click',exportVideo);
 $('randomBtn').addEventListener('click',()=>fillPreset(presets[Math.floor(Math.random()*presets.length)]));
-['scriptTitle','scriptBody1','scriptBody2','scriptCta','bulkText','bgStyle','fontFamily','fontSize','sceneSeconds','dust','seal','captions','music','volume','rate','pitch','voiceStyle'].forEach(id=>$(id).addEventListener('input',update));
+['scriptTitle','scriptBody1','scriptBody2','scriptCta','bulkText','bgStyle','fontFamily','fontSize','sceneSeconds','imageMotion','dust','seal','captions','music','volume','narrationVolume','rate','pitch','voiceStyle'].forEach(id=>$(id).addEventListener('input',update));
 $('readSceneBtn').addEventListener('click',()=>speak(texts()[currentScene]||''));$('readAllBtn').addEventListener('click',speakAll);$('stopVoiceBtn').addEventListener('click',stopVoice);$('voiceStyle').addEventListener('change',applyVoiceStyle);['rate','pitch'].forEach(id=>$(id).addEventListener('input',()=>{$('voiceStyle').value='custom'}));$('splitScriptBtn').addEventListener('click',distributeScript);$('copyScriptBtn').addEventListener('click',copyScript);$('exportSrtBtn').addEventListener('click',exportSubtitles);
 $('narrationFile').addEventListener('change',async e=>{
 const file=e.target.files?.[0],token=++narrationLoadToken;
@@ -252,7 +254,7 @@ restoreDraft();initParticles();renderPresets();document.fonts?.ready?.then(()=>d
   let currentProjectId=await window.ZereosStorage.local.activeProjectId()||('project-'+Date.now());
   const snapshot=()=>({
     id:currentProjectId,name:document.title.includes('ZEREOS')?'مشروع ZEREOS':'مشروع فيديو',
-    editor:{scriptTitle:$('scriptTitle').value,scriptBody1:$('scriptBody1').value,scriptBody2:$('scriptBody2').value,scriptCta:$('scriptCta').value,bgStyle:$('bgStyle').value,fontFamily:$('fontFamily').value,fontSize:$('fontSize').value,sceneSeconds:$('sceneSeconds').value,dust:$('dust').checked,seal:$('seal').checked,captions:$('captions').checked,music:$('music').value,volume:$('volume').value,rate:$('rate').value,pitch:$('pitch').value,voiceStyle:$('voiceStyle').value},
+    editor:{scriptTitle:$('scriptTitle').value,scriptBody1:$('scriptBody1').value,scriptBody2:$('scriptBody2').value,scriptCta:$('scriptCta').value,bgStyle:$('bgStyle').value,fontFamily:$('fontFamily').value,fontSize:$('fontSize').value,sceneSeconds:$('sceneSeconds').value,imageMotion:$('imageMotion')?.value||'cinematic',dust:$('dust').checked,seal:$('seal').checked,captions:$('captions').checked,music:$('music').value,volume:$('volume').value,narrationVolume:$('narrationVolume')?.value||'1',rate:$('rate').value,pitch:$('pitch').value,voiceStyle:$('voiceStyle').value},
     imageMediaId:importedSceneMediaId||null,
     narrationMediaId:importedNarrationMediaId||null,
     createdAt:Date.now()
@@ -315,7 +317,7 @@ restoreDraft();initParticles();renderPresets();document.fonts?.ready?.then(()=>d
     if(autoSaveTimer)clearTimeout(autoSaveTimer);
     autoSaveTimer=setTimeout(runAutoSave,1100);
   }
-  ['scriptTitle','scriptBody1','scriptBody2','scriptCta','bgStyle','fontFamily','fontSize','sceneSeconds','dust','seal','captions','music','volume','rate','pitch','voiceStyle'].forEach(id=>{
+  ['scriptTitle','scriptBody1','scriptBody2','scriptCta','bgStyle','fontFamily','fontSize','sceneSeconds','imageMotion','dust','seal','captions','music','volume','narrationVolume','rate','pitch','voiceStyle'].forEach(id=>{
     const el=$(id);if(el)el.addEventListener('input',scheduleAutoSave);
     if(el)el.addEventListener('change',scheduleAutoSave);
   });
