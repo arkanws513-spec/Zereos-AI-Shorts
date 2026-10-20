@@ -283,18 +283,45 @@ restoreDraft();initParticles();renderPresets();document.fonts?.ready?.then(()=>d
       });
     }catch(error){list.textContent='تعذر قراءة المشاريع من التخزين المحلي: '+(error.message||error)}
   }
-  async function saveCurrent(){
+  async function saveCurrent(askName=true){
     const old=await window.ZereosStorage.local.getProject(currentProjectId);
-    const name=old?.name||prompt('اسم المشروع','مشروع ZEREOS')||'مشروع ZEREOS';
+    const name=old?.name||(askName?(prompt('اسم المشروع','مشروع ZEREOS')||'مشروع ZEREOS'):'مشروع ZEREOS');
     const record={...snapshot(),name,createdAt:old?.createdAt||Date.now()};
     await window.ZereosStorage.local.saveProject(record);
     $('status').textContent='تم حفظ المشروع محليًا عبر IndexedDB.';
     await refreshProjects();
   }
+  /* Save the active project after edits, without interrupting typing. */
+  let autoSaveTimer=0, autoSaveBusy=false, autoSaveAgain=false;
+  async function runAutoSave(){
+    if(autoSaveBusy){autoSaveAgain=true;return}
+    autoSaveBusy=true;
+    try{
+      const old=await window.ZereosStorage.local.getProject(currentProjectId);
+      const record={...snapshot(),name:old?.name||'مشروع ZEREOS',createdAt:old?.createdAt||Date.now()};
+      await window.ZereosStorage.local.saveProject(record);
+      const label=$('saveState');
+      if(label)label.textContent='حُفظت التعديلات تلقائيًا على هذا الجهاز.';
+    }catch(error){
+      const label=$('saveState');
+      if(label)label.textContent='تعذر الحفظ التلقائي: '+(error.message||error);
+    }finally{
+      autoSaveBusy=false;
+      if(autoSaveAgain){autoSaveAgain=false;scheduleAutoSave()}
+    }
+  }
+  function scheduleAutoSave(){
+    if(autoSaveTimer)clearTimeout(autoSaveTimer);
+    autoSaveTimer=setTimeout(runAutoSave,1100);
+  }
+  ['scriptTitle','scriptBody1','scriptBody2','scriptCta','bgStyle','fontFamily','fontSize','sceneSeconds','dust','seal','captions','music','volume','rate','pitch','voiceStyle'].forEach(id=>{
+    const el=$(id);if(el)el.addEventListener('input',scheduleAutoSave);
+    if(el)el.addEventListener('change',scheduleAutoSave);
+  });
   projectButton.onclick=async()=>{panel.classList.toggle('hidden');await refreshProjects()};
   $('closeProjectsBtn').onclick=()=>panel.classList.add('hidden');
   $('saveProjectBtn').onclick=()=>saveCurrent().catch(e=>alert('تعذر الحفظ: '+e.message));
-  $('newProjectBtn').onclick=()=>{if(confirm('بدء مشروع جديد؟ احفظ مشروعك الحالي أولًا إذا احتجت إليه.')){currentProjectId='project-'+Date.now();['scriptTitle','scriptBody1','scriptBody2','scriptCta'].forEach(id=>$(id).value='');update();$('status').textContent='مشروع جديد؛ احفظه للاحتفاظ به.'}};
+  $('newProjectBtn').onclick=async()=>{if(confirm('بدء مشروع جديد؟ احفظ مشروعك الحالي أولًا إذا احتجت إليه.')){if(autoSaveTimer)clearTimeout(autoSaveTimer);currentProjectId='project-'+Date.now();window.ZereosStorage.local.setActiveProjectId(currentProjectId);if(importedSceneImage)URL.revokeObjectURL(importedSceneImage);importedSceneImage=null;importedSceneImageObject=null;importedSceneMediaId=null;importedNarrationMediaId=null;narrationBuffer=null;$('narrationFile').value='';$('fileStatus').textContent='اختر تسجيلًا صوتيًا لإضافته إلى المشروع الجديد.';['scriptTitle','scriptBody1','scriptBody2','scriptCta'].forEach(id=>$(id).value='');update();drawFrame(0);$('status').textContent='بدأ مشروع جديد دون وسائط المشروع السابق.';scheduleAutoSave()}};
   $('exportProjectBtn').onclick=async()=>{const record={...snapshot(),name:(await window.ZereosStorage.local.getProject(currentProjectId))?.name||'مشروع ZEREOS'};const blob=new Blob([JSON.stringify(record,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='zereos-project-'+Date.now()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),30000)};
   $('importProjectFile').onchange=async e=>{const file=e.target.files?.[0];if(!file)return;try{const p=JSON.parse(await file.text());if(!p.editor||typeof p.editor!=='object')throw new Error('ملف المشروع غير صالح');p.id='project-'+Date.now();p.name=(p.name||'مشروع مستورد')+' (مستورد)';p.createdAt=Date.now();await window.ZereosStorage.local.saveProject(p);applyProject(p);await refreshProjects();$('status').textContent='تم استيراد المشروع وحفظه محليًا.'}catch(error){alert('تعذر استيراد المشروع: '+error.message)}finally{e.target.value=''}};
   try{const id=await window.ZereosStorage.local.activeProjectId();if(id){const p=await window.ZereosStorage.local.getProject(id);if(p)applyProject(p)}}catch(error){console.warn('تعذر استعادة المشروع النشط',error)}
