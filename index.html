@@ -423,8 +423,9 @@ async function getNeuralEngine(){
   neuralEnginePromise=(async()=>{
    setTtsStatus('جارٍ تحميل محرك الصوت العربي… قد يستغرق أول تشغيل بعض الوقت.');
    const {NabraTTS}=await import('https://cdn.jsdelivr.net/npm/nabra-tts@0/+esm');
-   const engine=await NabraTTS.load({dtype:'fp16',device:'auto',cache:true,onProgress:({file,loaded,total})=>{
-    if(total>0)setTtsStatus('جارٍ تنزيل مكونات الصوت: '+file+' · '+Math.round(loaded/total*100)+'%');
+   const engine=await NabraTTS.load({dtype:'fp16',device:'auto',cache:true,onProgress:(progress={})=>{
+    const file=progress.file||'مكونات الصوت',loaded=Number(progress.loaded)||0,total=Number(progress.total)||0;
+    if(total>0)setTtsStatus('جارٍ تنزيل مكونات الصوت: '+file+' · '+Math.min(100,Math.round(loaded/total*100))+'%');
     else setTtsStatus('جارٍ تجهيز مكونات الصوت: '+file);
    }});
    neuralEngine=engine;return engine;
