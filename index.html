@@ -43,6 +43,7 @@
 <div class="two"><div class="field"><label for="rate">سرعة القراءة: <span id="rateVal">0.9</span></label><input class="range" id="rate" type="range" min=".7" max="1.2" step=".05" value=".9"></div><div class="field"><label for="pitch">حدة الصوت: <span id="pitchVal">0.9</span></label><input class="range" id="pitch" type="range" min=".5" max="1.2" step=".05" value=".85"></div></div>
 </div>
 <div class="field"><label for="narrationFile">إضافة تسجيل صوتي ليُضمّن في الفيديو</label><input id="narrationFile" type="file" accept="audio/*"><div class="filehint" id="fileStatus">اختر تسجيلًا بصيغة MP3 أو WAV. سيجهزه التطبيق قبل التصدير.</div></div>
+<div class="tool-card" id="voiceLibraryPanel"><h4>مكتبة الأصوات الموحدة</h4><p class="note">اجمع هنا التسجيلات البشرية وملفات التعليق المُولّدة بالذكاء الاصطناعي. أصوات النظام تظهر أيضًا للمعاينة؛ لا يمكن حفظها أو تضمينها مباشرة في الفيديو من المتصفح، لذلك استخدم ملفًا صوتيًا إذا أردت تصديره.</p><div class="tool-actions"><label class="btn primary" for="humanVoiceUpload">＋ إضافة تسجيل بشري</label><input id="humanVoiceUpload" type="file" accept="audio/*" multiple hidden><label class="btn" for="aiVoiceUpload">✧ إضافة ملف صوت AI</label><input id="aiVoiceUpload" type="file" accept="audio/*" multiple hidden><button class="btn" id="refreshVoiceLibraryBtn" type="button">↻ تحديث المكتبة</button></div><div id="voiceLibraryStatus" class="filehint" aria-live="polite">تُحفظ الملفات على هذا الجهاز فقط.</div><div id="voiceLibraryList" class="fields"><p class="note">جارٍ تجهيز مكتبة الأصوات…</p></div></div>
 <div class="field"><label for="narrationVolume">مستوى التعليق الصوتي: <span id="narrationVolumeVal">100%</span></label><input class="range" id="narrationVolume" type="range" min="0" max="1" step=".05" value="1"></div><div class="two"><div class="field"><label for="music">الموسيقى الخلفية</label><select id="music"><option value="ambient">نغمات هادئة</option><option value="dramatic">نغمات غامضة</option><option value="none">بدون موسيقى</option></select></div><div class="field"><label for="volume">مستوى الموسيقى: <span id="volumeVal">20%</span></label><input class="range" id="volume" type="range" min="0" max=".5" step=".025" value=".2"></div></div>
 </div></div>
 <div class="panel hidden" id="tab-export"><h3 class="smalltitle">تصدير الفيديو والمشروع</h3><p class="note">راجع المشاهد في المعاينة، ثم أنشئ الفيديو. سيختار التطبيق صيغة مدعومة في متصفحك. الصوت الذي يُصدّر حاليًا هو الموسيقى والتسجيل الصوتي الذي أضفته؛ قراءة النص عبر أصوات النظام للمعاينة فقط.</p><div class="tool-card"><h4>الفيديو النهائي</h4><p class="note">المقاس الرأسي 9:16 · أربعة مشاهد · ترجمة قابلة للتنزيل بصيغة SRT.</p><button class="btn export" id="exportFromPageBtn" type="button">● إنشاء وتنزيل الفيديو</button><div class="tool-actions"><button class="btn" id="srtFromPageBtn" type="button">⇩ تنزيل الترجمة SRT</button><button class="btn" id="saveFromPageBtn" type="button">▣ حفظ المشروع</button></div></div><div class="tool-card"><h4>ملف المشروع</h4><p class="note">احفظ إعداداتك محليًا أو صدّر ملف JSON مع الوسائط المرتبطة به لتتمكن من استيراده لاحقًا على هذا الجهاز أو جهاز آخر.</p><div class="tool-actions"><button class="btn primary" id="exportProjectFromPageBtn" type="button">تصدير المشروع ووسائطه</button><label class="btn" for="importProjectFile">استيراد مشروع</label></div></div></div>
@@ -269,6 +270,57 @@ restoreDraft();initParticles();renderPresets();document.fonts?.ready?.then(()=>d
     }catch(error){alert('تعذر حفظ الملفات. قد تكون مساحة المتصفح غير كافية: '+error.message)}
     finally{e.target.value=''}
   };
+  async function renderVoiceLibrary(){
+    const list=$('voiceLibraryList');if(!list)return;
+    list.replaceChildren();
+    try{
+      const assets=(await window.ZereosStorage.local.listMedia()).filter(a=>a.kind==='audio');
+      const systemVoices=('speechSynthesis'in window)?speechSynthesis.getVoices():[];
+      const status=$('voiceLibraryStatus');
+      if(status)status.textContent=assets.length+' ملف صوتي محفوظ محليًا · '+systemVoices.length+' صوت نظام متاح للمعاينة. أصوات النظام لا تُضمّن تلقائيًا في التصدير.';
+      if(systemVoices.length){
+        const heading=document.createElement('h4');heading.className='smalltitle';heading.textContent='أصوات الذكاء الاصطناعي المتاحة على الجهاز';list.appendChild(heading);
+        systemVoices.forEach(v=>{
+          const card=document.createElement('div');card.className='tool-card';
+          const name=document.createElement('strong');name.textContent=v.name+' · '+v.lang;
+          const note=document.createElement('p');note.className='note';note.textContent='صوت النظام — معاينة النص فقط، وليس ملفًا صوتيًا قابلًا للتصدير.';
+          const actions=document.createElement('div');actions.className='tool-actions';
+          const preview=document.createElement('button');preview.className='btn primary';preview.type='button';preview.textContent='▶ تجربة النص الحالي';
+          preview.onclick=()=>{if(!('speechSynthesis'in window))return;const sel=$('voice');const idx=speechSynthesis.getVoices().findIndex(x=>x.voiceURI===v.voiceURI);if(idx>=0)sel.value=String(idx);speak(texts()[currentScene]||texts().filter(Boolean).join(' '));};
+          actions.appendChild(preview);card.append(name,note,actions);list.appendChild(card);
+        });
+      }
+      const savedHeading=document.createElement('h4');savedHeading.className='smalltitle';savedHeading.textContent='التسجيلات والملفات الصوتية المحفوظة';list.appendChild(savedHeading);
+      if(!assets.length){const empty=document.createElement('p');empty.className='note';empty.textContent='لم تضف ملفات صوتية بعد. أضف تسجيلًا بشريًا أو ملف صوت AI من الأزرار أعلاه.';list.appendChild(empty)}
+      assets.forEach(asset=>{
+        const card=document.createElement('div');card.className='tool-card';
+        const name=document.createElement('strong');name.textContent=asset.name;
+        const category=document.createElement('p');category.className='note';category.textContent=(asset.voiceCategory==='human'?'تسجيل بشري':asset.voiceCategory==='ai'?'ملف صوت مولّد بالذكاء الاصطناعي':'ملف صوتي')+' · '+((asset.size||asset.blob?.size||0)/1024/1024).toFixed(2)+' MB';
+        const actions=document.createElement('div');actions.className='tool-actions';
+        const preview=document.createElement('button');preview.className='btn';preview.type='button';preview.textContent='▶ استماع';
+        preview.onclick=()=>{const url=URL.createObjectURL(asset.blob);const audio=new Audio(url);audio.onended=()=>URL.revokeObjectURL(url);audio.onerror=()=>{URL.revokeObjectURL(url);if($('voiceLibraryStatus'))$('voiceLibraryStatus').textContent='تعذر تشغيل الملف الصوتي.'};audio.play().catch(error=>{URL.revokeObjectURL(url);if($('voiceLibraryStatus'))$('voiceLibraryStatus').textContent='تعذر تشغيل الملف: '+error.message})};
+        const use=document.createElement('button');use.className='btn primary';use.type='button';use.textContent='استخدام في الفيديو';
+        use.onclick=async()=>{try{const ac=ensureAudio();await ac.resume();const decoded=await ac.decodeAudioData(await asset.blob.arrayBuffer());narrationBuffer=decoded;importedNarrationMediaId=asset.id;$('narrationFile').value='';$('fileStatus').textContent='تم اختيار '+asset.name+' ('+Math.ceil(decoded.duration)+' ثانية) وسيُضمّن في الفيديو.';scheduleAutoSave();if($('voiceLibraryStatus'))$('voiceLibraryStatus').textContent='تم اختيار '+asset.name+' للتصدير.';$('status').textContent='تم تجهيز الملف الصوتي من مكتبة الأصوات.'}catch(error){if($('voiceLibraryStatus'))$('voiceLibraryStatus').textContent='تعذر تجهيز الملف: '+error.message}};
+        actions.append(preview,use);card.append(name,category,actions);list.appendChild(card);
+      });
+    }catch(error){list.textContent='تعذر تحميل مكتبة الأصوات: '+error.message}
+  }
+  async function saveVoiceFiles(files,voiceCategory){
+    if(!files.length)return;
+    const status=$('voiceLibraryStatus');if(status)status.textContent='جارٍ حفظ الملفات الصوتية محليًا…';
+    try{
+      for(const file of files){
+        if(!file.type.startsWith('audio/'))throw new Error('اختر ملفات صوتية فقط.');
+        await window.ZereosStorage.local.saveMedia({name:file.name,type:file.type,kind:'audio',size:file.size,blob:file,projectId:currentProjectId,voiceCategory});
+      }
+      if(status)status.textContent='تم حفظ '+files.length+' ملف صوتي محليًا.';
+      await renderVoiceLibrary();await refreshMedia();
+    }catch(error){if(status)status.textContent='تعذر الحفظ: '+error.message}
+  }
+  $('humanVoiceUpload').addEventListener('change',e=>{saveVoiceFiles(Array.from(e.target.files||[]),'human');e.target.value=''});
+  $('aiVoiceUpload').addEventListener('change',e=>{saveVoiceFiles(Array.from(e.target.files||[]),'ai');e.target.value=''});
+  $('refreshVoiceLibraryBtn').addEventListener('click',()=>{if('speechSynthesis'in window)loadVoices();renderVoiceLibrary()});
+
   const projectName=()=>{const value=window.ZereosStorage.local.activeProjectId();return value||('zereos-'+Date.now())};
   let currentProjectId=await window.ZereosStorage.local.activeProjectId()||('project-'+Date.now());
   const snapshot=()=>({
@@ -350,7 +402,8 @@ restoreDraft();initParticles();renderPresets();document.fonts?.ready?.then(()=>d
   function base64ToBlob(data,type){const binary=atob(data),bytes=new Uint8Array(binary.length);for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);return new Blob([bytes],{type:type||'application/octet-stream'})}
   $('exportProjectBtn').onclick=async()=>{try{const record={...snapshot(),name:(await window.ZereosStorage.local.getProject(currentProjectId))?.name||'مشروع ZEREOS'};const mediaIds=new Set([record.imageMediaId,record.videoMediaId,record.narrationMediaId].filter(Boolean));const localMedia=await window.ZereosStorage.local.listMedia(currentProjectId);localMedia.forEach(item=>mediaIds.add(item.id));const assets=[];let totalBytes=0;for(const id of mediaIds){const asset=await window.ZereosStorage.local.getMedia(id);if(!asset?.blob)continue;totalBytes+=asset.size||asset.blob.size||0;if(totalBytes>25*1024*1024)throw new Error('حجم الوسائط المرتبطة يتجاوز 25 ميجابايت. نزّل المشروع دون وسائط أو صدّر الملفات الكبيرة منفصلة لتجنب استهلاك ذاكرة الهاتف.');assets.push({id:asset.id,name:asset.name,type:asset.type,kind:asset.kind,size:asset.size,base64:await blobToBase64(asset.blob)})}record.mediaAssets=assets;const blob=new Blob([JSON.stringify(record)],{type:'application/json'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='zereos-project-'+Date.now()+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);$('status').textContent='تم تصدير المشروع مع '+assets.length+' ملف وسائط ('+(totalBytes/1024/1024).toFixed(1)+' ميجابايت).'}catch(error){$('status').textContent='تعذر تصدير المشروع: '+error.message}};
   $('importProjectFile').onchange=async e=>{const file=e.target.files?.[0];if(!file)return;try{const p=JSON.parse(await file.text());if(!p.editor||typeof p.editor!=='object')throw new Error('ملف المشروع غير صالح');const oldId=p.id;p.id='project-'+Date.now();p.name=(p.name||'مشروع مستورد')+' (مستورد)';p.createdAt=Date.now();const idMap={};for(const asset of (Array.isArray(p.mediaAssets)?p.mediaAssets:[])){if(!asset.base64)continue;const saved=await window.ZereosStorage.local.saveMedia({name:asset.name||'وسيط مستورد',type:asset.type||'application/octet-stream',kind:asset.kind||'file',size:asset.size||0,blob:base64ToBlob(asset.base64,asset.type),projectId:p.id});idMap[asset.id]=saved.id}['imageMediaId','videoMediaId','narrationMediaId'].forEach(key=>{if(p[key]&&idMap[p[key]])p[key]=idMap[p[key]]});delete p.mediaAssets;await window.ZereosStorage.local.saveProject(p);await applyProject(p);await refreshProjects();$('status').textContent='تم استيراد المشروع ووسائطه وحفظها على هذا الجهاز.'}catch(error){alert('تعذر استيراد المشروع: '+error.message)}finally{e.target.value=''}};
-  try{const id=await window.ZereosStorage.local.activeProjectId();if(id){const p=await window.ZereosStorage.local.getProject(id);if(p)applyProject(p)}}catch(error){console.warn('تعذر استعادة المشروع النشط',error)}
+  try{const id=await window.ZereosStorage.local.activeProjectId();if(id){const p=await window.ZereosStorage.local.getProject(id);if(p)await applyProject(p)}}catch(error){console.warn('تعذر استعادة المشروع النشط',error)}
+  await renderVoiceLibrary();
 })().catch(error=>console.error('Project storage initialization failed',error));
 
 </script></body></html>
