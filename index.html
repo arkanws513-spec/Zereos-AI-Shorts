@@ -76,7 +76,16 @@ ctx.save();ctx.globalAlpha=alpha;ctx.textAlign='center';ctx.textBaseline='middle
 ctx.fillStyle='#0504039c';roundedRect(64,boxY,W-128,boxH,18);ctx.fill();ctx.strokeStyle='#c89a4b99';ctx.lineWidth=1.5;roundedRect(64,boxY,W-128,boxH,18);ctx.stroke();
 lines.forEach((line,i)=>{const y=centerY-blockH/2+lineH*(i+.5)+offset;ctx.shadowColor='#e5ad4b';ctx.shadowBlur=18;ctx.fillStyle='#fff0c9';ctx.fillText(line,W/2,y,maxW);ctx.shadowBlur=0});ctx.restore()
 }
-function drawFrame(elapsed=0){const sceneLen=Number($('sceneSeconds').value)*1000,total=sceneLen*4,safeElapsed=Math.max(0,Math.min(Number(elapsed)||0,total)),t=Math.min(safeElapsed,Math.max(0,total-1));const scene=Math.min(3,Math.floor(t/sceneLen));currentScene=scene;ctx.clearRect(0,0,W,H);drawBackground(safeElapsed);drawOrnament(safeElapsed);drawParticles(safeElapsed);const arr=texts();drawTextBlock(arr[scene]||'',scene,t);drawSeal();ctx.save();ctx.textAlign='center';ctx.direction='ltr';ctx.font='18px Tajawal';ctx.fillStyle='#e8c783';ctx.globalAlpha=.75;ctx.fillText('Z E R E O S   •   W I S D O M',W/2,H-65);ctx.restore();$('clock').textContent=formatTime(safeElapsed/1000)+' / '+formatTime(total/1000);$('progress').style.width=(safeElapsed/total*100)+'%'}
+let importedSceneImage=null, importedSceneImageObject=null;
+function drawImportedImage(elapsed){
+ if(!importedSceneImageObject)return;
+ ctx.save();ctx.globalAlpha=.86;
+ const image=importedSceneImageObject,scale=Math.max(W/image.width,H/image.height),w=image.width*scale,h=image.height*scale;
+ ctx.drawImage(image,(W-w)/2,(H-h)/2,w,h);
+ ctx.fillStyle='rgba(0,0,0,.42)';ctx.fillRect(0,0,W,H);
+ ctx.restore();
+}
+function drawFrame(elapsed=0){const sceneLen=Number($('sceneSeconds').value)*1000,total=sceneLen*4,safeElapsed=Math.max(0,Math.min(Number(elapsed)||0,total)),t=Math.min(safeElapsed,Math.max(0,total-1));const scene=Math.min(3,Math.floor(t/sceneLen));currentScene=scene;ctx.clearRect(0,0,W,H);drawBackground(safeElapsed);drawImportedImage(safeElapsed);drawOrnament(safeElapsed);drawParticles(safeElapsed);const arr=texts();drawTextBlock(arr[scene]||'',scene,t);drawSeal();ctx.save();ctx.textAlign='center';ctx.direction='ltr';ctx.font='18px Tajawal';ctx.fillStyle='#e8c783';ctx.globalAlpha=.75;ctx.fillText('Z E R E O S   •   W I S D O M',W/2,H-65);ctx.restore();$('clock').textContent=formatTime(safeElapsed/1000)+' / '+formatTime(total/1000);$('progress').style.width=(safeElapsed/total*100)+'%'}
 function formatTime(s){s=Math.floor(Math.max(0,s));return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}
 function frameLoop(now){if(!playing)return;const elapsed=now-startAt,sceneLen=Number($('sceneSeconds').value)*1000,scene=Math.min(3,Math.floor(elapsed/sceneLen));drawFrame(elapsed);if(scene!==lastSpeak){lastSpeak=scene;const line=texts()[scene];if(line)speak(line)}if(elapsed>=totalMs()){playing=false;cancelAnimationFrame(raf);$('playBtn').textContent='▶ تشغيل المعاينة';if('speechSynthesis'in window)speechSynthesis.cancel();stopMusic();drawFrame(totalMs());$('status').textContent='انتهت المعاينة.';return}raf=requestAnimationFrame(frameLoop)}
 function startPreview(){if(playing){playing=false;cancelAnimationFrame(raf);$('playBtn').textContent='▶ تشغيل المعاينة';if('speechSynthesis'in window)speechSynthesis.cancel();stopMusic();$('status').textContent='تم إيقاف المعاينة.';return}try{const ac=ensureAudio();ac.resume();startMusic()}catch(e){console.warn('تعذر تشغيل موسيقى المعاينة:',e)}playing=true;lastSpeak=-1;startAt=performance.now();$('playBtn').textContent='Ⅱ إيقاف المعاينة';$('status').textContent='المعاينة تعمل مع الصوت…';raf=requestAnimationFrame(frameLoop)}
@@ -197,6 +206,46 @@ restoreDraft();initParticles();renderPresets();document.fonts?.ready?.then(()=>d
   panel.className='panel hidden';panel.id='projectsPanel';panel.style.cssText='max-width:900px;margin:0 auto 20px;';
   panel.innerHTML='<div class="panelhead"><span>المشاريع المحفوظة على هذا الجهاز</span><button class="btn" id="closeProjectsBtn" type="button">إغلاق</button></div><div class="tool-actions"><button class="btn primary" id="saveProjectBtn" type="button">حفظ المشروع الحالي</button><button class="btn" id="newProjectBtn" type="button">مشروع جديد</button><button class="btn" id="exportProjectBtn" type="button">تصدير ملف المشروع</button><label class="btn" for="importProjectFile">استيراد مشروع</label><input id="importProjectFile" type="file" accept=".json,application/json" hidden></div><div id="projectList" class="fields"><p class="note">جارٍ تحميل المشاريع…</p></div><p class="note">تُحفظ المشاريع محليًا باستخدام IndexedDB. الملفات السحابية غير مفعلة بعد؛ تم فصل طبقة التخزين لتسهيل إضافتها لاحقًا.</p>';
   document.querySelector('main.layout').insertAdjacentElement('beforebegin',panel);
+  const mediaPanel=document.createElement('section');
+  mediaPanel.className='panel hidden';mediaPanel.id='mediaPanel';mediaPanel.style.cssText='max-width:900px;margin:0 auto 20px;';
+  mediaPanel.innerHTML='<div class="panelhead"><span>مكتبة الوسائط المحلية</span><button class="btn" id="closeMediaBtn" type="button">إغلاق</button></div><p class="note">اختر صورًا أو فيديوهات أو ملفات صوتية من هاتفك. تُحفظ الملفات داخل IndexedDB على هذا الجهاز.</p><div class="tool-actions"><label class="btn primary" for="mediaUploadInput">＋ رفع ملفات من الهاتف</label><input id="mediaUploadInput" type="file" accept="image/*,video/*,audio/*" multiple hidden><button class="btn" id="clearImageUseBtn" type="button">إزالة صورة المشهد</button></div><div id="mediaUsage" class="note"></div><div id="mediaList" class="fields"></div>';
+  document.querySelector('main.layout').insertAdjacentElement('beforebegin',mediaPanel);
+  const mediaButton=document.createElement('button');mediaButton.className='btn';mediaButton.id='mediaBtn';mediaButton.textContent='▧ ملفاتي';$('randomBtn').insertAdjacentElement('beforebegin',mediaButton);
+  mediaButton.onclick=async()=>{mediaPanel.classList.toggle('hidden');await refreshMedia()};
+  $('closeMediaBtn').onclick=()=>mediaPanel.classList.add('hidden');
+  $('clearImageUseBtn').onclick=()=>{importedSceneImageObject=null;importedSceneImage=null;drawFrame(0);$('status').textContent='تمت إزالة صورة المشهد.'};
+  async function refreshMedia(){
+    const list=$('mediaList');list.replaceChildren();
+    try{
+      const assets=await window.ZereosStorage.local.listMedia();
+      const usage=await window.ZereosStorage.local.usage();
+      $('mediaUsage').textContent=usage&&usage.usage!=null?'المستخدم محليًا: '+(usage.usage/1024/1024).toFixed(1)+' ميجابايت من '+(usage.quota/1024/1024).toFixed(0)+' ميجابايت تقريبًا.':'عدد الملفات المحفوظة: '+assets.length;
+      if(!assets.length){const empty=document.createElement('p');empty.className='note';empty.textContent='لم ترفع ملفات بعد.';list.appendChild(empty);return}
+      assets.forEach(asset=>{
+        const card=document.createElement('div');card.className='tool-card';
+        const name=document.createElement('strong');name.textContent=asset.name;
+        const meta=document.createElement('p');meta.className='note';meta.textContent=(asset.kind||'ملف')+' · '+(asset.size/1024/1024).toFixed(2)+' MB';
+        const actions=document.createElement('div');actions.className='tool-actions';
+        if(asset.kind==='image'){const use=document.createElement('button');use.className='btn primary';use.textContent='استخدام كخلفية';use.onclick=()=>{const url=URL.createObjectURL(asset.blob),img=new Image();img.onload=()=>{if(importedSceneImage)URL.revokeObjectURL(importedSceneImage);importedSceneImage=url;importedSceneImageObject=img;drawFrame(0);$('status').textContent='تم إدراج الصورة كخلفية للمعاينة والتصدير.'};img.onerror=()=>{URL.revokeObjectURL(url);alert('تعذر فتح الصورة')};img.src=url};actions.appendChild(use)}
+        const download=document.createElement('button');download.className='btn';download.textContent='تنزيل';download.onclick=()=>{const url=URL.createObjectURL(asset.blob),a=document.createElement('a');a.href=url;a.download=asset.name;a.click();setTimeout(()=>URL.revokeObjectURL(url),30000)};actions.appendChild(download);
+        const del=document.createElement('button');del.className='btn';del.textContent='حذف';del.onclick=async()=>{if(confirm('حذف الملف '+asset.name+' من المكتبة المحلية؟')){await window.ZereosStorage.local.deleteMedia(asset.id);await refreshMedia()}};actions.appendChild(del);
+        card.append(name,meta,actions);list.appendChild(card);
+      });
+    }catch(error){list.textContent='تعذر تحميل مكتبة الوسائط: '+error.message}
+  }
+  $('mediaUploadInput').onchange=async e=>{
+    const files=Array.from(e.target.files||[]);if(!files.length)return;
+    $('status').textContent='جارٍ حفظ الملفات على هذا الجهاز…';
+    try{
+      for(const file of files){
+        const kind=file.type.startsWith('image/')?'image':file.type.startsWith('video/')?'video':file.type.startsWith('audio/')?'audio':'file';
+        await window.ZereosStorage.local.saveMedia({name:file.name,type:file.type,kind,size:file.size,blob:file,projectId:currentProjectId});
+      }
+      $('status').textContent='تم حفظ '+files.length+' ملف/ملفات في مكتبة الوسائط المحلية.';
+      await refreshMedia();
+    }catch(error){alert('تعذر حفظ الملفات. قد تكون مساحة المتصفح غير كافية: '+error.message)}
+    finally{e.target.value=''}
+  };
   const projectName=()=>{const value=window.ZereosStorage.local.activeProjectId();return value||('zereos-'+Date.now())};
   let currentProjectId=await window.ZereosStorage.local.activeProjectId()||('project-'+Date.now());
   const snapshot=()=>({
