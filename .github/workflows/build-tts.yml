@@ -1,0 +1,63 @@
+name: Build local Arabic TTS assets
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "index.html"
+      - "storage.js"
+      - ".github/workflows/build-tts.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: local-tts-assets
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install browser TTS runtime
+        run: npm install --prefix .build --no-save nabra-tts@0.1.0 esbuild
+
+      - name: Bundle TTS locally and copy ONNX WASM runtimes
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p vendor/ort
+          .build/node_modules/.bin/esbuild .build/node_modules/nabra-tts/dist/index.js \
+            --bundle --format=esm --platform=browser --target=es2020 \
+            --outfile=vendor/nabra-tts.bundle.js
+          cp .build/node_modules/onnxruntime-web/dist/*.wasm vendor/ort/
+          test -s vendor/nabra-tts.bundle.js
+          test -n "$(find vendor/ort -maxdepth 1 -name '*.wasm' -print -quit)"
+          echo "Bundled TTS: $(wc -c < vendor/nabra-tts.bundle.js) bytes"
+          echo "WASM assets: $(find vendor/ort -maxdepth 1 -name '*.wasm' | wc -l)"
+
+      - name: Commit generated local runtime assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add vendor/nabra-tts.bundle.js vendor/ort
+          if git diff --cached --quiet; then
+            echo "Local TTS assets are already up to date."
+            exit 0
+          fi
+          git commit -m "Build local Arabic TTS runtime assets"
+          git push
