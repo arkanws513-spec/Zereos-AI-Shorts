@@ -76,7 +76,7 @@ ctx.save();ctx.globalAlpha=alpha;ctx.textAlign='center';ctx.textBaseline='middle
 ctx.fillStyle='#0504039c';roundedRect(64,boxY,W-128,boxH,18);ctx.fill();ctx.strokeStyle='#c89a4b99';ctx.lineWidth=1.5;roundedRect(64,boxY,W-128,boxH,18);ctx.stroke();
 lines.forEach((line,i)=>{const y=centerY-blockH/2+lineH*(i+.5)+offset;ctx.shadowColor='#e5ad4b';ctx.shadowBlur=18;ctx.fillStyle='#fff0c9';ctx.fillText(line,W/2,y,maxW);ctx.shadowBlur=0});ctx.restore()
 }
-let importedSceneImage=null, importedSceneImageObject=null, importedSceneMediaId=null;
+let importedSceneImage=null, importedSceneImageObject=null, importedSceneMediaId=null, importedNarrationMediaId=null;
 function drawImportedImage(elapsed){
  if(!importedSceneImageObject)return;
  ctx.save();ctx.globalAlpha=.86;
@@ -181,7 +181,7 @@ $('randomBtn').addEventListener('click',()=>fillPreset(presets[Math.floor(Math.r
 $('readSceneBtn').addEventListener('click',()=>speak(texts()[currentScene]||''));$('readAllBtn').addEventListener('click',speakAll);$('stopVoiceBtn').addEventListener('click',stopVoice);$('voiceStyle').addEventListener('change',applyVoiceStyle);['rate','pitch'].forEach(id=>$(id).addEventListener('input',()=>{$('voiceStyle').value='custom'}));$('splitScriptBtn').addEventListener('click',distributeScript);$('copyScriptBtn').addEventListener('click',copyScript);
 $('narrationFile').addEventListener('change',async e=>{
 const file=e.target.files?.[0],token=++narrationLoadToken;
-narrationBuffer=null;
+narrationBuffer=null;importedNarrationMediaId=null;
 if(!file){$('fileStatus').textContent='يمكنك اختيار ملف MP3 أو WAV أو ملف صوتي يدعمه المتصفح.';return}
 $('fileStatus').textContent='جارٍ تجهيز الملف الصوتي…';
 try{
@@ -227,6 +227,7 @@ restoreDraft();initParticles();renderPresets();document.fonts?.ready?.then(()=>d
         const meta=document.createElement('p');meta.className='note';meta.textContent=(asset.kind||'ملف')+' · '+(asset.size/1024/1024).toFixed(2)+' MB';
         const actions=document.createElement('div');actions.className='tool-actions';
         if(asset.kind==='image'){const use=document.createElement('button');use.className='btn primary';use.textContent='استخدام كخلفية';use.onclick=()=>{const url=URL.createObjectURL(asset.blob),img=new Image();img.onload=()=>{if(importedSceneImage)URL.revokeObjectURL(importedSceneImage);importedSceneImage=url;importedSceneImageObject=img;importedSceneMediaId=asset.id;drawFrame(0);$('status').textContent='تم إدراج الصورة كخلفية للمعاينة والتصدير.'};img.onerror=()=>{URL.revokeObjectURL(url);alert('تعذر فتح الصورة')};img.src=url};actions.appendChild(use)}
+        if(asset.kind==='audio'){const useAudio=document.createElement('button');useAudio.className='btn primary';useAudio.textContent='استخدام كتعليق صوتي';useAudio.onclick=async()=>{try{const ac=ensureAudio();await ac.resume();narrationBuffer=await ac.decodeAudioData(await asset.blob.arrayBuffer());importedNarrationMediaId=asset.id;$('fileStatus').textContent='تم تجهيز '+asset.name+' ('+Math.ceil(narrationBuffer.duration)+' ثانية) وسيُضمّن في الفيديو.';$('status').textContent='تم اختيار الملف الصوتي من مكتبتك المحلية.'}catch(error){alert('تعذر قراءة الملف الصوتي: '+error.message)}};actions.appendChild(useAudio)}
         const download=document.createElement('button');download.className='btn';download.textContent='تنزيل';download.onclick=()=>{const url=URL.createObjectURL(asset.blob),a=document.createElement('a');a.href=url;a.download=asset.name;a.click();setTimeout(()=>URL.revokeObjectURL(url),30000)};actions.appendChild(download);
         const del=document.createElement('button');del.className='btn';del.textContent='حذف';del.onclick=async()=>{if(confirm('حذف الملف '+asset.name+' من المكتبة المحلية؟')){await window.ZereosStorage.local.deleteMedia(asset.id);await refreshMedia()}};actions.appendChild(del);
         card.append(name,meta,actions);list.appendChild(card);
@@ -252,12 +253,14 @@ restoreDraft();initParticles();renderPresets();document.fonts?.ready?.then(()=>d
     id:currentProjectId,name:document.title.includes('ZEREOS')?'مشروع ZEREOS':'مشروع فيديو',
     editor:{scriptTitle:$('scriptTitle').value,scriptBody1:$('scriptBody1').value,scriptBody2:$('scriptBody2').value,scriptCta:$('scriptCta').value,bgStyle:$('bgStyle').value,fontFamily:$('fontFamily').value,fontSize:$('fontSize').value,sceneSeconds:$('sceneSeconds').value,dust:$('dust').checked,seal:$('seal').checked,captions:$('captions').checked,music:$('music').value,volume:$('volume').value,rate:$('rate').value,pitch:$('pitch').value,voiceStyle:$('voiceStyle').value},
     imageMediaId:importedSceneMediaId||null,
+    narrationMediaId:importedNarrationMediaId||null,
     createdAt:Date.now()
   });
   async function applyProject(p){
     if(!p||!p.editor)return;
     currentProjectId=p.id;window.ZereosStorage.local.setActiveProjectId(p.id);
-    if(importedSceneImage)URL.revokeObjectURL(importedSceneImage);importedSceneImage=null;importedSceneImageObject=null;importedSceneMediaId=null;
+    if(importedSceneImage)URL.revokeObjectURL(importedSceneImage);importedSceneImage=null;importedSceneImageObject=null;importedSceneMediaId=null;importedNarrationMediaId=null;narrationBuffer=null;
+    if(p.narrationMediaId){try{const audioAsset=await window.ZereosStorage.local.getMedia(p.narrationMediaId);if(audioAsset?.blob){const ac=ensureAudio();narrationBuffer=await ac.decodeAudioData(await audioAsset.blob.arrayBuffer());importedNarrationMediaId=audioAsset.id;$('fileStatus').textContent='تم استعادة التعليق الصوتي: '+audioAsset.name}}catch(error){console.warn('تعذر استعادة التعليق الصوتي',error)}}
     if(p.imageMediaId){try{const asset=await window.ZereosStorage.local.getMedia(p.imageMediaId);if(asset?.blob){const url=URL.createObjectURL(asset.blob),img=new Image();await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src=url});importedSceneImage=url;importedSceneImageObject=img;importedSceneMediaId=asset.id}}catch(error){console.warn('تعذر استعادة صورة المشروع',error)}}
     Object.entries(p.editor).forEach(([id,value])=>{const el=$(id);if(!el)return;if(el.type==='checkbox')el.checked=!!value;else el.value=value});
     update();drawFrame(0);$('status').textContent='تم فتح المشروع: '+(p.name||p.id);
