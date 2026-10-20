@@ -6,7 +6,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=Amiri:wght@400;700&family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#09090b;--panel:#151416;--line:#493419;--gold:#e9ad42;--gold2:#f8d98a;--muted:#a8a29e;--ink:#fff5dc}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 75% 0%,#24180d 0,transparent 35%),var(--bg);color:#eee8dc;font-family:Tajawal,system-ui,sans-serif}button,input,textarea,select{font:inherit}button{cursor:pointer}.top{position:sticky;top:0;z-index:5;background:#0b0a0bf2;backdrop-filter:blur(12px);border-bottom:1px solid #4b351d;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px}.brand{display:flex;align-items:center;gap:12px}.logo{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#70400e,#f7cb63);color:#1b1206;font-size:23px;box-shadow:0 0 25px #d48c2440}.brand h1{margin:0;color:var(--gold2);font-family:'Aref Ruqaa',serif;font-size:25px;letter-spacing:1px}.brand p{margin:0;color:#b89b6b;font-size:12px}.btn{border:1px solid #61451f;background:#25190d;color:#f5d58c;padding:10px 14px;border-radius:10px;font-weight:700;transition:.2s}.btn:hover{filter:brightness(1.2)}.btn.primary{background:linear-gradient(135deg,#f1c35d,#b56c12);color:#211506;border:0}.btn.export{background:linear-gradient(120deg,#9d251d,#e3482c);color:#fff;border:1px solid #f66b4e;width:100%;padding:14px}.layout{max-width:1280px;margin:auto;padding:22px;display:grid;grid-template-columns:minmax(280px, .85fr) minmax(0,1.15fr);gap:22px;align-items:start}.panel{background:linear-gradient(160deg,#191719,#111012);border:1px solid var(--line);border-radius:18px;padding:17px;box-shadow:0 15px 45px #0005;min-width:0}.preview{position:sticky;top:85px}.panelhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px;color:var(--gold2);font-weight:800}.badge{font-size:12px;color:#d6c5a4;background:#0a090a;border:1px solid #30261b;border-radius:7px;padding:5px 8px}.canvas-wrap{width:min(100%,360px);margin:auto;aspect-ratio:9/16;background:#000;border:2px solid #9d6c2a;border-radius:13px;overflow:hidden;box-shadow:0 0 28px #c98b2624}.canvas-wrap canvas{display:block;width:100%;height:100%;object-fit:contain}.controls{display:flex;gap:9px;justify-content:center;margin:14px 0 10px;flex-wrap:wrap}.status{min-height:22px;color:#c7b99e;font-size:12px;text-align:center}.export{margin-top:10px}.tabs{display:flex;gap:7px;background:#0d0c0e;padding:5px;border:1px solid #32261a;border-radius:12px;margin-bottom:14px}.tab{flex:1;border:0;background:transparent;color:#a9a29a;border-radius:8px;padding:10px 5px;font-size:13px}.tab.active{background:#3a2914;color:#f7d487;box-shadow:inset 0 0 0 1px #785222}.fields{display:grid;gap:13px}.field label{display:block;font-size:12px;color:#c6bba9;margin-bottom:6px}.field input[type=text],.field textarea,.field select,.field input[type=file]{width:100%;background:#0b0a0c;border:1px solid #49351f;border-radius:9px;color:#f4e5c7;padding:11px;outline:none}.field textarea{resize:vertical;min-height:75px;line-height:1.8}.field input:focus,.field textarea:focus,.field select:focus{border-color:#c99542}.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}.range{width:100%;accent-color:#d99a31}.checkrow{display:flex;flex-wrap:wrap;gap:14px;color:#d6c9b4;font-size:13px}.checkrow label{display:flex;gap:7px;align-items:center}.checkrow input{accent-color:#d99a31}.presets{display:flex;gap:8px;overflow:auto;padding-bottom:3px}.preset{flex:0 0 auto;text-align:right;background:#20170f;border:1px solid #59401f;color:#e9d5ad;border-radius:9px;padding:9px 12px;max-width:230px;font-size:12px}.note{font-size:12px;line-height:1.7;color:#aaa095}.hidden{display:none!important}.footer{text-align:center;color:#776b5b;border-top:1px solid #352819;padding:16px;font-size:12px}.progress{height:4px;background:#30251a;border-radius:9px;overflow:hidden;margin-top:8px}.progress span{display:block;height:100%;width:0;background:linear-gradient(90deg,#9b5c13,#ffe08a);transition:width .1s}.smalltitle{font-weight:800;color:#e7bb62;margin:0 0 12px}.warn{color:#e8bf77}.filehint{font-size:11px;color:#a79b89;margin-top:5px}.tool-card{background:linear-gradient(145deg,#20190f,#121012);border:1px solid #5a4121;border-radius:14px;padding:14px;margin:4px 0 14px}.tool-card h4{margin:0 0 10px;color:var(--gold2);font-size:15px}.tool-card>label{display:block;font-size:12px;color:#c6bba9;margin-bottom:6px}.tool-card textarea{width:100%;background:#0b0a0c;border:1px solid #49351f;border-radius:9px;color:#f4e5c7;padding:11px;min-height:82px;resize:vertical;line-height:1.7}.tool-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0}.tool-actions .btn{padding:8px 11px}.tool-card .note{margin:0 0 12px}.tool-card .field{margin:10px 0}.tool-card .two{margin-top:8px}@media(max-width:850px){.layout{grid-template-columns:1fr;padding:12px}.preview{position:static;grid-row:1}.canvas-wrap{width:min(68vw,330px)}.top{padding:10px 12px}.brand h1{font-size:22px}.brand p{max-width:210px}.panel{padding:13px}}@media(max-width:420px){.two{grid-template-columns:1fr}.canvas-wrap{width:min(76vw,320px)}.brand p{font-size:10px}.btn{padding:9px 10px}}
-</style></head>
+</style><script src="./storage.js"></script>
+</head>
 <body>
 <header class="top"><div class="brand"><div class="logo">✦</div><div><h1>ZEREOS AI</h1><p>استوديو صناعة فيديوهات Shorts السينمائية</p></div></div><button class="btn" id="randomBtn">✧ حكمة عشوائية</button></header>
 <main class="layout">
@@ -187,4 +188,61 @@ $('fileStatus').textContent='تعذر قراءة هذا الملف. جرّب MP3
 });
 if('speechSynthesis'in window){loadVoices();speechSynthesis.onvoiceschanged=loadVoices}
 restoreDraft();initParticles();renderPresets();document.fonts?.ready?.then(()=>drawFrame(0));update();drawFrame(0);
+/* IndexedDB project persistence bootstrap */
+(async function initProjectStorage(){
+  const projectButton=document.createElement('button');
+  projectButton.className='btn';projectButton.id='projectsBtn';projectButton.textContent='▣ مشاريعي';
+  $('randomBtn').insertAdjacentElement('beforebegin',projectButton);
+  const panel=document.createElement('section');
+  panel.className='panel hidden';panel.id='projectsPanel';panel.style.cssText='max-width:900px;margin:0 auto 20px;';
+  panel.innerHTML='<div class="panelhead"><span>المشاريع المحفوظة على هذا الجهاز</span><button class="btn" id="closeProjectsBtn" type="button">إغلاق</button></div><div class="tool-actions"><button class="btn primary" id="saveProjectBtn" type="button">حفظ المشروع الحالي</button><button class="btn" id="newProjectBtn" type="button">مشروع جديد</button><button class="btn" id="exportProjectBtn" type="button">تصدير ملف المشروع</button><label class="btn" for="importProjectFile">استيراد مشروع</label><input id="importProjectFile" type="file" accept=".json,application/json" hidden></div><div id="projectList" class="fields"><p class="note">جارٍ تحميل المشاريع…</p></div><p class="note">تُحفظ المشاريع محليًا باستخدام IndexedDB. الملفات السحابية غير مفعلة بعد؛ تم فصل طبقة التخزين لتسهيل إضافتها لاحقًا.</p>';
+  document.querySelector('main.layout').insertAdjacentElement('beforebegin',panel);
+  const projectName=()=>{const value=window.ZereosStorage.local.activeProjectId();return value||('zereos-'+Date.now())};
+  let currentProjectId=await window.ZereosStorage.local.activeProjectId()||('project-'+Date.now());
+  const snapshot=()=>({
+    id:currentProjectId,name:document.title.includes('ZEREOS')?'مشروع ZEREOS':'مشروع فيديو',
+    editor:{scriptTitle:$('scriptTitle').value,scriptBody1:$('scriptBody1').value,scriptBody2:$('scriptBody2').value,scriptCta:$('scriptCta').value,bgStyle:$('bgStyle').value,fontFamily:$('fontFamily').value,fontSize:$('fontSize').value,sceneSeconds:$('sceneSeconds').value,dust:$('dust').checked,seal:$('seal').checked,captions:$('captions').checked,music:$('music').value,volume:$('volume').value,rate:$('rate').value,pitch:$('pitch').value,voiceStyle:$('voiceStyle').value},
+    createdAt:Date.now()
+  });
+  function applyProject(p){
+    if(!p||!p.editor)return;
+    currentProjectId=p.id;window.ZereosStorage.local.setActiveProjectId(p.id);
+    Object.entries(p.editor).forEach(([id,value])=>{const el=$(id);if(!el)return;if(el.type==='checkbox')el.checked=!!value;else el.value=value});
+    update();drawFrame(0);$('status').textContent='تم فتح المشروع: '+(p.name||p.id);
+  }
+  async function refreshProjects(){
+    const list=$('projectList');if(!list)return;
+    try{
+      const projects=await window.ZereosStorage.local.listProjects();
+      list.replaceChildren();
+      if(!projects.length){const p=document.createElement('p');p.className='note';p.textContent='لا توجد مشاريع محفوظة بعد. اضغط «حفظ المشروع الحالي». ';list.appendChild(p);return}
+      projects.forEach(p=>{
+        const row=document.createElement('div');row.className='tool-card';
+        const title=document.createElement('strong');title.textContent=p.name||'مشروع بدون اسم';
+        const meta=document.createElement('p');meta.className='note';meta.textContent='آخر حفظ: '+new Date(p.updatedAt).toLocaleString();
+        const actions=document.createElement('div');actions.className='tool-actions';
+        const open=document.createElement('button');open.className='btn primary';open.textContent='فتح';open.onclick=()=>{applyProject(p);panel.classList.add('hidden')};
+        const rename=document.createElement('button');rename.className='btn';rename.textContent='إعادة تسمية';rename.onclick=async()=>{const name=prompt('اسم المشروع الجديد',p.name||'مشروعي');if(name&&name.trim()){await window.ZereosStorage.local.saveProject({...p,name:name.trim()});refreshProjects()}};
+        const del=document.createElement('button');del.className='btn';del.textContent='حذف';del.onclick=async()=>{if(confirm('حذف المشروع المحفوظ «'+(p.name||p.id)+'»؟')){await window.ZereosStorage.local.deleteProject(p.id);refreshProjects()}};
+        actions.append(open,rename,del);row.append(title,meta,actions);list.appendChild(row);
+      });
+    }catch(error){list.textContent='تعذر قراءة المشاريع من التخزين المحلي: '+(error.message||error)}
+  }
+  async function saveCurrent(){
+    const old=await window.ZereosStorage.local.getProject(currentProjectId);
+    const name=old?.name||prompt('اسم المشروع','مشروع ZEREOS')||'مشروع ZEREOS';
+    const record={...snapshot(),name,createdAt:old?.createdAt||Date.now()};
+    await window.ZereosStorage.local.saveProject(record);
+    $('status').textContent='تم حفظ المشروع محليًا عبر IndexedDB.';
+    await refreshProjects();
+  }
+  projectButton.onclick=async()=>{panel.classList.toggle('hidden');await refreshProjects()};
+  $('closeProjectsBtn').onclick=()=>panel.classList.add('hidden');
+  $('saveProjectBtn').onclick=()=>saveCurrent().catch(e=>alert('تعذر الحفظ: '+e.message));
+  $('newProjectBtn').onclick=()=>{if(confirm('بدء مشروع جديد؟ احفظ مشروعك الحالي أولًا إذا احتجت إليه.')){currentProjectId='project-'+Date.now();['scriptTitle','scriptBody1','scriptBody2','scriptCta'].forEach(id=>$(id).value='');update();$('status').textContent='مشروع جديد؛ احفظه للاحتفاظ به.'}};
+  $('exportProjectBtn').onclick=async()=>{const record={...snapshot(),name:(await window.ZereosStorage.local.getProject(currentProjectId))?.name||'مشروع ZEREOS'};const blob=new Blob([JSON.stringify(record,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='zereos-project-'+Date.now()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),30000)};
+  $('importProjectFile').onchange=async e=>{const file=e.target.files?.[0];if(!file)return;try{const p=JSON.parse(await file.text());if(!p.editor||typeof p.editor!=='object')throw new Error('ملف المشروع غير صالح');p.id='project-'+Date.now();p.name=(p.name||'مشروع مستورد')+' (مستورد)';p.createdAt=Date.now();await window.ZereosStorage.local.saveProject(p);applyProject(p);await refreshProjects();$('status').textContent='تم استيراد المشروع وحفظه محليًا.'}catch(error){alert('تعذر استيراد المشروع: '+error.message)}finally{e.target.value=''}};
+  try{const id=await window.ZereosStorage.local.activeProjectId();if(id){const p=await window.ZereosStorage.local.getProject(id);if(p)applyProject(p)}}catch(error){console.warn('تعذر استعادة المشروع النشط',error)}
+})().catch(error=>console.error('Project storage initialization failed',error));
+
 </script></body></html>
