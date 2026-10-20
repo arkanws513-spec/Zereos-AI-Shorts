@@ -1,7 +1,7 @@
 /* ZEREOS AI Shorts storage adapter: IndexedDB now, cloud adapter later. */
 (() => {
   'use strict';
-  const DB_NAME='zereos-shorts-db', DB_VERSION=2, PROJECTS='projects', MEDIA='media';
+  const DB_NAME='zereos-shorts-db', DB_VERSION=3, PROJECTS='projects', MEDIA='media';
   const ACTIVE_KEY='zereos-shorts-active-project';
   let dbPromise;
   function openDB(){
@@ -94,7 +94,7 @@
         id:item.id||generatedId(),
         name:String(item.name||'ملف بدون اسم').slice(0,255),
         type:String(item.type||item.blob.type||'application/octet-stream').slice(0,160),
-        size:Number.isFinite(Number(item.size))&&Number(item.size)>=0?Number(item.size):item.blob.size,
+        size:Number.isFinite(Number(item.size))&&(Number(item.size)>0||item.blob.size===0)?Number(item.size):item.blob.size,
         createdAt:Number(item.createdAt)||Date.now()
       };
       await run(MEDIA,'readwrite',s=>s.put(record));return record;
