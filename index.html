@@ -44,7 +44,7 @@
 <div class="two"><div class="field"><label for="rate">سرعة القراءة: <span id="rateVal">0.9</span></label><input class="range" id="rate" type="range" min=".7" max="1.2" step=".05" value=".9"></div><div class="field"><label for="pitch">حدة الصوت: <span id="pitchVal">0.9</span></label><input class="range" id="pitch" type="range" min=".5" max="1.2" step=".05" value=".85"></div></div>
 </div>
 <div class="field"><label for="narrationFile">إضافة تسجيل صوتي ليُضمّن في الفيديو</label><input id="narrationFile" type="file" accept="audio/*"><div class="filehint" id="fileStatus">اختر تسجيلًا بصيغة MP3 أو WAV. سيجهزه التطبيق قبل التصدير.</div></div>
-<div class="tool-card" id="voiceLibraryPanel"><h4>مكتبة الأصوات الموحدة</h4><p class="note">اجمع هنا التسجيلات البشرية وملفات التعليق المُولّدة بالذكاء الاصطناعي. أصوات النظام تظهر أيضًا للمعاينة؛ لا يمكن حفظها أو تضمينها مباشرة في الفيديو من المتصفح، لذلك استخدم ملفًا صوتيًا إذا أردت تصديره.</p><div class="tool-card" id="neuralTtsPanel"><h4>توليد تعليق عربي بالذكاء الاصطناعي — محليًا</h4><p class="note">يعمل نموذج عربي عصبي داخل المتصفح بلا مفتاح API أو رسوم لكل استخدام. أول تشغيل ينزّل النموذج ويخزّنه على جهازك (نحو 16–30 ميجابايت للنموذج، إضافةً إلى ملفات التشغيل). يحتاج إنترنت في المرة الأولى. النموذج الحالي صوت عربي فصيح واحد؛ التصنيفات تغيّر سرعة الإلقاء والتنظيم فقط، ولا تحوّله إلى أصوات نسائية أو رجالية مختلفة.</p><div class="field"><label for="neuralTtsText">النص المراد تحويله إلى صوت</label><textarea id="neuralTtsText" maxlength="1800" placeholder="اكتب النص العربي هنا أو املأه من مشاهد الفيديو…"></textarea><div class="filehint">لأفضل نتيجة، ابدأ بنص قصير. يمكن توليد عدة ملفات منفصلة للنصوص الطويلة.</div></div><div class="tool-actions"><button class="btn" id="fillTtsFromScenesBtn" type="button">استخدام نص المشاهد</button><button class="btn primary" id="generateNeuralTtsBtn" type="button">✧ توليد الصوت وحفظه بالمكتبة</button></div><div id="neuralTtsStatus" class="filehint" aria-live="polite">جاهز. سيُحفظ الصوت الناتج في مكتبة الأصوات المحلية.</div><audio id="neuralTtsPreview" controls class="hidden" style="width:100%;margin-top:10px"></audio></div><div class="field"><label for="voiceProfileSelect">صنّف الصوت الذي ستضيفه</label><select id="voiceProfileSelect"><option value="calm">صوت هادئ</option><option value="narrator">راوي وثائقي</option><option value="commentator">معلّق حماسي</option><option value="sarcastic">صوت ساخر</option><option value="announcer">مذيع أخبار</option><option value="deep">رجل غليظ</option><option value="woman">صوت امرأة</option><option value="cute">صوت لطيف/كرتوني</option><option value="other">صوت آخر</option></select><p class="filehint">هذا التصنيف لتنظيم الملفات فقط؛ طبيعة الصوت الفعلية تأتي من التسجيل نفسه.</p></div><div class="tool-actions"><label class="btn primary" for="humanVoiceUpload">＋ إضافة تسجيل بشري</label><input id="humanVoiceUpload" type="file" accept="audio/*" multiple hidden><label class="btn" for="aiVoiceUpload">✧ إضافة ملف صوت AI</label><input id="aiVoiceUpload" type="file" accept="audio/*" multiple hidden><button class="btn" id="refreshVoiceLibraryBtn" type="button">↻ تحديث المكتبة</button></div><p class="note">لإنشاء تعليق عصبي عربي مجانًا دون مفتاح API، يمكنك توليد WAV في أداة تعمل داخل المتصفح ثم رفعه هنا: <a href="https://quick-tts.com/voice/ar-jo-kareem-medium/" target="_blank" rel="noopener" style="color:#f7d487">تجربة صوت عربي مجاني</a>. الصوت المتاح هناك عربي بلكنة أردنية، وليس مصريًا مضمونًا.</p><div id="voiceLibraryStatus" class="filehint" aria-live="polite">تُحفظ الملفات على هذا الجهاز فقط.</div><div id="voiceLibraryList" class="fields"><p class="note">جارٍ تجهيز مكتبة الأصوات…</p></div></div>
+<div class="tool-card" id="voiceLibraryPanel"><h4>مكتبة الأصوات الموحدة</h4><p class="note">اجمع هنا التسجيلات البشرية وملفات التعليق المُولّدة بالذكاء الاصطناعي. أصوات النظام تظهر أيضًا للمعاينة؛ لا يمكن حفظها أو تضمينها مباشرة في الفيديو من المتصفح، لذلك استخدم ملفًا صوتيًا إذا أردت تصديره.</p><div class="tool-card" id="neuralTtsPanel"><h4>توليد تعليق عربي بالذكاء الاصطناعي — محليًا</h4><p class="note">يعمل نموذج عربي عصبي داخل المتصفح بلا مفتاح API أو رسوم لكل استخدام. أول تشغيل ينزّل النموذج ويخزّنه على جهازك (نحو 16–30 ميجابايت للنموذج، إضافةً إلى ملفات التشغيل). يحتاج إنترنت في المرة الأولى. المحرك العصبي الأساسي صوت عربي فصيح واحد. أضفنا 15 تشكيل أداء بتغييرات سرعة وطبقة الصوت لتناسب الوثائقي والغموض والأخبار والشخصيات؛ هذه تشكيلات معالجة وليست 15 نموذجًا عصبيًا مستقلًا.</p><div class="field"><label for="neuralTtsText">النص المراد تحويله إلى صوت</label><textarea id="neuralTtsText" maxlength="1800" placeholder="اكتب النص العربي هنا أو املأه من مشاهد الفيديو…"></textarea><div class="filehint">لأفضل نتيجة، ابدأ بنص قصير. يمكن توليد عدة ملفات منفصلة للنصوص الطويلة.</div></div><div class="tool-actions"><button class="btn" id="fillTtsFromScenesBtn" type="button">استخدام نص المشاهد</button><button class="btn primary" id="generateNeuralTtsBtn" type="button">✧ توليد الصوت وحفظه بالمكتبة</button></div><div id="neuralTtsStatus" class="filehint" aria-live="polite">جاهز. سيُحفظ الصوت الناتج في مكتبة الأصوات المحلية.</div><audio id="neuralTtsPreview" controls class="hidden" style="width:100%;margin-top:10px"></audio></div><div class="field"><label for="voiceProfileSelect">صنّف الصوت الذي ستضيفه</label><select id="voiceProfileSelect"><option value="doc">01 · راوي وثائقي</option><option value="mystery">02 · غموض سينمائي</option><option value="news">03 · مذيع أخبار</option><option value="excited">04 · حماسي</option><option value="calm">05 · هادئ</option><option value="deep">06 · طبقة منخفضة</option><option value="bright">07 · طبقة مشرقة</option><option value="fast">08 · سريع ونشيط</option><option value="slow">09 · بطيء ومتأمل</option><option value="warm">10 · دافئ</option><option value="dramatic">11 · درامي</option><option value="story">12 · حكّاء</option><option value="soft">13 · ناعم</option><option value="bold">14 · قوي وواضح</option><option value="neutral">15 · محايد</option></select><p class="filehint">هذا التصنيف لتنظيم الملفات فقط؛ طبيعة الصوت الفعلية تأتي من التسجيل نفسه.</p></div><div class="tool-actions"><label class="btn primary" for="humanVoiceUpload">＋ إضافة تسجيل بشري</label><input id="humanVoiceUpload" type="file" accept="audio/*" multiple hidden><label class="btn" for="aiVoiceUpload">✧ إضافة ملف صوت AI</label><input id="aiVoiceUpload" type="file" accept="audio/*" multiple hidden><button class="btn" id="refreshVoiceLibraryBtn" type="button">↻ تحديث المكتبة</button></div><p class="note">لإنشاء تعليق عصبي عربي مجانًا دون مفتاح API، يمكنك توليد WAV في أداة تعمل داخل المتصفح ثم رفعه هنا: <a href="https://quick-tts.com/voice/ar-jo-kareem-medium/" target="_blank" rel="noopener" style="color:#f7d487">تجربة صوت عربي مجاني</a>. الصوت المتاح هناك عربي بلكنة أردنية، وليس مصريًا مضمونًا.</p><div id="voiceLibraryStatus" class="filehint" aria-live="polite">تُحفظ الملفات على هذا الجهاز فقط.</div><div id="voiceLibraryList" class="fields"><p class="note">جارٍ تجهيز مكتبة الأصوات…</p></div></div>
 <div class="field"><label for="narrationVolume">مستوى التعليق الصوتي: <span id="narrationVolumeVal">100%</span></label><input class="range" id="narrationVolume" type="range" min="0" max="1" step=".05" value="1"></div><div class="two"><div class="field"><label for="music">الموسيقى الخلفية</label><select id="music"><option value="ambient">نغمات هادئة</option><option value="dramatic">نغمات غامضة</option><option value="none">بدون موسيقى</option></select></div><div class="field"><label for="volume">مستوى الموسيقى: <span id="volumeVal">20%</span></label><input class="range" id="volume" type="range" min="0" max=".5" step=".025" value=".2"></div></div>
 </div></div>
 <div class="panel hidden" id="tab-export"><h3 class="smalltitle">تصدير الفيديو والمشروع</h3><p class="note">راجع المشاهد في المعاينة، ثم أنشئ الفيديو. سيختار التطبيق صيغة مدعومة في متصفحك. الصوت الذي يُصدّر حاليًا هو الموسيقى والتسجيل الصوتي الذي أضفته؛ قراءة النص عبر أصوات النظام للمعاينة فقط.</p><div class="tool-card"><h4>الفيديو النهائي</h4><p class="note">المقاس الرأسي 9:16 · أربعة مشاهد · ترجمة قابلة للتنزيل بصيغة SRT.</p><button class="btn export" id="exportFromPageBtn" type="button">● إنشاء وتنزيل الفيديو</button><div class="tool-actions"><button class="btn" id="srtFromPageBtn" type="button">⇩ تنزيل الترجمة SRT</button><button class="btn" id="saveFromPageBtn" type="button">▣ حفظ المشروع</button></div></div><div class="tool-card"><h4>ملف المشروع</h4><p class="note">احفظ إعداداتك محليًا أو صدّر ملف JSON مع الوسائط المرتبطة به لتتمكن من استيراده لاحقًا على هذا الجهاز أو جهاز آخر.</p><div class="tool-actions"><button class="btn primary" id="exportProjectFromPageBtn" type="button">تصدير المشروع ووسائطه</button><label class="btn" for="importProjectFile">استيراد مشروع</label></div></div></div>
@@ -425,21 +425,23 @@ async function getNeuralEngine(){
    setTtsStatus('جارٍ تحميل محرك الصوت العربي… قد يستغرق أول تشغيل بعض الوقت.');
    let NabraTTS;
    const importErrors=[];
-   try{
-    ({NabraTTS}=await import('https://cdn.jsdelivr.net/npm/nabra-tts@0/+esm'));
-   }catch(error){
-    importErrors.push(error);console.warn('jsDelivr import failed; trying esm.sh',error);
+   const moduleUrls=[
+    'https://cdn.jsdelivr.net/npm/nabra-tts@0.1.0/+esm',
+    'https://esm.sh/nabra-tts@0.1.0?bundle&target=es2020',
+    'https://unpkg.com/nabra-tts@0.1.0/dist/index.js?module'
+   ];
+   for(const moduleUrl of moduleUrls){
     try{
-     ({NabraTTS}=await import('https://esm.sh/nabra-tts@0?bundle'));
-    }catch(secondError){
-     importErrors.push(secondError);console.warn('esm.sh import failed; trying unpkg',secondError);
-     try{
-      ({NabraTTS}=await import('https://unpkg.com/nabra-tts@latest?module'));
-     }catch(thirdError){
-      importErrors.push(thirdError);
-      throw new Error('تعذر تحميل مكتبة الصوت من خدمات CDN الثلاث. قد يمنع المتصفح أو اتصال الشبكة تحميل وحدات JavaScript الخارجية. افتح التطبيق في Chrome مع اتصال ثابت ثم أعد المحاولة. التفاصيل: '+importErrors.map(e=>e?.message||String(e)).join(' | '));
-     }
+     const mod=await import(moduleUrl);
+     if(mod&&typeof mod.NabraTTS?.load==='function'){NabraTTS=mod.NabraTTS;break}
+     throw new Error('المكتبة المحمّلة لا تحتوي على NabraTTS.load');
+    }catch(error){
+     importErrors.push(moduleUrl+' → '+(error?.message||String(error)));
+     console.warn('TTS module source failed:',moduleUrl,error);
     }
+   }
+   if(!NabraTTS){
+    throw new Error('تعذر تحميل محرك الصوت العربي من مصادر المكتبة. تفاصيل المصادر: '+importErrors.join(' | '));
    }
    if(!NabraTTS||typeof NabraTTS.load!=='function')throw new Error('تم تحميل رابط المكتبة لكن لم يتم العثور على NabraTTS.load؛ يلزم التحقق من نسخة المكتبة.');
    const engine=await NabraTTS.load({dtype:'fp16',device:'auto',cache:true,onProgress:(progress={})=>{
@@ -462,10 +464,23 @@ ttsButton?.addEventListener('click',async()=>{
  try{
   const engine=await getNeuralEngine();
   const profile=document.getElementById('voiceProfileSelect')?.value||'narrator';
-  const speedByProfile={calm:0.86,narrator:0.92,commentator:1.12,sarcastic:1.0,announcer:1.02,deep:0.88,woman:1.0,cute:1.08,other:1.0};
-  setTtsStatus('النموذج جاهز. يجري الآن تحويل النص إلى صوت على جهازك…');
-  const result=await engine.generate(text,{speed:speedByProfile[profile]||1});
-  const blob=engine.toWav(result.audio);
+  const profiles={
+   doc:{speed:.92,pitch:1.00},mystery:{speed:.84,pitch:.88},news:{speed:1.04,pitch:1.02},
+   excited:{speed:1.13,pitch:1.08},calm:{speed:.86,pitch:.98},deep:{speed:.90,pitch:.82},
+   bright:{speed:1.02,pitch:1.12},fast:{speed:1.18,pitch:1.05},slow:{speed:.78,pitch:.94},
+   warm:{speed:.94,pitch:.96},dramatic:{speed:.88,pitch:.90},story:{speed:.96,pitch:1.03},
+   soft:{speed:.90,pitch:1.10},bold:{speed:1.02,pitch:.86},neutral:{speed:1.00,pitch:1.00}
+  };
+  const selected=profiles[profile]||profiles.neutral;
+  setTtsStatus('المحرك جاهز. يجري توليد الصوت ثم تطبيق تشكيل الأداء المختار…');
+  const result=await engine.generate(text,{speed:selected.speed});
+  let audio=result.audio;
+  if(selected.pitch!==1){
+   const ratio=selected.pitch, outLength=Math.max(1,Math.floor(audio.length/ratio)), shifted=new Float32Array(outLength);
+   for(let i=0;i<outLength;i++){const src=i*ratio,lo=Math.floor(src),hi=Math.min(audio.length-1,lo+1),frac=src-lo;shifted[i]=audio[lo]*(1-frac)+audio[hi]*frac}
+   audio=shifted;
+  }
+  const blob=engine.toWav(audio);
   if(!blob||!blob.size)throw new Error('لم ينتج النموذج ملفًا صوتيًا صالحًا.');
   const stamp=new Date().toISOString().replace(/[:.]/g,'-');
   const saved=await window.ZereosStorage.local.saveMedia({name:'ZEREOS-AI-'+profile+'-'+stamp+'.wav',type:'audio/wav',kind:'audio',size:blob.size,blob,projectId:null,voiceCategory:'ai',voiceProfile:profile,ttsEngine:'nabra-tts',sampleRate:result.sampleRate});
