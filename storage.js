@@ -5,25 +5,48 @@
   const ACTIVE_KEY='zereos-shorts-active-project';
   let dbPromise;
   function openDB(){
+    if(!('indexedDB' in window))return Promise.reject(new Error('التخزين المحلي غير مدعوم في هذا المتصفح.'));
     if(dbPromise)return dbPromise;
     dbPromise=new Promise((resolve,reject)=>{
-      const req=indexedDB.open(DB_NAME,DB_VERSION);
+      let settled=false;
+      const fail=error=>{
+        if(settled)return;
+        settled=true;
+        dbPromise=null;
+        reject(error);
+      };
+      let req;
+      try{req=indexedDB.open(DB_NAME,DB_VERSION)}
+      catch(error){fail(error);return}
       req.onupgradeneeded=()=>{
-        const db=req.result;
+        const db=req.result,tx=req.transaction;
         if(!db.objectStoreNames.contains(PROJECTS)){
           const store=db.createObjectStore(PROJECTS,{keyPath:'id'});
           store.createIndex('updatedAt','updatedAt');
+        }else{
+          const store=tx.objectStore(PROJECTS);
+          if(!store.indexNames.contains('updatedAt'))store.createIndex('updatedAt','updatedAt');
         }
         if(!db.objectStoreNames.contains(MEDIA)){
           const store=db.createObjectStore(MEDIA,{keyPath:'id'});
           store.createIndex('projectId','projectId');
           store.createIndex('createdAt','createdAt');
+        }else{
+          const store=tx.objectStore(MEDIA);
+          if(!store.indexNames.contains('projectId'))store.createIndex('projectId','projectId');
+          if(!store.indexNames.contains('createdAt'))store.createIndex('createdAt','createdAt');
         }
       };
-      req.onsuccess=()=>resolve(req.result);
-      req.onerror=()=>reject(req.error||new Error('تعذر فتح قاعدة البيانات المحلية'));
-      req.onblocked=()=>reject(new Error('أغلق النسخ الأخرى من الاستوديو ثم أعد المحاولة'));
-    });
+      req.onsuccess=()=>{
+        const db=req.result;
+        if(settled){db.close();return}
+        settled=true;
+        db.onversionchange=()=>{db.close();dbPromise=null};
+        resolve(db);
+      };
+      req.onerror=()=>fail(req.error||new Error('تعذر فتح قاعدة البيانات المحلية'));
+      req.onblocked=()=>fail(new Error('أغلق النسخ الأخرى من الاستوديو ثم أعد المحاولة.'));
+    }).catch(error=>{dbPromise=null;throw error});
     return dbPromise;
   }
   async function run(storeName,mode,action){
@@ -63,7 +86,17 @@
     },
     async getMedia(id){return (await read(MEDIA,s=>s.get(id)))||null},
     async saveMedia(item){
-      const record={...item,id:item.id||'media-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),createdAt:item.createdAt||Date.now()};
+      if(!item||typeof item!=='object')throw new Error('بيانات الملف غير صالحة.');
+      if(!item.blob||typeof item.blob.size!=='number')throw new Error('لم يتم إرفاق بيانات الملف المراد حفظه.');
+      const generatedId=()=>('media-'+Date.now()+'-'+(window.crypto?.randomUUID?.()||Math.random().toString(36).slice(2,14)));
+      const record={
+        ...item,
+        id:item.id||generatedId(),
+        name:String(item.name||'ملف بدون اسم').slice(0,255),
+        type:String(item.type||item.blob.type||'application/octet-stream').slice(0,160),
+        size:Number.isFinite(Number(item.size))&&Number(item.size)>=0?Number(item.size):item.blob.size,
+        createdAt:Number(item.createdAt)||Date.now()
+      };
       await run(MEDIA,'readwrite',s=>s.put(record));return record;
     },
     async deleteMedia(id){await run(MEDIA,'readwrite',s=>s.delete(id))},
