@@ -424,8 +424,24 @@ async function getNeuralEngine(){
   neuralEnginePromise=(async()=>{
    setTtsStatus('جارٍ تحميل محرك الصوت العربي… قد يستغرق أول تشغيل بعض الوقت.');
    let NabraTTS;
-   try{({NabraTTS}=await import('https://cdn.jsdelivr.net/npm/nabra-tts@0/+esm'))}
-   catch(primaryImportError){console.warn('jsDelivr import failed; trying esm.sh',primaryImportError);({NabraTTS}=await import('https://esm.sh/nabra-tts@0?bundle'))}
+   const importErrors=[];
+   try{
+    ({NabraTTS}=await import('https://cdn.jsdelivr.net/npm/nabra-tts@0/+esm'));
+   }catch(error){
+    importErrors.push(error);console.warn('jsDelivr import failed; trying esm.sh',error);
+    try{
+     ({NabraTTS}=await import('https://esm.sh/nabra-tts@0?bundle'));
+    }catch(secondError){
+     importErrors.push(secondError);console.warn('esm.sh import failed; trying unpkg',secondError);
+     try{
+      ({NabraTTS}=await import('https://unpkg.com/nabra-tts@latest?module'));
+     }catch(thirdError){
+      importErrors.push(thirdError);
+      throw new Error('تعذر تحميل مكتبة الصوت من خدمات CDN الثلاث. قد يمنع المتصفح أو اتصال الشبكة تحميل وحدات JavaScript الخارجية. افتح التطبيق في Chrome مع اتصال ثابت ثم أعد المحاولة. التفاصيل: '+importErrors.map(e=>e?.message||String(e)).join(' | '));
+     }
+    }
+   }
+   if(!NabraTTS||typeof NabraTTS.load!=='function')throw new Error('تم تحميل رابط المكتبة لكن لم يتم العثور على NabraTTS.load؛ يلزم التحقق من نسخة المكتبة.');
    const engine=await NabraTTS.load({dtype:'fp16',device:'auto',cache:true,onProgress:(progress={})=>{
     const file=progress.file||'مكونات الصوت',loaded=Number(progress.loaded)||0,total=Number(progress.total)||0;
     if(total>0)setTtsStatus('جارٍ تنزيل مكونات الصوت: '+file+' · '+Math.min(100,Math.round(loaded/total*100))+'%');
