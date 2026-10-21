@@ -1,0 +1,22 @@
+{
+  "id": "./",
+  "name": "ZEREOS AI Shorts",
+  "short_name": "ZEREOS",
+  "description": "استوديو سينمائي لصناعة الفيديوهات القصيرة والصوت العربي",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#080c16",
+  "theme_color": "#080c16",
+  "icons": [
+    {
+      "src": "./assets/zereos-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
