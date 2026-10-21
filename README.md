@@ -54,3 +54,11 @@ The app does not require a paid inference API key for its built-in local TTS wor
 - Prefer local/browser capabilities and open-source dependencies where practical.
 - Do not make paid model APIs a requirement for core editing or export.
 - Verify generated audio, export duration, subtitles, and mobile behavior before calling a release production-ready.
+
+
+## جودة التصدير والانتقالات
+
+- ملفات التصدير تتيح ثلاثة ملفات إعداد: خفيف (24 إطارًا/ثانية ومعدل بيانات أقل)، قياسي، ومرتفع الجودة. يظل اختيار MP4 أو WebM تابعًا لدعم المتصفح الفعلي.
+- انتقالات المشاهد تشمل التلاشي الداكن، الومضة الضوئية، والقطع المباشر، وتُحفظ مع إعدادات المشروع.
+- توقيت الكلمات في الترجمة المتحركة ما زال تقديريًا اعتمادًا على طول الكلمات وعلامات الترقيم؛ لا يُقدَّم على أنه محاذاة صوتية دقيقة. المحاذاة الحقيقية تحتاج إلى محرك تعرف/محاذاة صوتية مناسب واختبار ملفات فعلية.
+- مكتبة الوسائط المحلية الحالية تعرض الاستخدام التقريبي للتخزين وتدعم تنزيل الملفات أو حذفها يدويًا؛ الملفات محفوظة على الجهاز وليست نسخة سحابية.
