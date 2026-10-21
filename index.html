@@ -369,7 +369,8 @@ restoreDraft();initParticles();renderPresets();document.fonts?.ready?.then(()=>d
       }
       if(status)status.textContent='تم حفظ '+files.length+' ملف صوتي محليًا.';
       await renderVoiceLibrary();await refreshMedia();
-    }catch(error){if(status)status.textContent='تعذر الحفظ: '+error.message}
+      return true;
+    }catch(error){if(status)status.textContent='تعذر الحفظ: '+error.message;return false}
   }
   // Integrated public 3arab VoiceDesign generator (no API key; public Space quota/availability applies).
   const embeddedVoiceButton=$('embeddedVoiceGenerateBtn');
@@ -421,7 +422,8 @@ restoreDraft();initParticles();renderPresets();document.fonts?.ready?.then(()=>d
       embeddedVoicePreview.src=embeddedVoiceObjectUrl;
       embeddedVoicePreview.classList.remove('hidden');
       embeddedVoiceButton.textContent='جارٍ حفظ الصوت بالمكتبة…';
-      await saveVoiceFiles([file],'ai');
+      const saved=await saveVoiceFiles([file],'ai');
+      if(!saved)throw new Error('تم توليد الصوت لكن تعذر حفظه في المكتبة المحلية.');
       if(embeddedVoiceStatus)embeddedVoiceStatus.textContent='اكتمل التوليد وحُفظ الملف في مكتبة الأصوات المحلية. يمكنك معاينته واختياره للفيديو.';
     }catch(error){
       if(embeddedVoiceStatus)embeddedVoiceStatus.textContent='تعذر التوليد داخل التطبيق: '+(error?.message||String(error))+' — يمكنك استخدام المحرك الخارجي أدناه.';
