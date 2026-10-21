@@ -78,7 +78,7 @@ body{background:radial-gradient(ellipse at 12% 0%,#1c2b48 0,transparent 35%),rad
 <div class="tool-card" id="embeddedVoiceStudio">
 <h4>⚡ توليد الصوت من داخل ZEREOS</h4>
 <p class="note">يستخدم محرك 3arab العام. التوليد يعتمد على توفر مساحة Hugging Face المجانية وقد ينتظر في الطابور.</p>
-<div class="field"><label for="embeddedVoiceText">نص التعليق الصوتي</label><textarea id="embeddedVoiceText" rows="4" style="width:100%;box-sizing:border-box" placeholder="اكتب نص التعليق الذي تريد تحويله إلى صوت…"></textarea></div>
+<div class="field"><label for="embeddedVoiceText">نص التعليق الصوتي</label><textarea id="embeddedVoiceText" rows="4" style="width:100%;box-sizing:border-box" placeholder="اكتب نص التعليق الذي تريد تحويله إلى صوت…"></textarea><div class="tool-actions"><button class="btn" id="useVideoWisdomForEmbeddedVoiceBtn" type="button">✧ استخدام نص حكمة الفيديو</button></div><div class="filehint">ينقل نص المشاهد الحالي تلقائيًا إلى هنا بدل النسخ واللصق.</div></div>
 <div class="field"><label for="embeddedVoiceGender">نوع الصوت</label><select id="embeddedVoiceGender"><option value="ذكر">صوت رجالي</option><option value="أنثى">صوت نسائي</option><option value="بدون">بدون وصف محدد</option></select></div>
 <div class="field"><label for="embeddedVoiceCaption">أسلوب الشخصية</label><textarea id="embeddedVoiceCaption" rows="2" style="width:100%;box-sizing:border-box">راوي وثائقي مصري عميق وهادئ، نطق واضح وإيقاع سينمائي طبيعي</textarea></div>
 <div class="tool-actions"><button class="btn primary" id="embeddedVoiceGenerateBtn" type="button">✧ توليد الصوت وحفظه بالمكتبة</button></div>
@@ -398,6 +398,13 @@ restoreDraft();initParticles();renderPresets();document.fonts?.ready?.then(()=>d
   const embeddedVoiceGender=$('embeddedVoiceGender');
   const embeddedVoiceCaption=$('embeddedVoiceCaption');
   let gradioVoiceClientPromise=null, embeddedVoiceObjectUrl=null;
+  $('useVideoWisdomForEmbeddedVoiceBtn')?.addEventListener('click',()=>{
+    const sceneText=['scriptTitle','scriptBody1','scriptBody2','scriptCta'].map(id=>$(id)?.value?.trim()).filter(Boolean).join('\n\n');
+    if(!sceneText){if(embeddedVoiceStatus)embeddedVoiceStatus.textContent='اكتب نص الحكمة في مشاهد الفيديو أولًا.';return}
+    embeddedVoiceText.value=sceneText;
+    if(embeddedVoiceStatus)embeddedVoiceStatus.textContent='تم نقل نص الحكمة ومشاهد الفيديو إلى حقل التعليق الصوتي. يمكنك توليده الآن.';
+    embeddedVoiceText.focus();
+  });
   async function get3arabVoiceClient(){
     if(!gradioVoiceClientPromise){
       gradioVoiceClientPromise=(async()=>{
