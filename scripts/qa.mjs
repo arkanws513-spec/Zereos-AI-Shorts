@@ -136,10 +136,17 @@ if (html) {
     'id="textAnimation"',
     'id="graphicFrame"',
     'id="glowIntensity"',
+    'id="sceneTransition"',
+    'id="exportProfile"',
     'function exportThumbnail()',
     'sceneImageMediaIds:{...sceneImageMediaIds}',
     'textAnimation:$(',
     'graphicFrame:$(',
+    "sceneTransition:$(",
+    "exportProfile:$(",
+    'function exportProfileSettings()',
+    "canvas.captureStream(profileSettings.fps)",
+    "transition==='flash'",
     'Object.values(record.sceneImageMediaIds||{})',
     "window.addEventListener('zereos-template-change',scheduleAutoSave)"
   ]) {
