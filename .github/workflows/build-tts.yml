@@ -48,11 +48,14 @@ jobs:
           .build/nabra-tts/node_modules/.bin/esbuild .build/nabra-tts/dist/index.js \
             --bundle --format=esm --platform=browser --target=es2022 \
             --external:react --external:module --external:node:* --external:fs --external:path --external:url --external:worker_threads --external:crypto --outfile=vendor/nabra-tts.bundle.js
-          cp .build/nabra-tts/node_modules/onnxruntime-web/dist/*.wasm vendor/ort/
+          ORT_DIST=.build/nabra-tts/node_modules/onnxruntime-web/dist
+          find "$ORT_DIST" -maxdepth 1 -type f \\( -name '*.wasm' -o -name '*.mjs' -o -name '*.js' \\) -exec cp -f {} vendor/ort/ \\;
           test -s vendor/nabra-tts.bundle.js
+          test -s vendor/ort/ort-wasm-simd-threaded.jsep.mjs
           test -n "$(find vendor/ort -maxdepth 1 -name '*.wasm' -print -quit)"
           echo "Bundled TTS: $(wc -c < vendor/nabra-tts.bundle.js) bytes"
           echo "WASM assets: $(find vendor/ort -maxdepth 1 -name '*.wasm' | wc -l)"
+          echo "JS runtime assets: $(find vendor/ort -maxdepth 1 \\( -name '*.mjs' -o -name '*.js' \\) | wc -l)"
 
       - name: Commit generated local runtime assets
         shell: bash
