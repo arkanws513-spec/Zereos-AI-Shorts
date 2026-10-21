@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#283d5a"/>
+      <stop offset=".58" stop-color="#17182d"/>
+      <stop offset="1" stop-color="#5a3c64"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff0c9"/>
+      <stop offset=".55" stop-color="#dfc18a"/>
+      <stop offset="1" stop-color="#9b82d0"/>
+    </linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="8"/></filter>
+  </defs>
+  <rect width="512" height="512" rx="116" fill="url(#bg)"/>
+  <circle cx="256" cy="256" r="154" fill="none" stroke="#d9c6f1" stroke-opacity=".18" stroke-width="2"/>
+  <circle cx="256" cy="256" r="124" fill="none" stroke="#e6d2a6" stroke-opacity=".28" stroke-width="2"/>
+  <path d="M256 94 294 209 414 256 294 303 256 418 218 303 98 256 218 209Z" fill="#d5b9ff" opacity=".2" filter="url(#glow)"/>
+  <path d="M256 102 292 220 410 256 292 292 256 410 220 292 102 256 220 220Z" fill="url(#gold)"/>
+  <circle cx="256" cy="256" r="31" fill="#111522"/>
+  <circle cx="256" cy="256" r="13" fill="#f4e2bb"/>
+</svg>
