@@ -30,18 +30,25 @@ jobs:
         with:
           node-version: 22
 
-      - name: Install browser TTS runtime
-        run: npm install --prefix .build --no-save nabra-tts@0.1.0 esbuild
+      - name: Clone and build the official Nabra TTS source
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .build
+          git clone --depth 1 https://github.com/Oddadmix/nabra-tts.git .build/nabra-tts
+          npm --prefix .build/nabra-tts ci
+          npm --prefix .build/nabra-tts run build
+          test -s .build/nabra-tts/dist/index.js
 
       - name: Bundle TTS locally and copy ONNX WASM runtimes
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p vendor/ort
-          .build/node_modules/.bin/esbuild .build/node_modules/nabra-tts/dist/index.js \
-            --bundle --format=esm --platform=browser --target=es2020 \
-            --outfile=vendor/nabra-tts.bundle.js
-          cp .build/node_modules/onnxruntime-web/dist/*.wasm vendor/ort/
+          .build/nabra-tts/node_modules/.bin/esbuild .build/nabra-tts/dist/index.js \
+            --bundle --format=esm --platform=browser --target=es2022 \
+            --external:react --outfile=vendor/nabra-tts.bundle.js
+          cp .build/nabra-tts/node_modules/onnxruntime-web/dist/*.wasm vendor/ort/
           test -s vendor/nabra-tts.bundle.js
           test -n "$(find vendor/ort -maxdepth 1 -name '*.wasm' -print -quit)"
           echo "Bundled TTS: $(wc -c < vendor/nabra-tts.bundle.js) bytes"
