@@ -107,7 +107,7 @@ if (html) {
     'appCover', 'startAppBtn', 'videoCanvas', 'playBtn', 'resetBtn',
     'exportBtn', 'narrationFile', 'neuralTtsStatus', 'generateNeuralTtsBtn',
     'fillTtsFromScenesBtn', 'voiceLibraryList', 'mediaList', 'projectsPanel',
-    'exportSrtBtn'
+    'exportSrtBtn', 'exportWordSrtBtn', 'exportWordVttBtn'
   ];
   for (const id of requiredIds) {
     if (!html.includes('id="' + id + '"') && !html.includes("id='" + id + "'")) {
@@ -115,6 +115,9 @@ if (html) {
     }
   }
   if (!process.exitCode) pass('Essential editor, voice, media and export controls are present.');
+
+  if (!html.includes('function wordTimings(') || !html.includes('function exportWordSubtitles(') || !html.includes('lineTimingWeight(')) fail('Estimated word timing and word-level subtitle export are missing.');
+  if (!process.exitCode) pass('Estimated word timing and SRT/VTT word-level export are present.');
 
   const exportGuidance = html.includes('صيغة MP4') && html.includes('يستخدم WebM');
   if (!exportGuidance) fail('Export guidance should explain that MP4 is attempted when supported and WebM is the fallback.');
