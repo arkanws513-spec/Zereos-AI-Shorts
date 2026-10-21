@@ -130,6 +130,27 @@ if (html) {
     fail('Export file extension should match the recorder MIME type.');
   }
 
+  for (const feature of [
+    'id="templatesPage"',
+    'id="sceneStudioPage"',
+    'id="textAnimation"',
+    'id="graphicFrame"',
+    'id="glowIntensity"',
+    'function exportThumbnail()',
+    'sceneImageMediaIds:{...sceneImageMediaIds}',
+    'textAnimation:$(',
+    'graphicFrame:$(',
+    'Object.values(record.sceneImageMediaIds||{})',
+    "window.addEventListener('zereos-template-change',scheduleAutoSave)"
+  ]) {
+    if (!html.includes(feature)) fail('Cinematic studio regression: missing expected feature or persistence hook: ' + feature);
+  }
+  if (!serviceWorker.includes("const CACHE_NAME = 'zereos-shell-v2'") ||
+      !serviceWorker.includes("fetch(request, { cache: 'no-cache' })")) {
+    fail('Service worker must refresh app-shell assets from the network before using cached copies.');
+  }
+  if (!process.exitCode) pass('Cinematic controls, scene-media persistence and app-shell update behavior are covered.');
+
   for (const asset of [
     'vendor/nabra-tts.bundle.js',
     'vendor/ort/ort-wasm-simd-threaded.jsep.mjs',
