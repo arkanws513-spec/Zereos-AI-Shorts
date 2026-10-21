@@ -251,7 +251,8 @@ try{if(recorder&&recorder.state!=='inactive')recorder.stop()}catch(error){reject
 localRaf=requestAnimationFrame(paint);
 await doneRecording;
 const mime=recorder.mimeType||chunks.find(chunk=>chunk.type)?.type||selectedMime||'video/webm';
-const blob=new Blob(chunks,{type:mime});
+let blob=new Blob(chunks,{type:mime});
+if(mime.toLowerCase().includes('webm')&&typeof window.ysFixWebmDuration==='function'){try{blob=await window.ysFixWebmDuration(blob,duration,{logger:false})}catch(metaError){console.warn('تعذر إصلاح بيانات مدة WebM:',metaError)}}
 if(!blob.size)throw Error('الملف الناتج فارغ.');
 if(duration>=10000&&chunks.length<2)throw Error('التسجيل لم يكتمل: لم يستقبل التطبيق بيانات فيديو كافية. أعد المحاولة واترك الصفحة مفتوحة.');
 const isMp4=mime.toLowerCase().includes('mp4'),extension=isMp4?'mp4':'webm';
@@ -616,4 +617,4 @@ ttsButton?.addEventListener('click',async()=>{
  }finally{ttsButton.disabled=false;ttsButton.textContent=original}
 });
 (function(){const byId=id=>document.getElementById(id);const library=byId('voiceLibraryPanel'),neural=byId('neuralTtsPanel'),embedded=byId('embeddedVoiceStudio'),design=byId('voiceDesignExternalPanel'),libPage=byId('voiceLibraryPage'),designPage=byId('voiceDesignPage'),neuralPage=byId('neuralVoicePage');if(library&&libPage)libPage.appendChild(library);if(embedded&&designPage)designPage.appendChild(embedded);if(design&&designPage)designPage.appendChild(design);if(neural&&neuralPage)neuralPage.appendChild(neural);if(design){const p=design.querySelector(':scope > p.note');if(p)p.textContent='اختر شخصية صوتية، ثم انسخ وصفها لاستخدامه في محرك التوليد المناسب.'}document.querySelectorAll('.z-page').forEach(p=>{p.hidden=true;p.classList.add('hidden')});const cap=byId('toolNav')?.querySelector('.nav-caption');if(cap)cap.textContent='الأدوات الإبداعية';})();
-</script></body></html>
+</script><script src="https://cdn.jsdelivr.net/npm/fix-webm-duration@1.0.6/fix-webm-duration.js"></script></body></html>
