@@ -6,13 +6,14 @@ Live app: https://arkanws513-spec.github.io/Zereos-AI-Shorts/
 
 ## What is included
 
-- Arabic RTL interface designed for desktop and mobile.
+- Arabic RTL interface designed for desktop and mobile, with an installable web-app manifest and lightweight offline shell.
 - Vertical 9:16 scene preview and video export tools.
 - Project save/restore and media library using browser IndexedDB.
 - Project JSON export/import, with associated media included up to the app's built-in size limits.
 - Local Arabic TTS build pipeline using Nabra TTS and ONNX Runtime Web assets.
 - Audio import and local voice-library workflow.
-- Captions/subtitle export and scene timing tools.
+- Captions/subtitle export and scene timing tools; subtitle timing is an estimate based on scene duration and narration length, not word-level alignment.
+- Video export currently uses WebM through the browser's MediaRecorder support; MP4 export is not promised.
 
 ## Run locally
 
@@ -30,7 +31,7 @@ The local TTS engine is built by GitHub Actions. To rebuild it, open **Actions â
 
 ## Quality checks
 
-A dependency-free static QA workflow runs on pushes and pull requests to `main`. It checks essential app metadata, static HTML IDs, inline JavaScript syntax, the storage adapter's expected API, and the local TTS build workflow.
+A dependency-free static QA workflow runs on pushes and pull requests to `main`. It checks essential app metadata and controls, static HTML IDs, inline JavaScript syntax, the storage adapter's expected API, the local TTS assets/build workflow, the PWA manifest, and service-worker syntax.
 
 You can run the same checks locally with Node.js 22 or newer:
 
@@ -44,7 +45,7 @@ A passing static check is not a substitute for testing audio generation and vide
 
 Projects and media are stored locally in the current browser profile on the current device. They do **not** automatically sync across devices. Export project backups regularly before clearing browser data or changing browsers.
 
-The app does not require a paid inference API key for its built-in local TTS workflow. The first local voice generation may still need an internet connection to fetch model assets, and the model can use substantial memory on older phones.
+The app does not require a paid inference API key for its built-in local TTS workflow. The lightweight app shell can be available offline after the first visit, but voice generation still needs its model/runtime assets; those large files are intentionally not precached to avoid consuming phone storage. The first local voice generation may need an internet connection and the model can use substantial memory on older phones.
 
 ## Development principles
 
