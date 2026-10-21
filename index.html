@@ -58,6 +58,16 @@
 </select></div>
 <div class="field"><label for="voiceCharacterDescription">وصف الشخصية (قابل للتعديل)</label><textarea id="voiceCharacterDescription" rows="3" style="width:100%;box-sizing:border-box" placeholder="سيظهر وصف الشخصية هنا"></textarea></div>
 <div class="tool-actions"><button class="btn primary" id="copyVoicePackageBtn" type="button">نسخ وصف الشخصية والنص معًا</button><button class="btn" id="copyVoiceDescriptionBtn" type="button">نسخ الوصف فقط</button></div>
+<div class="tool-card" id="embeddedVoiceStudio">
+<h4>⚡ توليد الصوت من داخل ZEREOS</h4>
+<p class="note">يستخدم محرك 3arab العام. التوليد يعتمد على توفر مساحة Hugging Face المجانية وقد ينتظر في الطابور.</p>
+<div class="field"><label for="embeddedVoiceText">نص التعليق الصوتي</label><textarea id="embeddedVoiceText" rows="4" style="width:100%;box-sizing:border-box" placeholder="اكتب نص التعليق الذي تريد تحويله إلى صوت…"></textarea></div>
+<div class="field"><label for="embeddedVoiceGender">نوع الصوت</label><select id="embeddedVoiceGender"><option value="ذكر">صوت رجالي</option><option value="أنثى">صوت نسائي</option><option value="بدون">بدون وصف محدد</option></select></div>
+<div class="field"><label for="embeddedVoiceCaption">أسلوب الشخصية</label><textarea id="embeddedVoiceCaption" rows="2" style="width:100%;box-sizing:border-box">راوي وثائقي مصري عميق وهادئ، نطق واضح وإيقاع سينمائي طبيعي</textarea></div>
+<div class="tool-actions"><button class="btn primary" id="embeddedVoiceGenerateBtn" type="button">✧ توليد الصوت وحفظه بالمكتبة</button></div>
+<div id="embeddedVoiceStatus" class="filehint" aria-live="polite">سيتم حفظ الصوت الناتج تلقائيًا في مكتبة الأصوات المحلية.</div>
+<audio id="embeddedVoicePreview" controls class="hidden" style="width:100%;margin-top:10px"></audio>
+</div>
 <div class="tool-actions"><a class="btn primary" href="https://huggingface.co/spaces/sherif1313/3arab-TTS-VoiceDesign-v2" target="_blank" rel="noopener noreferrer" style="text-decoration:none">فتح 3arab VoiceDesign ↗</a><a class="btn" href="https://huggingface.co/spaces/mohammedaly22/VoiceTut-TTS" target="_blank" rel="noopener noreferrer" style="text-decoration:none">فتح VoiceTut TTS ↗</a></div>
 <div id="voiceCharacterStatus" class="filehint" aria-live="polite">اختَر شخصية ثم انسخ الحزمة والصقها في محرك الصوت. عند الانتهاء ارفع الملف من «إضافة ملف صوت AI».</div>
 <p class="note">مهم: المحركات ما زالت تعمل على مواقع خارجية؛ هذه الخطوة لا تتطلب مفتاح API. لا نفعّل استدعاءً مباشرًا من داخل ZEREOS قبل التأكد من وجود واجهة تشغيل عامة مستقرة وشروط استخدامها.</p>
@@ -361,6 +371,65 @@ restoreDraft();initParticles();renderPresets();document.fonts?.ready?.then(()=>d
       await renderVoiceLibrary();await refreshMedia();
     }catch(error){if(status)status.textContent='تعذر الحفظ: '+error.message}
   }
+  // Integrated public 3arab VoiceDesign generator (no API key; public Space quota/availability applies).
+  const embeddedVoiceButton=$('embeddedVoiceGenerateBtn');
+  const embeddedVoiceStatus=$('embeddedVoiceStatus');
+  const embeddedVoicePreview=$('embeddedVoicePreview');
+  const embeddedVoiceText=$('embeddedVoiceText');
+  const embeddedVoiceGender=$('embeddedVoiceGender');
+  const embeddedVoiceCaption=$('embeddedVoiceCaption');
+  let gradioVoiceClientPromise=null, embeddedVoiceObjectUrl=null;
+  async function get3arabVoiceClient(){
+    if(!gradioVoiceClientPromise){
+      gradioVoiceClientPromise=(async()=>{
+        const mod=await import('https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js');
+        if(!mod.Client)throw new Error('تعذر تحميل مكتبة الاتصال بمحرك الصوت.');
+        return await mod.Client.connect('sherif1313/3arab-TTS-VoiceDesign-v2');
+      })().catch(error=>{gradioVoiceClientPromise=null;throw error});
+    }
+    return gradioVoiceClientPromise;
+  }
+  embeddedVoiceButton?.addEventListener('click',async()=>{
+    const textValue=embeddedVoiceText?.value?.trim();
+    if(!textValue){if(embeddedVoiceStatus)embeddedVoiceStatus.textContent='اكتب نص التعليق أولًا.';return}
+    if(embeddedVoiceButton.disabled)return;
+    embeddedVoiceButton.disabled=true;
+    const oldLabel=embeddedVoiceButton.textContent;
+    embeddedVoiceButton.textContent='جارٍ الاتصال بمحرك الصوت…';
+    if(embeddedVoiceStatus)embeddedVoiceStatus.textContent='جارٍ الاتصال بالمحرك العام؛ قد يستغرق تحميل النموذج أو الانتظار بعض الوقت.';
+    try{
+      const client=await get3arabVoiceClient();
+      embeddedVoiceButton.textContent='جارٍ توليد الصوت…';
+      const style=embeddedVoiceCaption?.value?.trim()||'راوي وثائقي عربي واضح وطبيعي';
+      const gender=embeddedVoiceGender?.value||'ذكر';
+      const caption=gender==='بدون'?'':style;
+      const result=await client.predict('/gradio_inference',[
+        textValue,caption,40,1,'','',1.0,'linear',-1.0,'independent',3.0,4.0,'',0.5,1.0,true,'','','','',''
+      ]);
+      const audioResult=result?.data?.[0];
+      if(!audioResult)throw new Error('المحرك لم يُرجع ملفًا صوتيًا. جرّب مرة أخرى أو افتح المحرك الخارجي.');
+      let audioUrl=typeof audioResult==='string'?audioResult:(audioResult.url||audioResult.path||audioResult.name||'');
+      if(!audioUrl)throw new Error('استجابة المحرك لا تحتوي على رابط صوت مفهوم.');
+      if(audioUrl.startsWith('/'))audioUrl='https://sherif1313-3arab-tts-voicedesign-v2.hf.space'+audioUrl;
+      const response=await fetch(audioUrl);
+      if(!response.ok)throw new Error('تعذر تنزيل الصوت من المحرك (HTTP '+response.status+').');
+      const blob=await response.blob();
+      const mime=blob.type&&blob.type.startsWith('audio/')?blob.type:(audioResult.mime_type||'audio/wav');
+      const file=new File([blob],'ZEREOS_3arab_'+Date.now()+'.wav',{type:mime});
+      if(embeddedVoiceObjectUrl)URL.revokeObjectURL(embeddedVoiceObjectUrl);
+      embeddedVoiceObjectUrl=URL.createObjectURL(file);
+      embeddedVoicePreview.src=embeddedVoiceObjectUrl;
+      embeddedVoicePreview.classList.remove('hidden');
+      embeddedVoiceButton.textContent='جارٍ حفظ الصوت بالمكتبة…';
+      await saveVoiceFiles([file],'ai');
+      if(embeddedVoiceStatus)embeddedVoiceStatus.textContent='اكتمل التوليد وحُفظ الملف في مكتبة الأصوات المحلية. يمكنك معاينته واختياره للفيديو.';
+    }catch(error){
+      if(embeddedVoiceStatus)embeddedVoiceStatus.textContent='تعذر التوليد داخل التطبيق: '+(error?.message||String(error))+' — يمكنك استخدام المحرك الخارجي أدناه.';
+    }finally{
+      embeddedVoiceButton.disabled=false;
+      embeddedVoiceButton.textContent=oldLabel||'✧ توليد الصوت وحفظه بالمكتبة';
+    }
+  });
   $('humanVoiceUpload').addEventListener('change',e=>{saveVoiceFiles(Array.from(e.target.files||[]),'human');e.target.value=''});
   $('aiVoiceUpload').addEventListener('change',e=>{saveVoiceFiles(Array.from(e.target.files||[]),'ai');e.target.value=''});
   $('refreshVoiceLibraryBtn').addEventListener('click',()=>{if('speechSynthesis'in window)loadVoices();renderVoiceLibrary()});
