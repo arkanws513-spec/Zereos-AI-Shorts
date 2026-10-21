@@ -79,6 +79,34 @@ if (workflow) {
   if (!process.exitCode) pass('Local Arabic TTS build workflow contract checks passed.');
 }
 
+if (html) {
+  const requiredIds = [
+    'appCover', 'startAppBtn', 'videoCanvas', 'playBtn', 'resetBtn',
+    'exportBtn', 'narrationFile', 'neuralTtsStatus', 'generateNeuralTtsBtn',
+    'fillTtsFromScenesBtn', 'voiceLibraryList', 'mediaList', 'projectsPanel',
+    'exportSrtBtn'
+  ];
+  for (const id of requiredIds) {
+    if (!new RegExp('\\\\bid=["\\\\\\\\']' + id + '["\\\\\\\\']').test(html)) {
+      fail('Essential UI element is missing: #' + id);
+    }
+  }
+  if (!process.exitCode) pass('Essential editor, voice, media and export controls are present.');
+
+  const exportGuidance = html.includes('بصيغة WebM');
+  if (!exportGuidance) fail('Export guidance should accurately state that the current exporter uses WebM.');
+  if (html.includes('يختار التطبيق MP4/AAC')) fail('The UI must not promise MP4/AAC when the current exporter does not provide it.');
+
+  for (const asset of [
+    'vendor/nabra-tts.bundle.js',
+    'vendor/ort/ort-wasm-simd-threaded.jsep.mjs',
+    'vendor/ort/ort-wasm-simd-threaded.jsep.wasm'
+  ]) {
+    if (!fs.existsSync(path.join(root, asset))) fail('Required local TTS asset is missing: ' + asset);
+  }
+  if (!process.exitCode) pass('Local TTS runtime assets are present and export-format messaging is consistent.');
+}
+
 if (process.exitCode) {
   console.error('ZEREOS QA failed.');
 } else {
