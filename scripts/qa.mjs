@@ -87,7 +87,7 @@ if (html) {
     'exportSrtBtn'
   ];
   for (const id of requiredIds) {
-    if (!new RegExp('\\\\bid=["\\\\\\\\']' + id + '["\\\\\\\\']').test(html)) {
+    if (!html.includes('id="' + id + '"') && !html.includes("id='" + id + "'")) {
       fail('Essential UI element is missing: #' + id);
     }
   }
