@@ -107,7 +107,7 @@ let playing=false,recording=false,raf=0,startAt=0,previewElapsed=0,previewOnlySc
 const W=canvas.width,H=canvas.height;
 function texts(){return [$('scriptTitle').value.trim(),$('scriptBody1').value.trim(),$('scriptBody2').value.trim(),$('scriptCta').value.trim()]}
 function sceneTimeline(){const lines=texts(),fixed=Number($('sceneSeconds').value)*1000;if(!narrationBuffer||!Number.isFinite(narrationBuffer.duration)||narrationBuffer.duration<=0)return lines.map((_,i)=>({start:i*fixed,end:(i+1)*fixed}));const total=narrationBuffer.duration*1000;const weights=lines.map(line=>Math.max(1,(line.match(/[\p{L}\p{N}]+/gu)||[]).length));const sum=weights.reduce((a,b)=>a+b,0)||1;let cursor=0;return weights.map((weight,i)=>{const start=cursor;cursor=i===weights.length-1?total:cursor+total*weight/sum;return {start,end:cursor}})}
-function totalMs(){return narrationBuffer?Math.max(1000,narrationBuffer.duration*1000):Number($('sceneSeconds').value)*4*1000}}
+function totalMs(){return narrationBuffer?Math.max(1000,narrationBuffer.duration*1000):Number($('sceneSeconds').value)*4*1000}
 function currentStyle(){return $('bgStyle').value}
 function initParticles(){particles=Array.from({length:75},()=>({x:Math.random()*W,y:Math.random()*H,r:1+Math.random()*3,v:.2+Math.random()*.7,a:.15+Math.random()*.55,phase:Math.random()*6.28}))}
 function wrapText(text,maxWidth,font){ctx.font=font;const words=(text||'').split(/\s+/);let lines=[],line='';for(const word of words){const test=line?line+' '+word:word;if(ctx.measureText(test).width>maxWidth&&line){lines.push(line);line=word}else line=test}if(line)lines.push(line);return lines}
