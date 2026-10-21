@@ -130,11 +130,11 @@ function stopMusic(){musicOsc.forEach(o=>{try{o.stop()}catch(e){}});musicOsc=[]}
 function startMusic(){const ac=ensureAudio();stopMusic();musicGain.gain.setTargetAtTime(Number($('volume').value),ac.currentTime,.08);if($('music').value==='none')return;const notes=$('music').value==='dramatic'?[110,146.83,164.81,123.47]:[130.81,164.81,196,146.83];notes.forEach((hz,i)=>{const osc=ac.createOscillator(),gain=ac.createGain(),filter=ac.createBiquadFilter();osc.type=i===0?'sine':'triangle';osc.frequency.value=hz;filter.type='lowpass';filter.frequency.value=500;gain.gain.value=i===0?.12:.035;osc.connect(filter);filter.connect(gain);gain.connect(musicGain);osc.start();musicOsc.push(osc)});musicGain.gain.setTargetAtTime(Number($('volume').value),ac.currentTime,.1)}
 async function exportVideo(){
 if(recording)return;
-if(!('MediaRecorder'in window)||!canvas.captureStream){$('status').textContent='تسجيل الفيديو غير مدعوم في هذا المتصفح. افتح الصفحة في Chrome أو Safari محدّث.';return}
-let ac=null,recorder=null,canvasStream=null,localRaf=0,narrationSource=null,done=null;
+if(!('MediaRecorder'in window)||!canvas.captureStream){$('status').textContent='تسجيل الفيديو غير مدعوم في هذا المتصفح. افتح الصفحة في Chrome محدّث.';return}
+let ac=null,recorder=null,canvasStream=null,localRaf=0,narrationSource=null;
 const chunks=[];
 try{
-recording=true;$('exportBtn').disabled=true;$('exportBtn').textContent='جارٍ تجهيز الفيديو والصوت…';$('status').textContent='يتم تجهيز الفيديو والصوت. اترك الصفحة مفتوحة حتى يبدأ التنزيل.';
+recording=true;$('exportBtn').disabled=true;$('exportBtn').textContent='جارٍ تجهيز الفيديو والصوت…';$('status').textContent='يتم تسجيل الفيديو والصوت. اترك الصفحة مفتوحة حتى يبدأ التنزيل.';
 ac=ensureAudio();await ac.resume();
 if(ac.state!=='running')throw Error('تعذر تشغيل الصوت. اضغط مرة أخرى للسماح بالصوت في المتصفح.');
 if($('narrationFile').files?.[0]&&!narrationBuffer)throw Error('ملف التعليق الصوتي لم يجهز بعد. انتظر اكتمال تحميله ثم أعد التصدير.');
@@ -149,49 +149,57 @@ canvasStream=canvas.captureStream(30);
 const audioTrack=recordingDestination.stream.getAudioTracks().find(track=>track.readyState==='live');
 if(!audioTrack)throw Error('تعذر تجهيز مسار الصوت للتسجيل.');
 const stream=new MediaStream([...canvasStream.getVideoTracks(),audioTrack]);
-const mimeCandidates=[
-'video/webm;codecs=vp8,opus',
-'video/webm;codecs=vp9,opus',
-'video/webm',
-'video/mp4;codecs="avc1.42E01E,mp4a.40.2"',
-'video/mp4'
-];
+const mimeCandidates=['video/webm;codecs=vp8,opus','video/webm;codecs=vp9,opus','video/webm'];
 let selectedMime='',startError=null;
 for(const candidate of mimeCandidates){
 try{
 if(MediaRecorder.isTypeSupported&&!MediaRecorder.isTypeSupported(candidate))continue;
 const trial=new MediaRecorder(stream,{mimeType:candidate});
 trial.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
-trial.onerror=e=>{console.error('MediaRecorder error',e.error||e);};
-trial.start(500);
+trial.onerror=e=>console.error('MediaRecorder error',e.error||e);
 recorder=trial;selectedMime=trial.mimeType||candidate;break;
-}catch(error){startError=error;console.warn('تعذر بدء التصدير بصيغة '+candidate,error);recorder=null;chunks.length=0}
+}catch(error){startError=error;console.warn('تعذر إعداد التصدير بصيغة '+candidate,error)}
 }
 if(!recorder){
 try{
-const trial=new MediaRecorder(stream);
-trial.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
-trial.onerror=e=>{console.error('MediaRecorder error',e.error||e);};
-trial.start(500);recorder=trial;selectedMime=trial.mimeType||'';
-}catch(error){throw Error('المتصفح رفض كل إعدادات ترميز الفيديو المتاحة. جرّب فتح التطبيق في Chrome محدّث. '+(error?.message||startError?.message||''))}
+recorder=new MediaRecorder(stream);
+recorder.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
+recorder.onerror=e=>console.error('MediaRecorder error',e.error||e);
+selectedMime=recorder.mimeType||'';
+}catch(error){throw Error('المتصفح رفض إعدادات ترميز الفيديو. جرّب فتح التطبيق في Chrome محدّث. '+(error?.message||startError?.message||''))}
 }
-const doneRecording=new Promise((resolve,reject)=>{recorder.onstop=resolve;recorder.onerror=e=>reject(e.error||Error('تعذر تسجيل الفيديو'))});
-const duration=totalMs(),start=performance.now();
-const paint=now=>{const elapsed=now-start;drawFrame(Math.min(elapsed,duration));if(elapsed<duration)localRaf=requestAnimationFrame(paint);else{localRaf=0;if(recorder.state!=='inactive')recorder.stop()}};
+let rejectRecording;
+const doneRecording=new Promise((resolve,reject)=>{
+rejectRecording=reject;
+recorder.onstop=resolve;
+recorder.onerror=e=>reject(e.error||Error('تعذر تسجيل الفيديو'));
+});
+const duration=Math.max(10000,totalMs()),start=performance.now();
+try{recorder.start(1000)}catch(error){throw Error('تعذر بدء تسجيل الفيديو: '+(error?.message||''))}
 if(narrationSource)narrationSource.start(0);
 if(importedSceneVideo){try{importedSceneVideo.currentTime=0;await importedSceneVideo.play()}catch(error){console.warn('تعذر تشغيل فيديو الخلفية أثناء التصدير:',error)}}
+const paint=now=>{
+const elapsed=now-start;
+drawFrame(Math.min(elapsed,duration));
+if(elapsed<duration)localRaf=requestAnimationFrame(paint);
+else{
+localRaf=0;
+try{if(recorder&&recorder.state!=='inactive')recorder.stop()}catch(error){rejectRecording(error)}
+}
+};
 localRaf=requestAnimationFrame(paint);
 await doneRecording;
-const mime=recorder.mimeType||chunks.find(chunk=>chunk.type)?.type||selectedMime;
+const mime=recorder.mimeType||chunks.find(chunk=>chunk.type)?.type||selectedMime||'video/webm';
 const blob=new Blob(chunks,{type:mime});
 if(!blob.size)throw Error('الملف الناتج فارغ.');
+if(duration>=10000&&chunks.length<2)throw Error('التسجيل لم يكتمل: لم يستقبل التطبيق بيانات فيديو كافية. أعد المحاولة واترك الصفحة مفتوحة.');
 const isMp4=mime.toLowerCase().includes('mp4'),extension=isMp4?'mp4':'webm';
 const url=URL.createObjectURL(blob),link=document.createElement('a');
 link.href=url;link.download='zereos-shorts-'+Date.now()+'.'+extension;
 document.body.appendChild(link);link.click();link.remove();
 setTimeout(()=>URL.revokeObjectURL(url),120000);
 drawFrame(0);
-$('status').textContent='اكتمل التصدير مع مسار صوت ('+(isMp4?'MP4/AAC مناسب للهواتف':'WebM')+'). تأكد من رفع مستوى صوت الهاتف عند التشغيل.';
+$('status').textContent='اكتمل إنشاء الفيديو ('+Math.round(duration/1000)+' ثانية) بصيغة '+extension.toUpperCase()+'. جرّب تشغيل الملف من المعرض قبل مشاركته.';
 }catch(err){
 console.error(err);
 $('status').textContent='لم يكتمل التصدير: '+(err.message||'خطأ غير معروف');
