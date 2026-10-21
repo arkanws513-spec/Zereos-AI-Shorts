@@ -10,6 +10,7 @@ Live app: https://arkanws513-spec.github.io/Zereos-AI-Shorts/
 - Vertical 9:16 scene preview and video export tools.
 - Project save/restore and media library using browser IndexedDB.
 - Project JSON export/import, with associated media included up to the app's built-in size limits.
+- Per-scene images, selected cinematic templates, text animation, frame style, glow, and caption style are saved with the project and restored when reopened.
 - Local Arabic TTS build pipeline using Nabra TTS and ONNX Runtime Web assets.
 - Audio import and local voice-library workflow.
 - Captions/subtitle export and scene timing tools; subtitle timing is an estimate based on scene duration and narration length, not word-level alignment.
