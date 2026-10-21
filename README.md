@@ -13,7 +13,7 @@ Live app: https://arkanws513-spec.github.io/Zereos-AI-Shorts/
 - Local Arabic TTS build pipeline using Nabra TTS and ONNX Runtime Web assets.
 - Audio import and local voice-library workflow.
 - Captions/subtitle export and scene timing tools; subtitle timing is an estimate based on scene duration and narration length, not word-level alignment.
-- Video export currently uses WebM through the browser's MediaRecorder support; MP4 export is not promised.
+- Video export selects a browser-supported MP4 recording format first when available, then falls back to WebM. The actual format depends on the browser/device; verify the downloaded file before publishing.
 
 ## Run locally
 
