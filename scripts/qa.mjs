@@ -19,6 +19,8 @@ function readRequired(file) {
 const html = readRequired('index.html');
 const storage = readRequired('storage.js');
 const workflow = readRequired('.github/workflows/build-tts.yml');
+const manifest = readRequired('manifest.webmanifest');
+const serviceWorker = readRequired('service-worker.js');
 
 if (html) {
   if (!/<html\b[^>]*lang=["']ar["']/i.test(html)) fail('index.html should declare Arabic language.');
@@ -77,6 +79,27 @@ if (workflow) {
     if (!workflow.includes(token)) fail('Local Arabic TTS workflow is missing expected build step: ' + token);
   }
   if (!process.exitCode) pass('Local Arabic TTS build workflow contract checks passed.');
+}
+
+if (manifest) {
+  try {
+    const data = JSON.parse(manifest);
+    if (data.name !== 'ZEREOS AI Shorts' || data.display !== 'standalone' || data.dir !== 'rtl') {
+      fail('Web app manifest is missing the expected app name, standalone display or RTL direction.');
+    } else if (!process.exitCode) pass('Installable web app manifest is valid.');
+  } catch (error) {
+    fail('Web app manifest is not valid JSON: ' + error.message);
+  }
+}
+
+if (serviceWorker) {
+  const result = spawnSync(process.execPath, ['--check', path.join(root, 'service-worker.js')], { encoding: 'utf8' });
+  if (result.status !== 0) fail('Service worker JavaScript syntax check failed: ' + (result.stderr || result.stdout));
+  else if (!process.exitCode) pass('Offline app-shell service worker syntax is valid.');
+  if (!fs.existsSync(path.join(root, 'assets/zereos-icon.svg'))) fail('PWA icon is missing.');
+  if (!html.includes('rel="manifest"') || !html.includes("serviceWorker.register('./service-worker.js'")) {
+    fail('index.html must link the app manifest and register the service worker.');
+  }
 }
 
 if (html) {
