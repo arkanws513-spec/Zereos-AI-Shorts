@@ -116,9 +116,16 @@ if (html) {
   }
   if (!process.exitCode) pass('Essential editor, voice, media and export controls are present.');
 
-  const exportGuidance = html.includes('بصيغة WebM');
-  if (!exportGuidance) fail('Export guidance should accurately state that the current exporter uses WebM.');
-  if (html.includes('يختار التطبيق MP4/AAC')) fail('The UI must not promise MP4/AAC when the current exporter does not provide it.');
+  const exportGuidance = html.includes('صيغة MP4') && html.includes('يستخدم WebM');
+  if (!exportGuidance) fail('Export guidance should explain that MP4 is attempted when supported and WebM is the fallback.');
+  const mp4Candidate = html.indexOf("'video/mp4;codecs=avc1.42E01E,mp4a.40.2'");
+  const webmFallback = html.indexOf("'video/webm;codecs=vp9,opus'");
+  if (mp4Candidate < 0 || webmFallback < 0 || mp4Candidate > webmFallback) {
+    fail('Exporter should try supported MP4 candidates before WebM fallback candidates.');
+  }
+  if (!html.includes("const isMp4=mime.toLowerCase().includes('mp4'),extension=isMp4?'mp4':'webm'")) {
+    fail('Export file extension should match the recorder MIME type.');
+  }
 
   for (const asset of [
     'vendor/nabra-tts.bundle.js',
