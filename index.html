@@ -214,7 +214,7 @@ canvasStream=canvas.captureStream(30);
 const audioTrack=recordingDestination.stream.getAudioTracks().find(track=>track.readyState==='live');
 if(!audioTrack)throw Error('تعذر تجهيز مسار الصوت للتسجيل.');
 const stream=new MediaStream([...canvasStream.getVideoTracks(),audioTrack]);
-const mimeCandidates=['video/webm;codecs=vp8,opus','video/webm;codecs=vp9,opus','video/webm'];
+const mimeCandidates=['video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4','video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'];
 let selectedMime='',startError=null;
 for(const candidate of mimeCandidates){
 try{
