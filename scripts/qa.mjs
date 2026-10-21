@@ -147,7 +147,7 @@ if (html) {
     "exportProfile:$(",
     'function exportProfileSettings()',
     'function updateTimelineUI(',
-    "button.addEventListener('click',()=>playSingleScene(b.dataset.timelineScene))",
+    "playSingleScene(b.dataset.timelineScene)",
     "canvas.captureStream(profileSettings.fps)",
     "transition==='flash'",
     'Object.values(record.sceneImageMediaIds||{})',
