@@ -150,24 +150,34 @@ const audioTrack=recordingDestination.stream.getAudioTracks().find(track=>track.
 if(!audioTrack)throw Error('تعذر تجهيز مسار الصوت للتسجيل.');
 const stream=new MediaStream([...canvasStream.getVideoTracks(),audioTrack]);
 const mimeCandidates=[
-'video/mp4;codecs="avc1.42E01E,mp4a.40.2"',
-'video/mp4;codecs="avc1.424028,mp4a.40.2"',
-'video/mp4',
-'video/webm;codecs=vp9,opus',
 'video/webm;codecs=vp8,opus',
-'video/webm'
+'video/webm;codecs=vp9,opus',
+'video/webm',
+'video/mp4;codecs="avc1.42E01E,mp4a.40.2"',
+'video/mp4'
 ];
-let selectedMime='';
+let selectedMime='',startError=null;
 for(const candidate of mimeCandidates){
-if(!MediaRecorder.isTypeSupported(candidate))continue;
-try{recorder=new MediaRecorder(stream,{mimeType:candidate,audioBitsPerSecond:128000,videoBitsPerSecond:4500000});selectedMime=candidate;break}catch(error){console.warn('تعذر استخدام الصيغة '+candidate,error)}
+try{
+if(MediaRecorder.isTypeSupported&&!MediaRecorder.isTypeSupported(candidate))continue;
+const trial=new MediaRecorder(stream,{mimeType:candidate});
+trial.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
+trial.onerror=e=>{console.error('MediaRecorder error',e.error||e);};
+trial.start(500);
+recorder=trial;selectedMime=trial.mimeType||candidate;break;
+}catch(error){startError=error;console.warn('تعذر بدء التصدير بصيغة '+candidate,error);recorder=null;chunks.length=0}
 }
-if(!recorder)throw Error('هذا المتصفح لا يدعم تصدير فيديو مع صوت. جرّب Chrome أو Safari محدّثًا.');
-recorder.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
+if(!recorder){
+try{
+const trial=new MediaRecorder(stream);
+trial.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
+trial.onerror=e=>{console.error('MediaRecorder error',e.error||e);};
+trial.start(500);recorder=trial;selectedMime=trial.mimeType||'';
+}catch(error){throw Error('المتصفح رفض كل إعدادات ترميز الفيديو المتاحة. جرّب فتح التطبيق في Chrome محدّث. '+(error?.message||startError?.message||''))}
+}
 const doneRecording=new Promise((resolve,reject)=>{recorder.onstop=resolve;recorder.onerror=e=>reject(e.error||Error('تعذر تسجيل الفيديو'))});
 const duration=totalMs(),start=performance.now();
 const paint=now=>{const elapsed=now-start;drawFrame(Math.min(elapsed,duration));if(elapsed<duration)localRaf=requestAnimationFrame(paint);else{localRaf=0;if(recorder.state!=='inactive')recorder.stop()}};
-recorder.start(500);
 if(narrationSource)narrationSource.start(0);
 if(importedSceneVideo){try{importedSceneVideo.currentTime=0;await importedSceneVideo.play()}catch(error){console.warn('تعذر تشغيل فيديو الخلفية أثناء التصدير:',error)}}
 localRaf=requestAnimationFrame(paint);
