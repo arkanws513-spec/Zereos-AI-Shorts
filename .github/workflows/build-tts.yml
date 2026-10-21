@@ -47,7 +47,7 @@ jobs:
           mkdir -p vendor/ort
           .build/nabra-tts/node_modules/.bin/esbuild .build/nabra-tts/dist/index.js \
             --bundle --format=esm --platform=browser --target=es2022 \
-            --external:react --outfile=vendor/nabra-tts.bundle.js
+            --external:react --external:module --external:node:* --external:fs --external:path --external:url --external:worker_threads --external:crypto --outfile=vendor/nabra-tts.bundle.js
           cp .build/nabra-tts/node_modules/onnxruntime-web/dist/*.wasm vendor/ort/
           test -s vendor/nabra-tts.bundle.js
           test -n "$(find vendor/ort -maxdepth 1 -name '*.wasm' -print -quit)"
