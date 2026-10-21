@@ -1,7 +1,7 @@
 /* ZEREOS app shell cache. Large model/WASM assets are intentionally not precached. */
 'use strict';
 
-const CACHE_NAME = 'zereos-shell-v1';
+const CACHE_NAME = 'zereos-shell-v2';
 const BASE_URL = new URL('./', self.location.href);
 const SHELL_URLS = [
   BASE_URL.href,
@@ -48,10 +48,20 @@ self.addEventListener('fetch', event => {
       }
     }
 
-    const cached = await cache.match(request);
-    if (cached) return cached;
-    const fresh = await fetch(request);
-    if (fresh.ok) cache.put(request, fresh.clone()).catch(() => {});
-    return fresh;
+    // Network-first keeps the installed app shell from getting stuck on an old
+    // HTML/JS build when the cache name did not change between deployments.
+    try {
+      const fresh = await fetch(request, { cache: 'no-cache' });
+      if (fresh.ok) {
+        cache.put(request, fresh.clone()).catch(() => {});
+        return fresh;
+      }
+      const cached = await cache.match(request);
+      return cached || fresh;
+    } catch (_) {
+      const cached = await cache.match(request);
+      if (cached) return cached;
+      throw new Error('The app shell is not cached and the network is unavailable.');
+    }
   })());
 });
