@@ -668,7 +668,8 @@ async function useLiveVoiceRecording(){
   if(window.ZereosStorage?.local?.saveMedia){
    const mime=recordedVoiceBlob.type||'audio/webm';
    const ext=mime.includes('mp4')?'m4a':mime.includes('ogg')?'ogg':mime.includes('wav')?'wav':'webm';
-   const saved=await window.ZereosStorage.local.saveMedia({name:'ZEREOS-Voice-'+Date.now()+'.'+ext,type:mime,kind:'audio',size:recordedVoiceBlob.size,blob:recordedVoiceBlob,projectId:window.ZereosStorage.local.activeProjectId?.()||null,voiceCategory:'human',voiceProfile:'human'});
+   const activeProjectId=await window.ZereosStorage.local.activeProjectId();
+   const saved=await window.ZereosStorage.local.saveMedia({name:'ZEREOS-Voice-'+Date.now()+'.'+ext,type:mime,kind:'audio',size:recordedVoiceBlob.size,blob:recordedVoiceBlob,projectId:activeProjectId||null,voiceCategory:'human',voiceProfile:'human'});
    if(saved?.id)importedNarrationMediaId=saved.id;
    await window.ZereosRefreshVoiceLibrary?.();
   }
