@@ -546,8 +546,8 @@ rejectRecording=reject;
 recorder.onstop=resolve;
 recorder.onerror=e=>reject(e.error||Error('تعذر تسجيل الفيديو'));
 });
-const duration=Math.max(10000,totalMs()),start=performance.now(),fadeOut=Math.max(0,Number($('musicFadeOut')?.value||0)),fadeOutAt=Math.max(ac.currentTime,ac.currentTime+duration/1000-fadeOut);
-if(fadeOut>0){musicGain.gain.cancelScheduledValues(ac.currentTime);musicGain.gain.setValueAtTime(Number($('volume').value),ac.currentTime);musicGain.gain.setValueAtTime(Number($('volume').value),fadeOutAt);musicGain.gain.linearRampToValueAtTime(0,ac.currentTime+duration/1000)}
+const duration=Math.max(10000,totalMs()),start=performance.now(),fadeIn=Math.max(0,Number($('musicFadeIn')?.value||0)),fadeOut=Math.max(0,Number($('musicFadeOut')?.value||0)),fadeOutAt=Math.max(ac.currentTime+fadeIn,ac.currentTime+duration/1000-fadeOut);
+if(fadeOut>0){musicGain.gain.setValueAtTime(Number($('volume').value),Math.min(fadeOutAt,ac.currentTime+duration/1000-.01));musicGain.gain.linearRampToValueAtTime(0,ac.currentTime+duration/1000)}
 try{recorder.start(1000)}catch(error){throw Error('تعذر بدء تسجيل الفيديو: '+(error?.message||''))}
 if(narrationSource){const trimStart=Math.min(narrationTrimStart,Math.max(0,narrationBuffer.duration-.05));narrationSource.start(0,trimStart,effectiveNarrationDuration())}
 if(importedSceneVideo){try{importedSceneVideo.currentTime=0;await importedSceneVideo.play()}catch(error){console.warn('تعذر تشغيل فيديو الخلفية أثناء التصدير:',error)}}
