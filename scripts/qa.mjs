@@ -146,7 +146,7 @@ if (html) {
     'async function refreshMedia()',
     'const references=new Map()',
     'del.disabled=linked.length>0',
-    'التنظيف الجماعي يحذف فقط الملفات التي لا يشير إليها أي مشروع'
+    'التنظيف الجماعي يحذف فقط الملفات التي لا يشير إليها أي مشروع',
     'function exportThumbnail()',
     'sceneImageMediaIds:{...sceneImageMediaIds}',
     'textAnimation:$(',
