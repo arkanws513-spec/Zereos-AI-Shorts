@@ -211,7 +211,7 @@ if (html) {
     "activeTemplate==='aurora'",
     "drawTemplateComposition(safeElapsed,scene,sceneElapsed,sceneLen)",
     "cachedTimelineKey",
-    "const snapped=findQuietBoundary(cursor,total,channel,narrationBuffer.sampleRate)",
+    "const snapped=findQuietBoundary(cursor,total,channel,narrationBuffer.sampleRate,trimStart*1000)",
     "يحاول محاذاة حدودها مع فترات الهدوء في الصوت محليًا",
     "canvas.captureStream(profileSettings.fps)",
     "transition==='flash'",
