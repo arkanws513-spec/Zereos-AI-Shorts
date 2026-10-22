@@ -151,6 +151,26 @@ window.ZereosTalkingAvatar = {
   get status() { return failed ? 'error' : head ? 'ready' : loading ? 'loading' : 'idle'; }
 };
 
+// Entry point for the real-person video pipeline. This is distinct from the
+// lightweight 3D presenter and its approximate audio-level mouth movement.
+function addRealAvatarStudioLink() {
+  const target = document.getElementById('avatarStatus') || document.getElementById('avatarImageStatus');
+  if (!target || document.getElementById('realAvatarStudioLink')) return;
+  const link = document.createElement('a');
+  link.id = 'realAvatarStudioLink';
+  link.href = './real-avatar-studio.html';
+  link.textContent = 'فتح استوديو الأفاتار الواقعي ↗';
+  Object.assign(link.style, {
+    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+    margin: '8px 0', padding: '10px 14px', borderRadius: '12px',
+    border: '1px solid #61e4e8', background: 'linear-gradient(110deg,#15303a,#1b1b37)',
+    color: '#dffcff', fontWeight: '700', fontSize: '13px', textDecoration: 'none'
+  });
+  target.insertAdjacentElement('afterend', link);
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', addRealAvatarStudioLink, { once: true });
+else addRealAvatarStudioLink();
+
 const modelInput = document.getElementById('avatarModelFile');
 modelInput?.addEventListener('change', async event => {
   const file = event.target.files?.[0];
