@@ -4,6 +4,7 @@ Accepts a source photo or video plus audio and returns a rendered MP4.
 Requires a CUDA GPU, FFmpeg, and a separately installed MuseTalk checkout
 with model weights. Never reports success unless an MP4 exists.
 """
+import json
 import os
 import shutil
 import subprocess
@@ -47,9 +48,9 @@ def require_worker_token(supplied: str | None):
         raise HTTPException(401, "رمز الوصول للعامل غير صحيح.")
 
 
-def run_checked(args: list[str], timeout: int = 3600):
+def run_checked(args: list[str], timeout: int = 3600, cwd: Path | None = None):
     try:
-        result = subprocess.run(args, check=False, capture_output=True, text=True, timeout=timeout)
+        result = subprocess.run(args, check=False, capture_output=True, text=True, timeout=timeout, cwd=cwd)
     except subprocess.TimeoutExpired as exc:
         raise HTTPException(504, "انتهت مهلة معالجة الفيديو. جرّب ملفًا أقصر.") from exc
     if result.returncode:
@@ -103,6 +104,8 @@ def engine_readiness():
     missing = [str(p) for p in required_paths if not p.exists()]
     if shutil.which("ffmpeg") is None:
         missing.append("ffmpeg executable")
+    if shutil.which("ffprobe") is None:
+        missing.append("ffprobe executable")
     return (not missing, "ready" if not missing else "Missing model/runtime files: " + ", ".join(missing))
 
 
@@ -191,10 +194,28 @@ async def generate(
             "--whisper_dir", str(WEIGHTS_ROOT / "whisper"),
             "--version", "v15", "--fps", str(fps), "--use_float16",
         ]
-        run_checked(command, timeout=7200)
+        run_checked(command, timeout=7200, cwd=ENGINE_ROOT)
         output_path = result_dir / "v15" / "rendered.mp4"
         if not output_path.is_file() or output_path.stat().st_size < 10_000:
             raise HTTPException(500, "انتهى المحرك دون إنشاء ملف MP4 صالح.")
+
+        # MuseTalk can catch inference errors internally and exit with status 0.
+        # Probe the actual container instead of trusting the process exit code.
+        probe = run_checked([
+            "ffprobe", "-v", "error", "-show_entries",
+            "format=duration:stream=codec_type,codec_name",
+            "-of", "json", str(output_path)
+        ], timeout=60)
+        try:
+            media_info = json.loads(probe.stdout)
+            output_duration = float(media_info.get("format", {}).get("duration", 0))
+            stream_types = {item.get("codec_type") for item in media_info.get("streams", [])}
+        except (TypeError, ValueError, json.JSONDecodeError) as exc:
+            raise HTTPException(500, "تعذر التحقق من سلامة ملف الفيديو الناتج.") from exc
+        if output_duration <= 0 or not {"video", "audio"}.issubset(stream_types):
+            raise HTTPException(500, "الملف الناتج لا يحتوي على مساري فيديو وصوت صالحين.")
+        if abs(output_duration - audio_duration) > max(1.5, audio_duration * 0.08):
+            raise HTTPException(500, "مدة الفيديو الناتج لا تتوافق مع مدة التعليق الصوتي؛ لم يتم اعتماد الملف.")
         download_path = job_dir / ("zereos-avatar-" + uuid.uuid4().hex[:8] + ".mp4")
         shutil.copy2(output_path, download_path)
         return FileResponse(download_path, media_type="video/mp4", filename="zereos-avatar.mp4",
