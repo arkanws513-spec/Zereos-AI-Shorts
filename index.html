@@ -288,7 +288,7 @@ function drawTemplateCaption(text,scene,t,sceneElapsed,sceneDuration,fontName,si
    const maxW=W*.64,pages=paginateTemplateText(text,maxW,Math.min(size,46),fontName,2,19),fit=selectTemplateCaptionPage(pages,progress,anim),lineH=fit.lineH;
    const cx=W/2,cy=H*.53,rx=W*.34,ry=Math.max(100,fit.lines.length*lineH*.9+44);
    ctx.translate(cx,cy);ctx.scale(pulse,pulse);ctx.translate(-cx,-cy);
-   fit.lines.forEach((line,i)=>{const by=cy+(i-(fit.lines.length-1)/2)*lineH;ctx.font=fit.font;const bw=Math.min(W*.77,Math.max(W*.49,ctx.measureText(line).width+100)),bh=Math.max(75,fit.size*1.8);
+   fit.lines.forEach((line,i)=>{const by=cy+(i-(fit.lines.length-1)/2)*lineH;ctx.font=fit.font;const bw=Math.min(W*.68,Math.max(W*.28,ctx.measureText(line).width+66)),bh=Math.max(75,fit.size*1.8);
     ctx.globalAlpha=.72;ctx.fillStyle='rgba(16,92,120,.58)';ctx.strokeStyle='#78e8f4';ctx.lineWidth=2;ctx.shadowColor='#2eafce';ctx.shadowBlur=glowIntensity+8;
     ctx.beginPath();ctx.ellipse(cx,by,bw/2,bh/2,Math.sin(t*.001+i)*.025,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.shadowBlur=0;
     ctx.globalAlpha=1;ctx.font=fit.font;ctx.fillStyle='#eaffff';ctx.shadowColor='#71d7ec';ctx.shadowBlur=glowIntensity*.8;ctx.fillText(line,cx,by,maxW);
