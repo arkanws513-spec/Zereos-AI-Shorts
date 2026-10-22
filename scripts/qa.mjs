@@ -117,7 +117,7 @@ if (html) {
     }
   }
   if (!process.exitCode) pass('Essential editor, voice, media and export controls are present.');
-  for (const token of ['navigator.mediaDevices.getUserMedia', 'new MediaRecorder(microphoneStream', 'ac.decodeAudioData(await blob.arrayBuffer())', 'voiceCategory:\'human\'', 'narrationBuffer=recordedVoiceBuffer']) {
+  for (const token of ['navigator.mediaDevices?.getUserMedia', 'new MediaRecorder(microphoneStream', 'ac.decodeAudioData(await blob.arrayBuffer())', 'voiceCategory:\'human\'', 'narrationBuffer=recordedVoiceBuffer', 'const activeProjectId=await window.ZereosStorage.local.activeProjectId()']) {
     if (!html.includes(token)) fail('Direct microphone recording workflow is incomplete: missing ' + token);
   }
   if (!process.exitCode) pass('Direct microphone recording, decoding and video narration handoff are covered.');
