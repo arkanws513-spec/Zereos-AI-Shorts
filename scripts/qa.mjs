@@ -113,7 +113,9 @@ if (html) {
     'audioTimelineEditor', 'narrationWaveform', 'narrationSeek', 'narrationTrimStart',
     'narrationTrimEnd', 'playNarrationSelectionBtn', 'resetNarrationTrimBtn',
     'musicFile', 'musicFadeIn', 'musicFadeOut', 'musicFileStatus',
-    'subtitleTimingFile', 'subtitleTimingStatus', 'useTimedSubtitles', 'clearTimedSubtitlesBtn'
+    'subtitleTimingFile', 'subtitleTimingStatus', 'useTimedSubtitles', 'clearTimedSubtitlesBtn',
+    'avatarPage', 'avatarEnabled', 'avatarImageFile', 'avatarScale', 'avatarPositionY',
+    'avatarMouthX', 'avatarMouthY', 'avatarMouthIntensity', 'avatarApplyBtn', 'avatarResetBtn'
   ];
   for (const id of requiredIds) {
     if (!html.includes('id="' + id + '"') && !html.includes("id='" + id + "'")) {
@@ -164,6 +166,10 @@ if (html) {
   }
 
   if (!process.exitCode) pass('Estimated word timing and SRT/VTT word-level export are present.');
+  for (const feature of ['function drawAvatar(elapsed)', 'function avatarAmplitude(elapsed)', 'function connectAvatarStudio()', "data-avatar-preset=\"animeWoman\"", "data-avatar-preset=\"hologram\""]) {
+    if (!html.includes(feature)) fail('Talking-avatar studio is incomplete: missing ' + feature);
+  }
+  if (!process.exitCode) pass('Six-profile talking-avatar controls and renderer are present.');
 
   const drawTextStart = html.indexOf('function drawTextBlock(');
   const drawTextEnd = html.indexOf('let importedSceneImage=', drawTextStart);
