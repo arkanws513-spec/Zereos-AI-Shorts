@@ -103,7 +103,7 @@ body{background:radial-gradient(ellipse at 12% 0%,#1c2b48 0,transparent 35%),rad
 <div class="field"><label for="avatarImageFile">صورة الشخصية (اختياري)</label><input id="avatarImageFile" type="file" accept="image/*"><div class="filehint" id="avatarImageStatus">استخدم الصورة الافتراضية أو ارفع صورة من جهازك.</div></div>
 <div class="two">
 <div class="field"><label for="avatarScale">حجم الشخصية <span id="avatarScaleValue">100%</span></label><input class="range" id="avatarScale" type="range" min="55" max="125" value="100" step="5"></div>
-<div class="field"><label for="avatarPositionY">الموضع الرأسي <span id="avatarPositionYValue">22%</span></label><input class="range" id="avatarPositionY" type="range" min="8" max="42" value="22" step="1"></div>
+<div class="field"><label for="avatarPositionY">الموضع الرأسي <span id="avatarPositionYValue">22%</span></label><input class="range" id="avatarPositionY" type="range" min="5" max="35" value="10" step="1"></div>
 </div>
 <div class="two">
 <div class="field"><label for="avatarMouthX">موضع الفم أفقيًا <span id="avatarMouthXValue">50%</span></label><input class="range" id="avatarMouthX" type="range" min="35" max="65" value="50" step="1"></div>
@@ -502,7 +502,7 @@ function loadAvatarImage(id,url){
  img.src=url;
 }
 function avatarAmplitude(elapsed){
- const buffer=narrationBuffer;if(!buffer||!buffer.numberOfChannels||!buffer.length)return .12+.18*(.5+.5*Math.sin(elapsed*.012));
+ const buffer=narrationBuffer;if(!buffer||!buffer.numberOfChannels||!buffer.length)return .12+.18*(.5+.5*Math.sin((elapsed/1000)*6));
  const seconds=Math.max(0,elapsed/1000+(narrationTrimStart||0)),center=Math.min(buffer.length-1,Math.floor(seconds*buffer.sampleRate));if(center<0)return 0;
  const data=buffer.getChannelData(0),radius=Math.max(24,Math.floor(buffer.sampleRate*.012));let sum=0,count=0;
  for(let i=Math.max(0,center-radius);i<Math.min(data.length,center+radius);i+=3){sum+=data[i]*data[i];count++}
@@ -521,7 +521,7 @@ function drawAnimeFallback(x,y,w,h,progress){
 function drawAvatar(elapsed){
  if(!avatarEnabled||!$('avatarEnabled')?.checked)return;
  const profile=avatarProfiles[activeAvatarId];if(!profile)return;
- const scale=Number($('avatarScale')?.value||100)/100,baseW=450*scale,baseH=540*scale,x=(W-baseW)/2,y=H*(Number($('avatarPositionY')?.value||22)/100);
+ const scale=Number($('avatarScale')?.value||100)/100,baseW=450*scale,baseH=540*scale,x=(W-baseW)/2,y=H*(Number($('avatarPositionY')?.value||10)/100);
  const image=avatarCustomImages[activeAvatarId]||avatarLoadedImages[activeAvatarId];if(!image&&!profile.url){drawAnimeFallback(x,y,baseW,baseH,avatarAmplitude(elapsed));return}
  if(!image){loadAvatarImage(activeAvatarId,profile.url);drawAvatarPlaceholder(x,y,baseW,baseH,profile.name);return}
  const mouth=avatarAmplitude(elapsed)*(Number($('avatarMouthIntensity')?.value||100)/100),mouthX=Number($('avatarMouthX')?.value||50)/100,mouthY=Number($('avatarMouthY')?.value||56)/100;
@@ -560,7 +560,7 @@ function connectAvatarStudio(){
  const url=URL.createObjectURL(file),img=new Image();img.onload=()=>{if(avatarObjectUrls[activeAvatarId])URL.revokeObjectURL(avatarObjectUrls[activeAvatarId]);avatarObjectUrls[activeAvatarId]=url;avatarCustomImages[activeAvatarId]=img;$('avatarImageStatus').textContent='تم تحميل الصورة محليًا. اضبط موضع الفم ليطابق الوجه.';drawFrame(playing?Math.max(0,performance.now()-startAt):0)};img.onerror=()=>{$('avatarImageStatus').textContent='تعذر فتح الصورة؛ جرّب ملف PNG أو JPG.';URL.revokeObjectURL(url)};img.src=url;
  });
  $('avatarApplyBtn')?.addEventListener('click',()=>{avatarEnabled=true;$('avatarEnabled').checked=true;drawFrame(playing?Math.max(0,performance.now()-startAt):0);$('avatarStatus').textContent='تم تطبيق إعدادات الأفاتار على المعاينة، وستظهر في تصدير الفيديو.'});
- $('avatarResetBtn')?.addEventListener('click',()=>{$('avatarEnabled').checked=true;avatarEnabled=true;$('avatarScale').value=100;$('avatarPositionY').value=22;$('avatarMouthX').value=50;$('avatarMouthY').value=56;$('avatarMouthIntensity').value=100;['avatarScale','avatarPositionY','avatarMouthX','avatarMouthY','avatarMouthIntensity'].forEach(id=>{const el=$(id+'Value');if(el)el.textContent=$(id).value+'%'});drawFrame(0);$('avatarStatus').textContent='تمت إعادة إعدادات الشخصية إلى القيم الافتراضية.'});
+ $('avatarResetBtn')?.addEventListener('click',()=>{$('avatarEnabled').checked=true;avatarEnabled=true;$('avatarScale').value=100;$('avatarPositionY').value=10;$('avatarMouthX').value=50;$('avatarMouthY').value=56;$('avatarMouthIntensity').value=100;['avatarScale','avatarPositionY','avatarMouthX','avatarMouthY','avatarMouthIntensity'].forEach(id=>{const el=$(id+'Value');if(el)el.textContent=$(id).value+'%'});drawFrame(0);$('avatarStatus').textContent='تمت إعادة إعدادات الشخصية إلى القيم الافتراضية.'});
  if(avatarProfiles[activeAvatarId]?.url)loadAvatarImage(activeAvatarId,avatarProfiles[activeAvatarId].url);
 }
 function drawFrame(elapsed=0){const timeline=sceneTimeline(),sceneTotal=timeline[timeline.length-1]?.end||Number($('sceneSeconds').value)*4000,total=timedSubtitlesEnabled&&timedSubtitleCues.length?Math.max(sceneTotal,Math.max(...timedSubtitleCues.map(c=>c.end))-Math.min(narrationTrimStart*1000,Math.max(0,(narrationBuffer?.duration||0)*1000))):sceneTotal,safeElapsed=Math.max(0,Math.min(Number(elapsed)||0,total)),t=Math.min(safeElapsed,Math.max(0,total-1));let scene=timeline.findIndex((item,i)=>t>=item.start&&(t<item.end||i===timeline.length-1));if(scene<0)scene=timeline.length-1;const sceneElapsed=t-timeline[scene].start,sceneLen=timeline[scene].end-timeline[scene].start,subtitleClock=t+(narrationBuffer?Math.min(narrationTrimStart*1000,Math.max(0,narrationBuffer.duration*1000)):0),activeTimedCue=timedSubtitlesEnabled?timedSubtitleCues.find(cue=>subtitleClock>=cue.start&&subtitleClock<cue.end):null;currentScene=scene;updateTimelineUI(scene);ctx.clearRect(0,0,W,H);drawBackground(safeElapsed);drawImportedImage(safeElapsed);drawTemplateComposition(safeElapsed,scene,sceneElapsed,sceneLen);drawOrnament(safeElapsed);drawParticles(safeElapsed);drawAvatar(safeElapsed);const arr=texts();drawTextBlock(timedSubtitlesEnabled?(activeTimedCue?.text||''):(arr[scene]||''),scene,t,activeTimedCue?Math.max(0,subtitleClock-activeTimedCue.start):sceneElapsed,activeTimedCue?activeTimedCue.end-activeTimedCue.start:sceneLen);drawSeal();ctx.save();ctx.textAlign='center';ctx.direction='ltr';ctx.font='18px Tajawal';ctx.fillStyle='#e8c783';ctx.globalAlpha=.75;ctx.fillText('Z E R E O S   •   W I S D O M',W/2,H-65);ctx.restore();const edge=sceneElapsed,fadeMs=320,fade=Math.max(0,1-Math.min(edge,sceneLen-edge)/fadeMs),transition=$('sceneTransition')?.value||'fade';if(safeElapsed>0&&safeElapsed<total&&fade>0&&transition!=='cut'){ctx.save();ctx.globalAlpha=fade*(transition==='flash'?.62:.48);ctx.fillStyle=transition==='flash'?'#fff':'#000';ctx.fillRect(0,0,W,H);ctx.restore()}$('clock').textContent=formatTime(safeElapsed/1000)+' / '+formatTime(total/1000);$('progress').style.width=(safeElapsed/total*100)+'%'}
