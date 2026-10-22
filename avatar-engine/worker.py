@@ -144,27 +144,39 @@ async def generate(
     try:
         source_path = await save_upload(source, job_dir / "source", ALLOWED_VIDEO | ALLOWED_IMAGE, "الصورة/الفيديو")
         audio_path = await save_upload(audio, job_dir / "narration", ALLOWED_AUDIO, "الصوت")
+        # Bound inference cost and align source duration with the requested narration.
+        audio_probe = run_checked([
+            "ffprobe", "-v", "error", "-show_entries", "format=duration",
+            "-of", "default=noprint_wrappers=1:nokey=1", str(audio_path)
+        ], timeout=60)
+        try:
+            audio_duration = float(audio_probe.stdout.strip())
+        except (TypeError, ValueError) as exc:
+            raise HTTPException(400, "تعذر تحديد مدة ملف الصوت.") from exc
+        if audio_duration <= 0 or audio_duration > 600:
+            raise HTTPException(400, "مدة الصوت يجب أن تكون أكبر من صفر ولا تتجاوز 10 دقائق.")
+
         input_video = source_path
         if source_suffix in ALLOWED_IMAGE:
-            # A looped still image has no finite duration; probe the audio explicitly
-            # instead of relying on ffmpeg -shortest when the output has no audio stream.
-            probe = run_checked([
-                "ffprobe", "-v", "error", "-show_entries", "format=duration",
-                "-of", "default=noprint_wrappers=1:nokey=1", str(audio_path)
-            ], timeout=60)
-            try:
-                duration = float(probe.stdout.strip())
-            except (TypeError, ValueError) as exc:
-                raise HTTPException(400, "تعذر تحديد مدة ملف الصوت.") from exc
-            if duration <= 0 or duration > 600:
-                raise HTTPException(400, "مدة الصوت يجب أن تكون أكبر من صفر ولا تتجاوز 10 دقائق.")
+            # A looped still image has no finite duration; give it the narration's exact duration.
             input_video = job_dir / "source_base.mp4"
             run_checked([
                 "ffmpeg", "-y", "-loop", "1", "-i", str(source_path),
                 "-vf", "scale=trunc(min(1280\\,iw)/2)*2:-2",
-                "-r", str(fps), "-t", str(duration), "-tune", "stillimage",
+                "-r", str(fps), "-t", str(audio_duration), "-tune", "stillimage",
                 "-c:v", "libx264", "-pix_fmt", "yuv420p", "-an", str(input_video)
             ], timeout=180)
+        else:
+            video_probe = run_checked([
+                "ffprobe", "-v", "error", "-show_entries", "format=duration",
+                "-of", "default=noprint_wrappers=1:nokey=1", str(source_path)
+            ], timeout=60)
+            try:
+                video_duration = float(video_probe.stdout.strip())
+            except (TypeError, ValueError) as exc:
+                raise HTTPException(400, "تعذر تحديد مدة الفيديو المصدر.") from exc
+            if video_duration + 0.25 < audio_duration:
+                raise HTTPException(400, "مدة الصوت أطول من الفيديو المصدر. ارفع فيديو أطول أو ملفًا صوتيًا أقصر.")
         config_path = job_dir / "inference.yaml"
         with config_path.open("w", encoding="utf-8") as handle:
             yaml.safe_dump({"job": {"video_path": str(input_video), "audio_path": str(audio_path),
