@@ -16,7 +16,7 @@ Live app: https://arkanws513-spec.github.io/Zereos-AI-Shorts/
 - Audio editor with a rendered narration waveform, seek position, adjustable start/end trim, and selected-range preview.
 - Optional local background-music file, looped under the video, with adjustable fade-in/fade-out; supported audio decoding depends on the browser.
 - Import timestamped SRT/VTT captions to display and export captions using their supplied timestamps. A local Whisper transcription workflow is documented in the audio editor; its model is downloaded on demand and performance depends on the device.
-- Captions/subtitle export and scene timing tools; subtitle timing is an estimate based on scene duration and narration length, not word-level alignment.
+- Captions/subtitle export and scene timing tools. Without an imported SRT/VTT file, caption timing is estimated from scene duration and narration length; imported timed captions retain their supplied timestamps.
 - Video export selects a browser-supported MP4 recording format first when available, then falls back to WebM. The actual format depends on the browser/device; verify the downloaded file before publishing.
 
 ## Run locally
