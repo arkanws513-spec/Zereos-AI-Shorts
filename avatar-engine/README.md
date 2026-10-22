@@ -38,6 +38,7 @@ docker build -t zereos-avatar-worker .
 docker run --gpus all --rm -p 7860:7860 \
   -e MUSE_TALK_ROOT=/opt/MuseTalk \
   -e MUSE_TALK_WEIGHTS=/opt/MuseTalk/models \
+  -e AVATAR_WORKER_TOKEN=replace-with-a-long-random-secret \
   zereos-avatar-worker
 ```
 
