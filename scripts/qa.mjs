@@ -109,7 +109,10 @@ if (html) {
     'fillTtsFromScenesBtn', 'voiceLibraryList', 'mediaList', 'projectsPanel',
     'exportSrtBtn', 'exportWordSrtBtn', 'exportWordVttBtn',
     'liveVoiceRecorder', 'liveRecordingPrompt', 'recordVoiceBtn', 'stopVoiceRecordingBtn',
-    'useVoiceRecordingBtn', 'liveVoicePreview', 'liveVoiceStatus'
+    'useVoiceRecordingBtn', 'liveVoicePreview', 'liveVoiceStatus',
+    'audioTimelineEditor', 'narrationWaveform', 'narrationSeek', 'narrationTrimStart',
+    'narrationTrimEnd', 'playNarrationSelectionBtn', 'resetNarrationTrimBtn',
+    'musicFile', 'musicFadeIn', 'musicFadeOut', 'musicFileStatus'
   ];
   for (const id of requiredIds) {
     if (!html.includes('id="' + id + '"') && !html.includes("id='" + id + "'")) {
@@ -123,6 +126,10 @@ if (html) {
   if (!process.exitCode) pass('Direct microphone recording, decoding and video narration handoff are covered.');
 
   if (!html.includes('function wordTimings(') || !html.includes('function exportWordSubtitles(') || !html.includes('lineTimingWeight(')) fail('Estimated word timing and word-level subtitle export are missing.');
+  for (const feature of ['function drawNarrationWaveform()', 'function updateNarrationEditor()', 'function connectNarrationEditor()', 'effectiveNarrationDuration()', 'source.start(0,trimStart,effectiveNarrationDuration())', 'musicBufferSource=ac.createBufferSource()', 'musicGain.gain.linearRampToValueAtTime(0,ac.currentTime+duration/1000)']) {
+    if (!html.includes(feature)) fail('Audio editing/export workflow is incomplete: missing ' + feature);
+  }
+  if (!process.exitCode) pass('Waveform, trim range, preview seek, local music file and fade controls are wired.');
   if (!process.exitCode) pass('Estimated word timing and SRT/VTT word-level export are present.');
 
   const drawTextStart = html.indexOf('function drawTextBlock(');
