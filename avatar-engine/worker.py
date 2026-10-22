@@ -4,6 +4,7 @@ Accepts a source photo or video plus audio and returns a rendered MP4.
 Requires a CUDA GPU, FFmpeg, and a separately installed MuseTalk checkout
 with model weights. Never reports success unless an MP4 exists.
 """
+from __future__ import annotations
 import json
 import os
 import shutil
