@@ -4,7 +4,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1 \
     MUSE_TALK_ROOT=/opt/MuseTalk \
     MUSE_TALK_WEIGHTS=/opt/MuseTalk/models \
-    AVATAR_MAX_UPLOAD_BYTES=209715200
+    AVATAR_MAX_UPLOAD_BYTES=209715200 \
+    AVATAR_ALLOWED_ORIGINS=https://arkanws513-spec.github.io
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg git git-lfs libgl1 libglib2.0-0 && \
