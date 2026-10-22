@@ -25,4 +25,4 @@ jobs:
         with:
           node-version: 22
       - name: Validate app structure and inline JavaScript syntax
-        run: node scripts/qa.mjs
+        run: |\n          node scripts/qa.mjs\n          node --check real-avatar-studio.js\n          node --input-type=module --check < avatar-studio.js\n          python -m py_compile avatar-engine/worker.py
