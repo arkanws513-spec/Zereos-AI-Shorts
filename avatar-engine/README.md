@@ -41,7 +41,7 @@ docker run --gpus all --rm -p 7860:7860 \
   zereos-avatar-worker
 ```
 
-Check readiness at http://localhost:7860/api/health. A successful response must report ready=true and gpu_available=true.
+Set AVATAR_WORKER_TOKEN to a long, private random value before exposing the worker; enter that same value in the studio. Never publish it in source control. Configure AVATAR_ALLOWED_ORIGINS to the exact website origin. Check readiness at http://localhost:7860/api/health. A successful response must report ready=true and gpu_available=true.
 
 ## API
 
