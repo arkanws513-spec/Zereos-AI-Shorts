@@ -12,9 +12,11 @@ import uuid
 from pathlib import Path
 
 import yaml
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, Header, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from starlette.background import BackgroundTask
+from fastapi.middleware.cors import CORSMiddleware
+import secrets
 
 ENGINE_ROOT = Path(os.environ.get("MUSE_TALK_ROOT", "/opt/MuseTalk")).resolve()
 WEIGHTS_ROOT = Path(os.environ.get("MUSE_TALK_WEIGHTS", ENGINE_ROOT / "models")).resolve()
@@ -24,6 +26,25 @@ ALLOWED_IMAGE = {".jpg", ".jpeg", ".png", ".webp"}
 ALLOWED_AUDIO = {".wav", ".mp3", ".m4a", ".aac", ".ogg", ".flac", ".webm"}
 
 app = FastAPI(title="ZEREOS Real Avatar Worker", version="0.1.0")
+ALLOWED_ORIGINS = [x.strip() for x in os.environ.get(
+    "AVATAR_ALLOWED_ORIGINS",
+    "https://arkanws513-spec.github.io,http://localhost:8080,http://127.0.0.1:8080"
+).split(",") if x.strip()]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type", "X-Worker-Token"],
+)
+
+
+def require_worker_token(supplied: str | None):
+    expected = os.environ.get("AVATAR_WORKER_TOKEN", "").strip()
+    if not expected:
+        raise HTTPException(503, "العامل غير مؤمّن بعد: اضبط AVATAR_WORKER_TOKEN قبل تفعيل التوليد.")
+    if not supplied or not secrets.compare_digest(supplied, expected):
+        raise HTTPException(401, "رمز الوصول للعامل غير صحيح.")
 
 
 def run_checked(args: list[str], timeout: int = 3600):
@@ -92,10 +113,12 @@ def health():
 
 @app.post("/api/avatar/generate")
 async def generate(
+    x_worker_token: str | None = Header(default=None, alias="X-Worker-Token"),
     source: UploadFile = File(..., description="A person's photo or source video"),
     audio: UploadFile = File(..., description="Recorded narration / voice track"),
     fps: int = Form(25),
 ):
+    require_worker_token(x_worker_token)
     ready, detail = engine_readiness()
     if not ready:
         raise HTTPException(503, detail)
