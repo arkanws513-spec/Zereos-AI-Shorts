@@ -151,7 +151,41 @@ function exportProfileSettings(){const profile=$('exportProfile')?.value||'stand
 function texts(){return [$('scriptTitle').value.trim(),$('scriptBody1').value.trim(),$('scriptBody2').value.trim(),$('scriptCta').value.trim()]}
 function wordTimings(text,start,end){const words=String(text||'').trim().split(/\s+/u).filter(Boolean);if(!words.length)return [];const weights=words.map(word=>{let weight=Math.max(1,[...word].length);if(/[،,:؛;]$/u.test(word))weight+=2;if(/[.!؟?…]$/u.test(word))weight+=5;return weight});const sum=weights.reduce((a,b)=>a+b,0)||1;let cursor=start;return words.map((word,index)=>{const wordStart=cursor;cursor=index===words.length-1?end:cursor+(end-start)*weights[index]/sum;return {word,start:wordStart,end:cursor}})}
 function lineTimingWeight(line){const words=String(line||'').trim().split(/\s+/u).filter(Boolean);return words.reduce((sum,word)=>sum+Math.max(1,[...word].length)+(/[،,:؛;]$/u.test(word)?2:0)+(/[.!؟?…]$/u.test(word)?5:0),0)||1}
-function sceneTimeline(){const lines=texts(),fixed=Number($('sceneSeconds').value)*1000;if(!narrationBuffer||!Number.isFinite(narrationBuffer.duration)||narrationBuffer.duration<=0)return lines.map((_,i)=>({start:i*fixed,end:(i+1)*fixed}));const total=narrationBuffer.duration*1000;const weights=lines.map(line=>Math.max(1,lineTimingWeight(line)));const sum=weights.reduce((a,b)=>a+b,0)||1;let cursor=0;return weights.map((weight,i)=>{const start=cursor;cursor=i===lines.length-1?total:cursor+total*weight/sum;return {start,end:cursor}})}
+let cachedTimelineKey='',cachedTimelineValue=null;
+function findQuietBoundary(targetMs,totalMs,channelData,sampleRate){
+  const hopMs=20,windowMs=40,hop=Math.max(1,Math.round(sampleRate*hopMs/1000)),win=Math.max(hop,Math.round(sampleRate*windowMs/1000));
+  const center=Math.round(targetMs/hopMs),radius=Math.max(1,Math.round(Math.min(1200,totalMs*.12)/hopMs));
+  const targetIndex=Math.max(0,Math.min(Math.ceil(channelData.length/hop)-1,center));
+  let best=null;
+  for(let k=Math.max(1,targetIndex-radius);k<=Math.min(Math.ceil(channelData.length/hop)-1,targetIndex+radius);k++){
+    const from=k*hop,to=Math.min(channelData.length,from+win);if(to<=from)continue;
+    let sum=0,count=0;for(let i=from;i<to;i+=4){const v=channelData[i];sum+=v*v;count++}
+    const rms=Math.sqrt(sum/Math.max(1,count)),time=k*hopMs;
+    const distance=Math.abs(time-targetMs),score=rms*1.8+distance/Math.max(1,radius*hopMs)*.035;
+    if(!best||score<best.score)best={time,score,rms,distance};
+  }
+  if(!best)return targetMs;
+  return best.rms<.045?best.time:targetMs;
+}
+function sceneTimeline(){
+  const lines=texts(),fixed=Number($('sceneSeconds').value)*1000;
+  if(!narrationBuffer||!Number.isFinite(narrationBuffer.duration)||narrationBuffer.duration<=0)return lines.map((_,i)=>({start:i*fixed,end:(i+1)*fixed}));
+  const total=narrationBuffer.duration*1000,key=[lines.join('¦'),Math.round(total),narrationBuffer.sampleRate,narrationBuffer.length].join('|');
+  if(key===cachedTimelineKey&&cachedTimelineValue)return cachedTimelineValue;
+  const weights=lines.map(line=>Math.max(1,lineTimingWeight(line))),sum=weights.reduce((a,b)=>a+b,0)||1;
+  const boundaries=[0];let cursor=0;
+  for(let i=0;i<weights.length-1;i++){
+    cursor+=total*weights[i]/sum;
+    const channel=narrationBuffer.getChannelData(0);
+    const snapped=findQuietBoundary(cursor,total,channel,narrationBuffer.sampleRate);
+    const min=boundaries[boundaries.length-1]+Math.min(350,total/Math.max(2,weights.length*2));
+    const max=total-Math.min(350,total/Math.max(2,weights.length*2))*(weights.length-i-1);
+    boundaries.push(Math.max(min,Math.min(max,snapped)));
+  }
+  boundaries.push(total);
+  cachedTimelineValue=weights.map((_,i)=>({start:boundaries[i],end:boundaries[i+1]}));cachedTimelineKey=key;
+  return cachedTimelineValue;
+}
 function updateTimelineUI(active=currentScene){const strip=$('sceneTimelineStrip');if(!strip)return;const timeline=sceneTimeline();strip.querySelectorAll('[data-timeline-scene]').forEach(button=>{const index=Number(button.dataset.timelineScene),item=timeline[index];if(!item)return;button.classList.toggle('active',index===active);button.setAttribute('aria-pressed',String(index===active));button.style.flexGrow=String(Math.max(1,item.end-item.start));button.textContent='مشهد '+(index+1)+' · '+Math.max(1,Math.round((item.end-item.start)/1000))+'ث';button.title='من '+formatTime(item.start/1000)+' إلى '+formatTime(item.end/1000)})}
 function totalMs(){return narrationBuffer?Math.max(1000,narrationBuffer.duration*1000):Number($('sceneSeconds').value)*4*1000}
 function currentStyle(){return $('bgStyle').value}
