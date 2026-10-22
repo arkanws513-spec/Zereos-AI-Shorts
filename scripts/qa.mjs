@@ -143,6 +143,26 @@ if (html) {
     if (!html.includes(feature)) fail('Audio editing/export workflow is incomplete: missing ' + feature);
   }
   if (!process.exitCode) pass('Waveform, trim range, preview seek, local music file and fade controls are wired.');
+  const parserStart = html.indexOf('function parseTimedSubtitleText(');
+  const parserEnd = html.indexOf('function connectTimedSubtitles()', parserStart);
+  if (parserStart < 0 || parserEnd < 0) {
+    fail('Timestamped subtitle parser could not be isolated for behavior tests.');
+  } else {
+    try {
+      const parserSource = html.slice(parserStart, parserEnd);
+      const parseTimedSubtitleText = new Function(parserSource + '; return parseTimedSubtitleText;')();
+      const srtCues = parseTimedSubtitleText('1\\n00:00:01,000 --> 00:00:02,500\\nمرحبا بالعالم');
+      const vttCues = parseTimedSubtitleText('WEBVTT\\n\\n00:00:03.000 --> 00:00:04.200\\nSecond caption');
+      if (srtCues.length !== 1 || srtCues[0].start !== 1000 || srtCues[0].end !== 2500 || srtCues[0].text !== 'مرحبا بالعالم') {
+        fail('SRT timestamp parsing regression: unexpected parsed cue.');
+      } else if (vttCues.length !== 1 || vttCues[0].start !== 3000 || vttCues[0].end !== 4200 || vttCues[0].text !== 'Second caption') {
+        fail('VTT timestamp parsing regression: unexpected parsed cue.');
+      } else if (!process.exitCode) pass('SRT and VTT timestamp parsing behavior tests passed.');
+    } catch (error) {
+      fail('Timestamped subtitle parser behavior test crashed: ' + error.message);
+    }
+  }
+
   if (!process.exitCode) pass('Estimated word timing and SRT/VTT word-level export are present.');
 
   const drawTextStart = html.indexOf('function drawTextBlock(');
