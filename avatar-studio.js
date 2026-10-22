@@ -109,7 +109,7 @@ function setMouth(instance, amount) {
 function draw(ctx, width, height, profileId, elapsed, amplitude) {
   if (failed) return false;
   if (!head || activeProfile !== profileId) {
-    ensureHead(profileId).catch(() => {});
+    if (!loading) ensureHead(profileId).catch(() => {});
     return false;
   }
   setMouth(head, amplitude);
@@ -144,6 +144,10 @@ window.ZereosTalkingAvatar = {
   draw,
   ensureHead,
   loadCustomModel,
+  retry(profileId = window.ZereosActiveAvatarId || 'modernMan') {
+    failed = null;
+    if (!loading) ensureHead(profileId).catch(() => {});
+  },
   get status() { return failed ? 'error' : head ? 'ready' : loading ? 'loading' : 'idle'; }
 };
 
