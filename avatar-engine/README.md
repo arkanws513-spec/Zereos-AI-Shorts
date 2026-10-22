@@ -27,22 +27,34 @@ Upstream: https://github.com/TMElyralab/MuseTalk
 
 ## Model setup
 
-On a compatible GPU host, follow MuseTalk's current official README and download script to install the required v1.5 weights into the directory mapped to MUSE_TALK_WEIGHTS. The Docker image does not contain the weights.
+The Docker image intentionally does not bundle the large model weights. Keep the weights on a persistent disk and mount them into the container. The upstream MuseTalk download script retrieves several checkpoints from Hugging Face and Google Drive; downloads can be large and must complete successfully.
+
+```bash
+cd avatar-engine
+docker build -t zereos-avatar-worker .
+mkdir -p models
+# Download upstream model files into the persistent host folder.
+docker run --rm -it --entrypoint bash -v "$PWD/models:/opt/MuseTalk/models" zereos-avatar-worker -lc "cd /opt/MuseTalk && bash download_weights.sh"
+```
+
+Before public deployment, review each model dependency's license and the current upstream download instructions. Do not put weights or access tokens into Git.
 
 ## Run
 
-After installing weights:
+Use a long random token that is kept private. On Linux, generate one with openssl rand -hex 32; pass it to the container via an environment variable, not a committed file. Keep the downloaded model directory mounted so restarts do not erase it.
 
 ```bash
-docker build -t zereos-avatar-worker .
+export AVATAR_WORKER_TOKEN='replace-with-a-long-random-secret'
 docker run --gpus all --rm -p 7860:7860 \
+  -v "$PWD/models:/opt/MuseTalk/models" \
   -e MUSE_TALK_ROOT=/opt/MuseTalk \
   -e MUSE_TALK_WEIGHTS=/opt/MuseTalk/models \
-  -e AVATAR_WORKER_TOKEN=replace-with-a-long-random-secret \
+  -e AVATAR_WORKER_TOKEN="$AVATAR_WORKER_TOKEN" \
+  -e AVATAR_ALLOWED_ORIGINS=https://arkanws513-spec.github.io \
   zereos-avatar-worker
 ```
 
-Set AVATAR_WORKER_TOKEN to a long, private random value before exposing the worker; enter that same value in the studio. Never publish it in source control. Configure AVATAR_ALLOWED_ORIGINS to the exact website origin. Check readiness at http://localhost:7860/api/health. A successful response must report ready=true and gpu_available=true.
+Enter the same token in the studio; never publish it in source control. Configure AVATAR_ALLOWED_ORIGINS to the exact website origin. Check readiness at http://localhost:7860/api/health. A successful response must report ready=true and gpu_available=true. Readiness also checks the VAE, Whisper, DWPose, face parsing, and SyncNet files—not just the main MuseTalk checkpoint.
 
 ## API
 
