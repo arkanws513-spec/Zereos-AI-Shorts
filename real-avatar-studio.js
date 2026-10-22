@@ -35,7 +35,7 @@ async function getLocalTts() {
       const mod = await import("./vendor/nabra-tts.bundle.js?v=local-build-1");
       if (!mod.NabraTTS || typeof mod.NabraTTS.load !== "function") throw new Error("ملف محرك Nabra المحلي غير جاهز.");
       neuralEngine = await mod.NabraTTS.load({
-        dtype: "fp16", device: "auto", cache: true,
+        dtype: "fp32", device: "auto", cache: true,
         wasmPaths: new URL("./vendor/ort/", import.meta.url).href,
         onProgress: p => { $("ttsStatus").textContent = "جارٍ تجهيز الصوت: " + (p.file || "المحرك"); }
       });
