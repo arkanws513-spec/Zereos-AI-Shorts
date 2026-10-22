@@ -39,6 +39,7 @@ body{background:radial-gradient(ellipse at 12% 0%,#1c2b48 0,transparent 35%),rad
 .template-info{padding:10px 12px}.template-info strong{display:block;font-size:13px}.template-info small{display:block;color:#9daac0;margin-top:4px;line-height:1.5}
 .scene-input-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.scene-input-card{border:1px solid #34415a;background:#0b111d;border-radius:15px;padding:13px;min-width:0}.scene-input-card h4{margin:0 0 7px;color:#f0dfba}.scene-input-card input{width:100%;font-size:12px;color:#cbd5e8}.scene-input-card .scene-file-state{font-size:11px;color:#9faec5;margin-top:8px;line-height:1.6}.method-banner{border:1px solid #4b5273;background:linear-gradient(120deg,#182b40,#21192f);border-radius:16px;padding:15px;margin-bottom:14px;color:#d5dcef;line-height:1.8}
 @media(max-width:520px){.template-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.template-swatch{height:105px}.template-info{padding:9px}.scene-input-grid{grid-template-columns:1fr}}
+ .media-filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.media-filters .field{min-width:0}.media-reference{font-size:12px;color:#d7b96d;margin:6px 0}.media-empty{padding:14px;border:1px dashed #66502e;border-radius:12px;color:#b9a98f}
  .scene-timeline{display:flex;gap:5px;margin:10px 0 14px;direction:ltr}.scene-timeline button{min-width:0;flex:1;border:1px solid #4b3922;border-radius:8px;background:#17130f;color:#b9a98f;padding:8px 3px;font:600 11px Tajawal, sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.scene-timeline button.active{background:linear-gradient(135deg,#77531e,#35230f);border-color:#e0b65e;color:#ffe8ae}.scene-timeline button:focus-visible{outline:2px solid #f1c35d;outline-offset:2px}
 </style><script src="./storage.js"></script>
 <style id="disable-device-voices">/* Remove the obsolete device-voice reader; generated AI audio remains available below. */ #deviceVoicePanel{display:none!important}</style>
@@ -434,7 +435,7 @@ restoreDraft();initParticles();renderPresets();document.fonts?.ready?.then(()=>d
   document.querySelector('main.layout').insertAdjacentElement('beforeend',panel);
   const mediaPanel=document.createElement('section');
   mediaPanel.className='panel hidden';mediaPanel.id='mediaPanel';mediaPanel.style.cssText='max-width:900px;margin:0 auto 20px;';
-  mediaPanel.innerHTML='<div class="panelhead"><span>مكتبة الوسائط المحلية</span><button class="btn" id="closeMediaBtn" type="button">إغلاق</button></div><p class="note">اختر صورًا أو فيديوهات أو ملفات صوتية من هاتفك. تُحفظ الملفات داخل IndexedDB على هذا الجهاز.</p><div class="tool-actions"><label class="btn primary" for="mediaUploadInput">＋ رفع ملفات من الهاتف</label><input id="mediaUploadInput" type="file" accept="image/*,video/*,audio/*" multiple hidden><button class="btn" id="clearImageUseBtn" type="button">إزالة خلفية المشهد</button></div><div id="mediaUsage" class="note"></div><div id="mediaList" class="fields"></div>';
+  mediaPanel.innerHTML='<div class="panelhead"><span>مكتبة الوسائط المحلية</span><button class="btn" id="closeMediaBtn" type="button">إغلاق</button></div><p class="note">اختر صورًا أو فيديوهات أو ملفات صوتية من هاتفك. تُحفظ الملفات داخل IndexedDB على هذا الجهاز.</p><div class="tool-actions"><label class="btn primary" for="mediaUploadInput">＋ رفع ملفات من الهاتف</label><input id="mediaUploadInput" type="file" accept="image/*,video/*,audio/*" multiple hidden><button class="btn" id="clearImageUseBtn" type="button">إزالة خلفية المشهد</button></div><div id="mediaUsage" class="note"></div><div class="fields media-filters"><div class="field"><label for="mediaSearch">بحث في الملفات</label><input id="mediaSearch" type="search" placeholder="اسم الملف أو نوعه…"></div><div class="field"><label for="mediaTypeFilter">نوع الملف</label><select id="mediaTypeFilter"><option value="all">كل الأنواع</option><option value="image">صور</option><option value="video">فيديو</option><option value="audio">صوت</option><option value="file">أخرى</option></select></div><div class="field"><label for="mediaSort">الترتيب</label><select id="mediaSort"><option value="newest">الأحدث أولًا</option><option value="oldest">الأقدم أولًا</option><option value="largest">الأكبر حجمًا</option><option value="name">الاسم أبجديًا</option></select></div></div><div class="tool-actions"><button class="btn" id="cleanMediaBtn" type="button">تنظيف الملفات غير المرتبطة بالمشاريع</button></div><p class="note">لن يسمح التطبيق بحذف ملف مرتبط بمشروع محفوظ. التنظيف الجماعي يحذف فقط الملفات التي لا يشير إليها أي مشروع؛ راجع القائمة قبل التأكيد.</p><div id="mediaList" class="fields"></div>';
   document.querySelector('main.layout').insertAdjacentElement('beforeend',mediaPanel);
   const projectsPanelSafeHide=()=>panel.classList.add('hidden');
   const mediaButton=document.createElement('button');mediaButton.className='btn hidden';mediaButton.id='mediaBtn';mediaButton.textContent='▧ ملفاتي';$('randomBtn').insertAdjacentElement('beforebegin',mediaButton);
@@ -444,24 +445,58 @@ restoreDraft();initParticles();renderPresets();document.fonts?.ready?.then(()=>d
   async function refreshMedia(){
     const list=$('mediaList');list.replaceChildren();
     try{
-      const assets=await window.ZereosStorage.local.listMedia();
+      const allAssets=await window.ZereosStorage.local.listMedia();
       const usage=await window.ZereosStorage.local.usage();
-      $('mediaUsage').textContent=usage&&usage.usage!=null?'المستخدم محليًا: '+(usage.usage/1024/1024).toFixed(1)+' ميجابايت من '+(usage.quota/1024/1024).toFixed(0)+' ميجابايت تقريبًا.':'عدد الملفات المحفوظة: '+assets.length;
-      if(!assets.length){const empty=document.createElement('p');empty.className='note';empty.textContent='لم ترفع ملفات بعد.';list.appendChild(empty);return}
+      const projects=await window.ZereosStorage.local.listProjects();
+      const references=new Map();
+      const mark=(id,label)=>{if(!id)return;const names=references.get(id)||[];if(!names.includes(label))names.push(label);references.set(id,names)};
+      projects.forEach(project=>{
+        const label=String(project.name||'مشروع بدون اسم');
+        mark(project.imageMediaId,label);mark(project.videoMediaId,label);mark(project.narrationMediaId,label);
+        Object.values(project.sceneImageMediaIds||{}).forEach(id=>mark(id,label));
+      });
+      mark(importedSceneMediaId,'المشروع المفتوح حاليًا');
+      mark(importedSceneVideoMediaId,'المشروع المفتوح حاليًا');
+      mark(importedNarrationMediaId,'التعليق الصوتي الحالي');
+      Object.values(sceneImageMediaIds).forEach(id=>mark(id,'صور مشاهد المشروع الحالي'));
+      const totalBytes=allAssets.reduce((sum,item)=>sum+(Number(item.size)||item.blob?.size||0),0);
+      $('mediaUsage').textContent=(usage&&usage.usage!=null?'المساحة المستخدمة في المتصفح: '+(usage.usage/1024/1024).toFixed(1)+' MB من '+(usage.quota/1024/1024).toFixed(0)+' MB تقريبًا. ':'')+'مكتبتك: '+allAssets.length+' ملف · '+(totalBytes/1024/1024).toFixed(2)+' MB · '+allAssets.filter(item=>references.has(item.id)).length+' ملف مرتبط بمشاريع محفوظة.';
+      const query=String($('mediaSearch')?.value||'').trim().toLocaleLowerCase();
+      const kind=$('mediaTypeFilter')?.value||'all',sort=$('mediaSort')?.value||'newest';
+      const assets=allAssets.filter(asset=>(kind==='all'||(asset.kind||'file')===kind)&&(!query||(String(asset.name||'')+' '+String(asset.kind||'')+' '+String(asset.type||'')).toLocaleLowerCase().includes(query)));
+      assets.sort((a,b)=>sort==='oldest'?(a.createdAt||0)-(b.createdAt||0):sort==='largest'?(b.size||b.blob?.size||0)-(a.size||a.blob?.size||0):sort==='name'?String(a.name||'').localeCompare(String(b.name||'')):((b.createdAt||0)-(a.createdAt||0)));
+      if(!assets.length){const empty=document.createElement('p');empty.className='media-empty';empty.textContent=allAssets.length?'لا توجد ملفات تطابق البحث أو نوع الملف المحدد.':'مكتبة الوسائط فارغة. ارفع ملفات من هاتفك للبدء.';list.appendChild(empty);return}
       assets.forEach(asset=>{
         const card=document.createElement('div');card.className='tool-card';
         const name=document.createElement('strong');name.textContent=asset.name;
-        const meta=document.createElement('p');meta.className='note';meta.textContent=(asset.kind||'ملف')+' · '+(asset.size/1024/1024).toFixed(2)+' MB';
+        const meta=document.createElement('p');meta.className='note';meta.textContent=(asset.kind||'ملف')+' · '+((Number(asset.size)||asset.blob?.size||0)/1024/1024).toFixed(2)+' MB';
+        const linked=references.get(asset.id)||[];
+        if(linked.length){const ref=document.createElement('p');ref.className='media-reference';ref.textContent='مرتبط بـ: '+linked.slice(0,3).join('، ')+(linked.length>3?' و'+(linked.length-3)+' مشاريع أخرى':'');card.append(name,meta,ref)}else card.append(name,meta);
         const actions=document.createElement('div');actions.className='tool-actions';
         if(asset.kind==='image'){const use=document.createElement('button');use.className='btn primary';use.textContent='استخدام كخلفية';use.onclick=()=>{const url=URL.createObjectURL(asset.blob),img=new Image();img.onload=()=>{if(importedSceneImage)URL.revokeObjectURL(importedSceneImage);if(importedSceneVideo){importedSceneVideo.pause();importedSceneVideo=null}if(importedSceneVideoUrl)URL.revokeObjectURL(importedSceneVideoUrl);importedSceneVideoUrl=null;importedSceneImage=url;importedSceneImageObject=img;importedSceneMediaId=asset.id;importedSceneVideoMediaId=null;drawFrame(0);scheduleAutoSave();$('status').textContent='تم إدراج الصورة كخلفية للمعاينة والتصدير.'};img.onerror=()=>{URL.revokeObjectURL(url);alert('تعذر فتح الصورة')};img.src=url};actions.appendChild(use)}
         if(asset.kind==='video'){const useVideo=document.createElement('button');useVideo.className='btn primary';useVideo.textContent='استخدام كخلفية فيديو';useVideo.onclick=async()=>{const url=URL.createObjectURL(asset.blob),video=document.createElement('video');video.muted=true;video.loop=true;video.playsInline=true;video.preload='auto';video.src=url;try{await new Promise((resolve,reject)=>{video.onloadedmetadata=resolve;video.onerror=()=>reject(new Error('تعذر قراءة ملف الفيديو'));});if(importedSceneImage)URL.revokeObjectURL(importedSceneImage);if(importedSceneVideo)importedSceneVideo.pause();if(importedSceneVideoUrl)URL.revokeObjectURL(importedSceneVideoUrl);importedSceneImage=null;importedSceneImageObject=null;importedSceneMediaId=null;importedSceneVideo=video;importedSceneVideoUrl=url;importedSceneVideoMediaId=asset.id;drawFrame(0);scheduleAutoSave();$('status').textContent='تم اختيار الفيديو كخلفية متحركة للمعاينة والتصدير.'}catch(error){URL.revokeObjectURL(url);alert(error.message)}};actions.appendChild(useVideo)}
         if(asset.kind==='audio'){const useAudio=document.createElement('button');useAudio.className='btn primary';useAudio.type='button';useAudio.textContent='استخدام كتعليق صوتي';useAudio.onclick=()=>selectVoiceAssetForVideo(asset,useAudio);actions.appendChild(useAudio)}
         const download=document.createElement('button');download.className='btn';download.textContent='تنزيل';download.onclick=()=>{const url=URL.createObjectURL(asset.blob),a=document.createElement('a');a.href=url;a.download=asset.name;a.click();setTimeout(()=>URL.revokeObjectURL(url),30000)};actions.appendChild(download);
-        const del=document.createElement('button');del.className='btn';del.textContent='حذف';del.onclick=async()=>{if(confirm('حذف الملف '+asset.name+' من المكتبة المحلية؟')){await window.ZereosStorage.local.deleteMedia(asset.id);await refreshMedia()}};actions.appendChild(del);
-        card.append(name,meta,actions);list.appendChild(card);
+        const del=document.createElement('button');del.className='btn';del.textContent=linked.length?'مرتبط بمشروع':'حذف';del.disabled=linked.length>0;del.title=linked.length?'أزل الملف من المشروع واحفظ التغييرات أولًا':'حذف هذا الملف نهائيًا من التخزين المحلي';del.onclick=async()=>{if(confirm('حذف الملف '+asset.name+' نهائيًا من المكتبة المحلية؟')){await window.ZereosStorage.local.deleteMedia(asset.id);await refreshMedia()}};actions.appendChild(del);
+        card.append(actions);list.appendChild(card);
       });
     }catch(error){list.textContent='تعذر تحميل مكتبة الوسائط: '+error.message}
   }
+  ['mediaSearch','mediaTypeFilter','mediaSort'].forEach(id=>$(id)?.addEventListener(id==='mediaSearch'?'input':'change',refreshMedia));
+  $('cleanMediaBtn').onclick=async()=>{
+    try{
+      const projects=await window.ZereosStorage.local.listProjects(),assets=await window.ZereosStorage.local.listMedia(),used=new Set();
+      projects.forEach(project=>{[project.imageMediaId,project.videoMediaId,project.narrationMediaId,...Object.values(project.sceneImageMediaIds||{})].filter(Boolean).forEach(id=>used.add(id))});
+      [importedSceneMediaId,importedSceneVideoMediaId,importedNarrationMediaId,...Object.values(sceneImageMediaIds)].filter(Boolean).forEach(id=>used.add(id));
+      const unused=assets.filter(asset=>!used.has(asset.id));
+      if(!unused.length){alert('لا توجد ملفات غير مرتبطة بأي مشروع محفوظ.');return}
+      const bytes=unused.reduce((sum,item)=>sum+(Number(item.size)||item.blob?.size||0),0);
+      if(!confirm('سيتم حذف '+unused.length+' ملف غير مرتبط بأي مشروع، بإجمالي '+(bytes/1024/1024).toFixed(2)+' MB. قد تكون بينها ملفات رفعتها للاستخدام لاحقًا. هل تريد المتابعة؟'))return;
+      for(const asset of unused)await window.ZereosStorage.local.deleteMedia(asset.id);
+      $('status').textContent='تم تنظيف '+unused.length+' ملف وتحرير مساحة محلية تقديرية قدرها '+(bytes/1024/1024).toFixed(2)+' MB.';
+      await refreshMedia();
+    }catch(error){alert('تعذر تنظيف المكتبة: '+error.message)}
+  };
   $('mediaUploadInput').onchange=async e=>{
     const files=Array.from(e.target.files||[]);if(!files.length)return;
     $('status').textContent='جارٍ حفظ الملفات على هذا الجهاز…';
