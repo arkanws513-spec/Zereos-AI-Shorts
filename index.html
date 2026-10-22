@@ -671,7 +671,7 @@ async function stopLiveVoiceRecording(){
 }
 async function useLiveVoiceRecording(){
  if(!recordedVoiceBlob||!recordedVoiceBuffer){$('liveVoiceStatus').textContent='سجّل صوتك وأوقف التسجيل أولًا.';return}
- narrationBuffer=recordedVoiceBuffer;$('narrationFile').value='';narrationLoadToken++;importedNarrationMediaId=null;
+ narrationBuffer=recordedVoiceBuffer;narrationTrimStart=0;narrationTrimEnd=recordedVoiceBuffer.duration;narrationSeekSeconds=0;updateNarrationEditor();$('narrationFile').value='';narrationLoadToken++;importedNarrationMediaId=null;
  $('fileStatus').textContent='تم اعتماد تسجيلك الشخصي ('+Math.ceil(recordedVoiceBuffer.duration)+' ثانية) للتصدير.';
  $('liveVoiceStatus').textContent='تم اعتماد صوتك للتعليق في الفيديو. جارٍ حفظ نسخة في مكتبة الأصوات…';
  $('useVoiceRecordingBtn').disabled=true;
