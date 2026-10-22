@@ -1,12 +1,12 @@
 const $ = id => document.getElementById(id);
 const source = $("source"), audio = $("audio"), generate = $("generate");
 let sourceUrl = "", outputUrl = "", selectedAudio = null, neuralEngine = null, neuralEnginePromise = null;
-const store = { url: localStorage.getItem("zereos_avatar_worker_url") || "", token: localStorage.getItem("zereos_avatar_worker_token") || "" };
+const store = { url: localStorage.getItem("zereos_avatar_worker_url") || "", token: "" };
 $("workerUrl").value = store.url;
 $("workerToken").value = store.token;
 function message(el, text, kind="") { el.textContent = text; el.className = "status" + (kind ? " " + kind : ""); }
 function cleanUrl(url) { return (url || "").trim().replace(/\/+$/, ""); }
-function updateReady() { generate.disabled = !(source.files?.[0] && selectedAudio && cleanUrl($("workerUrl").value)); }
+function updateReady() { generate.disabled = !(source.files?.[0] && selectedAudio && cleanUrl($("workerUrl").value) && store.token); }
 function previewSource(file) {
   if (sourceUrl) URL.revokeObjectURL(sourceUrl);
   sourceUrl = URL.createObjectURL(file);
@@ -67,7 +67,7 @@ $("makeAudio").addEventListener("click", async () => {
   } finally { button.disabled = false; }
 });
 $("workerUrl").addEventListener("change", () => { store.url = cleanUrl($("workerUrl").value); localStorage.setItem("zereos_avatar_worker_url", store.url); updateReady(); });
-$("workerToken").addEventListener("change", () => { store.token = $("workerToken").value.trim(); localStorage.setItem("zereos_avatar_worker_token", store.token); });
+$("workerToken").addEventListener("input", () => { store.token = $("workerToken").value.trim(); updateReady(); });
 async function checkWorker() {
   const url = cleanUrl($("workerUrl").value);
   if (!url) { message($("engineInfo"), "أدخل عنوان عامل GPU أولًا.", "bad"); return false; }
