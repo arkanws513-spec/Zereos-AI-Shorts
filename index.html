@@ -97,7 +97,7 @@ body{background:radial-gradient(ellipse at 12% 0%,#1c2b48 0,transparent 35%),rad
 <button class="avatar-preset" type="button" data-avatar-preset="animeMan"><span class="avatar-emoji">🧑🏻‍🎤</span><strong>أنمي رجل</strong><small>شخصية مرسومة</small></button>
 <button class="avatar-preset" type="button" data-avatar-preset="animeWoman"><span class="avatar-emoji">👩🏻‍🎤</span><strong>أنمي امرأة</strong><small>شخصية مرسومة</small></button>
 </div></div>
-<div class="panel"><div class="panelhead"><span id="avatarSelectedTitle">إعدادات الرجل العصري</span><label class="checkrow"><input id="avatarEnabled" type="checkbox" checked> تفعيل الأفاتار</label></div>
+<div class="panel"><div class="panelhead"><span id="avatarSelectedTitle">إعدادات الرجل العصري</span><label class="checkrow"><input id="avatarEnabled" type="checkbox"> تفعيل الأفاتار</label></div>
 <p class="note">لأفضل نتيجة واقعية، ارفع صورة أمامية واضحة للشخصية. الصور الافتراضية تحتاج إلى اتصال بالإنترنت، ويمكنك استبدال أي صورة من جهازك. الصورة المرفوعة تبقى في جلسة المتصفح الحالية ولا تُرفع إلى خادم.</p>
 <div class="fields">
 <div class="field"><label for="avatarImageFile">صورة الشخصية (اختياري)</label><input id="avatarImageFile" type="file" accept="image/*"><div class="filehint" id="avatarImageStatus">استخدم الصورة الافتراضية أو ارفع صورة من جهازك.</div></div>
@@ -493,7 +493,7 @@ const avatarProfiles={
  animeMan:{name:'شخصية الأنمي الرجل',url:'',effect:'animeMan'},
  animeWoman:{name:'شخصية الأنمي المرأة',url:'',effect:'animeWoman'}
 };
-let activeAvatarId='modernMan',avatarEnabled=true,avatarCustomImages={},avatarLoadedImages={},avatarLoadFailed={},avatarObjectUrls={};
+let activeAvatarId='modernMan',avatarEnabled=false,avatarStudioConnected=false,avatarCustomImages={},avatarLoadedImages={},avatarLoadFailed={},avatarObjectUrls={};
 function loadAvatarImage(id,url){
  if(!url||avatarLoadedImages[id]||avatarLoadFailed[id])return;
  const img=new Image();if(/^https?:/i.test(url))img.crossOrigin='anonymous';
@@ -552,13 +552,14 @@ function selectAvatar(id){
  if(typeof drawFrame==='function')drawFrame(playing?Math.max(0,performance.now()-startAt):0);
 }
 function connectAvatarStudio(){
+ if(avatarStudioConnected)return;avatarStudioConnected=true;
  document.querySelectorAll('[data-avatar-preset]').forEach(b=>b.addEventListener('click',()=>selectAvatar(b.dataset.avatarPreset)));
  $('avatarEnabled')?.addEventListener('change',e=>{avatarEnabled=e.target.checked;drawFrame(0)});
  ['avatarScale','avatarPositionY','avatarMouthX','avatarMouthY','avatarMouthIntensity'].forEach(id=>$(id)?.addEventListener('input',()=>{const v=$(id).value,el=$(id+'Value');if(el)el.textContent=(id==='avatarScale'?v+'%':id==='avatarPositionY'?v+'%':id==='avatarMouthIntensity'?v+'%':v+'%');drawFrame(playing?Math.max(0,performance.now()-startAt):0)}));
  $('avatarImageFile')?.addEventListener('change',e=>{const file=e.target.files?.[0];if(!file)return;if(!file.type.startsWith('image/')){ $('avatarImageStatus').textContent='اختر ملف صورة صالحًا.';return}if(file.size>12*1024*1024){$('avatarImageStatus').textContent='حجم الصورة كبير؛ اختر صورة أقل من 12 ميجابايت.';e.target.value='';return}
  const url=URL.createObjectURL(file),img=new Image();img.onload=()=>{if(avatarObjectUrls[activeAvatarId])URL.revokeObjectURL(avatarObjectUrls[activeAvatarId]);avatarObjectUrls[activeAvatarId]=url;avatarCustomImages[activeAvatarId]=img;$('avatarImageStatus').textContent='تم تحميل الصورة محليًا. اضبط موضع الفم ليطابق الوجه.';drawFrame(playing?Math.max(0,performance.now()-startAt):0)};img.onerror=()=>{$('avatarImageStatus').textContent='تعذر فتح الصورة؛ جرّب ملف PNG أو JPG.';URL.revokeObjectURL(url)};img.src=url;
  });
- $('avatarApplyBtn')?.addEventListener('click',()=>{drawFrame(playing?Math.max(0,performance.now()-startAt):0);$('avatarStatus').textContent='تم تطبيق إعدادات الأفاتار على المعاينة، وستظهر في تصدير الفيديو.'});
+ $('avatarApplyBtn')?.addEventListener('click',()=>{avatarEnabled=true;$('avatarEnabled').checked=true;drawFrame(playing?Math.max(0,performance.now()-startAt):0);$('avatarStatus').textContent='تم تطبيق إعدادات الأفاتار على المعاينة، وستظهر في تصدير الفيديو.'});
  $('avatarResetBtn')?.addEventListener('click',()=>{$('avatarEnabled').checked=true;avatarEnabled=true;$('avatarScale').value=100;$('avatarPositionY').value=22;$('avatarMouthX').value=50;$('avatarMouthY').value=56;$('avatarMouthIntensity').value=100;['avatarScale','avatarPositionY','avatarMouthX','avatarMouthY','avatarMouthIntensity'].forEach(id=>{const el=$(id+'Value');if(el)el.textContent=$(id).value+'%'});drawFrame(0);$('avatarStatus').textContent='تمت إعادة إعدادات الشخصية إلى القيم الافتراضية.'});
  if(avatarProfiles[activeAvatarId]?.url)loadAvatarImage(activeAvatarId,avatarProfiles[activeAvatarId].url);
 }
