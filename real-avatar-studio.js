@@ -22,8 +22,49 @@ source.addEventListener("change", () => {
   if (file) previewSource(file); updateReady();
 });
 audio.addEventListener("change", () => {
-  const file = audio.files?.[0]; $("audioName").textContent = file ? file.name + " • " + (file.size / 1048576).toFixed(1) + " MB" : "";
+  const file = audio.files?.[0]; selectedAudio = file || null;
+  $("audioName").textContent = file ? file.name + " • " + (file.size / 1048576).toFixed(1) + " MB" : "";
+  if (file) { const player = $("audioPreview"); player.src = URL.createObjectURL(file); player.style.display = "block"; }
   updateReady();
+});
+async function getLocalTts() {
+  if (neuralEngine) return neuralEngine;
+  if (!neuralEnginePromise) {
+    neuralEnginePromise = (async () => {
+      $("ttsStatus").textContent = "جارٍ تحميل محرك الصوت العربي المحلي…";
+      const mod = await import("./vendor/nabra-tts.bundle.js?v=local-build-1");
+      if (!mod.NabraTTS || typeof mod.NabraTTS.load !== "function") throw new Error("ملف محرك Nabra المحلي غير جاهز.");
+      neuralEngine = await mod.NabraTTS.load({
+        dtype: "fp16", device: "auto", cache: true,
+        wasmPaths: new URL("./vendor/ort/", import.meta.url).href,
+        onProgress: p => { $("ttsStatus").textContent = "جارٍ تجهيز الصوت: " + (p.file || "المحرك"); }
+      });
+      return neuralEngine;
+    })().catch(error => { neuralEnginePromise = null; throw error; });
+  }
+  return neuralEnginePromise;
+}
+$("makeAudio").addEventListener("click", async () => {
+  const text = $("ttsText").value.trim();
+  if (!text) { $("ttsStatus").textContent = "اكتب النص أولًا."; return; }
+  if (text.length > 1800) { $("ttsStatus").textContent = "قسّم النص إلى مقاطع أقصر من 1800 حرفًا."; return; }
+  const button = $("makeAudio"); button.disabled = true;
+  try {
+    const engine = await getLocalTts();
+    const styles = {documentary:{speed:.96}, mystery:{speed:.82}, egyptian:{speed:1.0}, calm:{speed:.84}, news:{speed:1.08}};
+    const settings = styles[$("ttsStyle").value] || styles.documentary;
+    $("ttsStatus").textContent = "يجري توليد الصوت من النص…";
+    const result = await engine.generate(text, {speed:settings.speed});
+    const blob = engine.toWav(result.audio);
+    if (!blob || !blob.size) throw new Error("لم ينتج النموذج ملف صوت صالحًا.");
+    selectedAudio = new File([blob], "zereos-narration.wav", {type:"audio/wav"});
+    $("audioName").textContent = "صوت مولّد محليًا • " + (blob.size / 1048576).toFixed(2) + " MB";
+    const player = $("audioPreview"); player.src = URL.createObjectURL(blob); player.style.display = "block";
+    $("ttsStatus").textContent = "تم توليد الصوت محليًا. استمع إليه ثم أنشئ فيديو الأفاتار.";
+    updateReady();
+  } catch (error) {
+    $("ttsStatus").textContent = "فشل توليد الصوت: " + (error.message || String(error));
+  } finally { button.disabled = false; }
 });
 $("workerUrl").addEventListener("change", () => { store.url = cleanUrl($("workerUrl").value); localStorage.setItem("zereos_avatar_worker_url", store.url); updateReady(); });
 $("workerToken").addEventListener("change", () => { store.token = $("workerToken").value.trim(); localStorage.setItem("zereos_avatar_worker_token", store.token); });
