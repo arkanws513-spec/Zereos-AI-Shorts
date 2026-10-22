@@ -131,6 +131,10 @@ if (html) {
   } else if (!process.exitCode) pass('Template pagination preserves full text and animates each caption page independently.');
   if (html.includes('function fitTemplateLines(')) fail('Unused fitTemplateLines helper should be removed to avoid duplicate layout paths.');
 
+  if (/speechSynthesis|SpeechSynthesisUtterance|deviceVoicePanel|readSceneBtn|readAllBtn|stopVoiceBtn/.test(html)) {
+    fail('Obsolete device-voice playback UI or handlers must not return; use the generated/local audio library instead.');
+  } else if (!process.exitCode) pass('Obsolete device-voice playback and its unused handlers are removed.');
+
   const exportGuidance = html.includes('صيغة MP4') && html.includes('يستخدم WebM');
   if (!exportGuidance) fail('Export guidance should explain that MP4 is attempted when supported and WebM is the fallback.');
   const mp4Candidate = html.indexOf("'video/mp4;codecs=avc1.42E01E,mp4a.40.2'");
