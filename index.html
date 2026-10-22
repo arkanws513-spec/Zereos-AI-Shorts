@@ -98,9 +98,9 @@ body{background:radial-gradient(ellipse at 12% 0%,#1c2b48 0,transparent 35%),rad
 <button class="avatar-preset" type="button" data-avatar-preset="animeWoman"><span class="avatar-emoji">👩🏻‍🎤</span><strong>أنمي امرأة</strong><small>شخصية مرسومة</small></button>
 </div></div>
 <div class="panel"><div class="panelhead"><span id="avatarSelectedTitle">إعدادات الرجل العصري</span><label class="checkrow"><input id="avatarEnabled" type="checkbox"> تفعيل الأفاتار</label></div>
-<p class="note">لأفضل نتيجة واقعية، ارفع صورة أمامية واضحة للشخصية. الصور الافتراضية تحتاج إلى اتصال بالإنترنت، ويمكنك استبدال أي صورة من جهازك. الصورة المرفوعة تبقى في جلسة المتصفح الحالية ولا تُرفع إلى خادم.</p>
+<p class="note">وضع المقدم ثلاثي الأبعاد مستقل عن القوالب. يتم تحريك الوجه والفك داخل المشهد أثناء تشغيل التعليق الصوتي. يمكنك استخدام النموذج المجاني المدمج أو رفع نموذج GLB تملكه لكل شخصية.</p>
 <div class="fields">
-<div class="field"><label for="avatarImageFile">صورة الشخصية (اختياري)</label><input id="avatarImageFile" type="file" accept="image/*"><div class="filehint" id="avatarImageStatus">استخدم الصورة الافتراضية أو ارفع صورة من جهازك.</div></div>
+<div class="field"><label for="avatarModelFile">نموذج شخصية ثلاثي الأبعاد (اختياري)</label><input id="avatarModelFile" type="file" accept=".glb,model/gltf-binary"><div class="filehint" id="avatarImageStatus">يُحمَّل النموذج المجاني عند تفعيل الأفاتار لأول مرة؛ حجمه كبير وقد يحتاج اتصالًا سريعًا.</div></div>
 <div class="two">
 <div class="field"><label for="avatarScale">حجم الشخصية <span id="avatarScaleValue">100%</span></label><input class="range" id="avatarScale" type="range" min="55" max="125" value="100" step="5"></div>
 <div class="field"><label for="avatarPositionY">الموضع الرأسي <span id="avatarPositionYValue">22%</span></label><input class="range" id="avatarPositionY" type="range" min="5" max="35" value="10" step="1"></div>
@@ -111,7 +111,7 @@ body{background:radial-gradient(ellipse at 12% 0%,#1c2b48 0,transparent 35%),rad
 </div>
 <div class="field"><label for="avatarMouthIntensity">شدة حركة الفم <span id="avatarMouthIntensityValue">100%</span></label><input class="range" id="avatarMouthIntensity" type="range" min="0" max="160" value="100" step="5"></div>
 <div class="tool-actions"><button class="btn primary" id="avatarApplyBtn" type="button">تطبيق الشخصية على الفيديو</button><button class="btn" id="avatarResetBtn" type="button">إعادة ضبط الإعدادات</button></div>
-<p class="note" id="avatarStatus" aria-live="polite">الشخصية تظهر في المعاينة والتصدير. مزامنة الفم هنا تقريبية اعتمادًا على مستوى الصوت، وليست توليدًا واقعيًا لحركة الشفاه على مستوى الحروف.</p>
+<p class="note" id="avatarStatus" aria-live="polite">شخصية ثلاثية الأبعاد متحركة تُرسم داخل الفيديو، مع حركة فك متزامنة مع مستوى الصوت. دقة نطق الحروف العربية تعتمد على النموذج المتاح ولا تُضمن مطابقة فونيمية كاملة.</p>
 </div></div>
 </section>
 <section class="z-page hidden" id="sceneStudioPage" hidden>
@@ -543,11 +543,11 @@ function drawAvatarPlaceholder(x,y,w,h,label){
  const cx=x+w/2,cy=y+h*.34;ctx.fillStyle='#263753';ctx.beginPath();ctx.arc(cx,cy,88,0,Math.PI*2);ctx.fill();ctx.fillStyle='#d7c1a2';ctx.beginPath();ctx.arc(cx,cy,62,0,Math.PI*2);ctx.fill();ctx.fillStyle='#243047';ctx.beginPath();ctx.ellipse(cx,y+h*.8,155,135,0,Math.PI,Math.PI*2);ctx.fill();ctx.fillStyle='#f4e2bb';ctx.font='bold 22px Tajawal';ctx.textAlign='center';ctx.fillText(label,cx,y+h-34);ctx.restore();
 }
 function selectAvatar(id){
- if(!avatarProfiles[id])return;activeAvatarId=id;
+ if(!avatarProfiles[id])return;activeAvatarId=id;window.ZereosActiveAvatarId=id;
  document.querySelectorAll('[data-avatar-preset]').forEach(b=>b.classList.toggle('active',b.dataset.avatarPreset===id));
  const title=$('avatarSelectedTitle');if(title)title.textContent='إعدادات '+avatarProfiles[id].name;
- const status=$('avatarImageStatus');if(status)status.textContent=avatarCustomImages[id]?'تستخدم صورة مخصصة لهذه الشخصية.':avatarProfiles[id].url?'جارٍ تحميل الصورة الافتراضية أو ارفع صورة بديلة.':'ارفع صورة أنمي لهذه الشخصية أو استخدم الرسم الافتراضي.';
- if(avatarProfiles[id].url)loadAvatarImage(id,avatarProfiles[id].url);
+ const status=$('avatarImageStatus');if(status)status.textContent='الشخصية المحددة: '+avatarProfiles[id].name+'. يمكن تحميل نموذج GLB مخصص لهذه الشخصية.';
+ window.ZereosTalkingAvatar?.retry?.(id);
  if($('avatarImageFile'))$('avatarImageFile').value='';
  if(typeof drawFrame==='function')drawFrame(playing?Math.max(0,performance.now()-startAt):0);
 }
@@ -586,28 +586,18 @@ function drawAvatarScene(elapsed,subtitleText=''){
  }else{
    const bg=ctx.createLinearGradient(0,0,W,H);bg.addColorStop(0,'#17142d');bg.addColorStop(1,'#080d1a');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
  }
- const image=avatarCustomImages[activeAvatarId]||avatarLoadedImages[activeAvatarId];
- let x,y,w,h;
- if(activeAvatarId==='elderMan'){w=W*1.08;h=H*1.08;x=(W-w)/2;y=(H-h)/2;}
- else if(activeAvatarId==='modernMan'){w=W*.83;h=H*.83;x=W*.085;y=H*.015;}
- else if(activeAvatarId==='modernWoman'){w=W*.82;h=H*.79;x=W*.09;y=H*.035;}
- else {w=W*.86;h=H*.82;x=(W-w)/2;y=H*.035;}
- if(image){
-   const iw=image.naturalWidth||image.width,ih=image.naturalHeight||image.height,scale=Math.max(w/iw,h/ih),dw=iw*scale,dh=ih*scale;
-   ctx.save();ctx.beginPath();ctx.rect(Math.max(0,x),Math.max(0,y),Math.min(W,w),Math.min(H,h));ctx.clip();
-   if(activeAvatarId==='hologram')ctx.filter='saturate(1.8) hue-rotate(125deg) contrast(1.15)';
-   if(activeAvatarId==='elderMan')ctx.filter='sepia(.18) contrast(1.06)';
-   ctx.drawImage(image,x+(w-dw)/2,y+(h-dh)/2,dw,dh);ctx.filter='none';ctx.restore();
- }else if(profile.url){
-   loadAvatarImage(activeAvatarId,profile.url);
-   drawAvatarPlaceholder(x,y,w,h,profile.name);
- }else drawAnimeFallback(x,y,w,h,avatarAmplitude(elapsed));
- // The current prototype only approximates mouth movement; it is not yet facial animation.
- if(image){
-   const mouth=avatarAmplitude(elapsed)*(Number($('avatarMouthIntensity')?.value||100)/100);
-   const mx=x+w*(activeAvatarId==='elderMan'?.5:.5),my=y+h*(activeAvatarId==='elderMan'?.58:activeAvatarId==='modernWoman'?.55:.56);
-   ctx.save();ctx.fillStyle=activeAvatarId==='hologram'?'rgba(0,238,255,.82)':'rgba(42,8,13,.86)';
-   ctx.beginPath();ctx.ellipse(mx,my,Math.max(12,w*.035),Math.max(2,3+mouth*H*.008),0,0,Math.PI*2);ctx.fill();ctx.restore();
+ const mouth=avatarAmplitude(elapsed)*(Number($('avatarMouthIntensity')?.value||100)/100);
+ const ready=window.ZereosTalkingAvatar?.draw?.(ctx,W,H,activeAvatarId,elapsed,mouth)===true;
+ if(!ready){
+   ctx.save();
+   const cardW=W*.82,cardH=H*.46,cx=W/2,cy=H*.43;
+   ctx.fillStyle='rgba(7,12,22,.82)';ctx.strokeStyle=activeAvatarId==='hologram'?'#28dff5':'#a6b7d4';ctx.lineWidth=2;
+   ctx.beginPath();ctx.roundRect(cx-cardW/2,cy-cardH/2,cardW,cardH,28);ctx.fill();ctx.stroke();
+   ctx.fillStyle='#dce8f5';ctx.textAlign='center';ctx.direction='rtl';ctx.font='bold '+Math.round(W*.042)+'px Tajawal, sans-serif';
+   ctx.fillText('جارٍ تجهيز الشخصية ثلاثية الأبعاد',cx,cy-4,cardW*.9);
+   ctx.font=Math.round(W*.028)+'px Tajawal, sans-serif';ctx.fillStyle='#aab9ca';
+   ctx.fillText('قد يستغرق التحميل الأول بعض الوقت',cx,cy+H*.055,cardW*.9);
+   ctx.restore();
  }
  // Simple desk foreground for the presenter scene, independent from all template options.
  if(activeAvatarId==='modernMan'){ctx.fillStyle='#171d25';ctx.beginPath();ctx.moveTo(0,H*.79);ctx.lineTo(W,H*.76);ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.closePath();ctx.fill();ctx.fillStyle='#a8794f';ctx.fillRect(0,H*.79,W,H*.018);ctx.fillStyle='#111923';ctx.fillRect(W*.62,H*.755,W*.2,H*.035);}
@@ -1245,4 +1235,4 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') {
       .catch(error => console.warn('تعذر تفعيل وضع التطبيق المثبّت:', error));
   });
 }
-</script></body></html>
+</script><script type="module" src="./avatar-studio.js"></script></body></html>
