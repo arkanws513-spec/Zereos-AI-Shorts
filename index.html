@@ -503,7 +503,7 @@ function loadAvatarImage(id,url){
 }
 function avatarAmplitude(elapsed){
  const buffer=narrationBuffer;if(!buffer||!buffer.numberOfChannels||!buffer.length)return .12+.18*(.5+.5*Math.sin((elapsed/1000)*6));
- const seconds=Math.max(0,elapsed/1000+(narrationTrimStart||0)),center=Math.min(buffer.length-1,Math.floor(seconds*buffer.sampleRate));if(center<0)return 0;
+ const seconds=Math.max(0,elapsed/1000+(narrationTrimStart||0));if(seconds>=buffer.duration)return 0;const center=Math.min(buffer.length-1,Math.floor(seconds*buffer.sampleRate));if(center<0)return 0;
  const data=buffer.getChannelData(0),radius=Math.max(24,Math.floor(buffer.sampleRate*.012));let sum=0,count=0;
  for(let i=Math.max(0,center-radius);i<Math.min(data.length,center+radius);i+=3){sum+=data[i]*data[i];count++}
  const rms=Math.sqrt(sum/Math.max(1,count));return Math.max(0,Math.min(1,rms*5.2));
