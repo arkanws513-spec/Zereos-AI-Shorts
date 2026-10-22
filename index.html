@@ -228,8 +228,21 @@ function drawOrnament(t){ctx.save();ctx.translate(W/2,220);ctx.rotate(Math.sin(t
 function drawParticles(t){if(!$('dust').checked)return;ctx.save();for(const p of particles){const y=(p.y-t*p.v*.035+H)%H,x=p.x+Math.sin(t*.0006+p.phase)*15;ctx.globalAlpha=p.a*(.6+.4*Math.sin(t*.002+p.phase));ctx.fillStyle='#f2c66d';ctx.beginPath();ctx.arc(x,y,p.r,0,Math.PI*2);ctx.fill()}ctx.restore()}
 function drawSeal(){if(!$('seal')?.checked)return;ctx.save();const x=W-92,y=H-104;ctx.globalAlpha=.78;ctx.strokeStyle=(videoTemplates[activeTemplate]||videoTemplates.royal).line;ctx.fillStyle='rgba(9,14,24,.66)';ctx.lineWidth=3;ctx.beginPath();ctx.arc(x,y,49,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(x,y,41,0,Math.PI*2);ctx.stroke();ctx.fillStyle=(videoTemplates[activeTemplate]||videoTemplates.royal).text;ctx.textAlign='center';ctx.textBaseline='middle';ctx.direction='ltr';ctx.font='bold 13px Tajawal';ctx.fillText('ZEREOS',x,y-5);ctx.font='bold 9px Tajawal';ctx.fillText('AI  •  ORIGINAL',x,y+13);ctx.globalAlpha=.42;ctx.beginPath();ctx.moveTo(x-20,y-25);ctx.lineTo(x+20,y-25);ctx.stroke();ctx.restore()}
 function fitTemplateLines(text,maxWidth,startSize,fontName,maxLines,minSize=18){
- let fitted=startSize,font='800 '+fitted+'px "'+fontName+'"',lines=wrapText(String(text||''),maxWidth,font);
- while(lines.length>maxLines&&fitted>minSize){fitted=Math.max(minSize,fitted-2);font='800 '+fitted+'px "'+fontName+'"';lines=wrapText(String(text||''),maxWidth,font)}
+ const words=String(text||'').trim().split(/\\s+/).filter(Boolean);
+ let fitted=startSize,font='800 '+fitted+'px "'+fontName+'"',lines=[];
+ const makeBalanced=()=>{
+  if(!words.length)return [''];
+  const count=Math.min(maxLines,words.length),out=[],remaining=[...words];
+  for(let slot=count;slot>0;slot--){
+   const left=remaining.length,goal=Math.ceil(left/slot),part=remaining.splice(0,goal);
+   out.push(part.join(' '));
+  }
+  return out;
+ };
+ lines=makeBalanced();
+ const fits=()=>{ctx.font=font;return lines.every(line=>ctx.measureText(line).width<=maxWidth)};
+ while(!fits()&&fitted>minSize){fitted=Math.max(minSize,fitted-2);font='800 '+fitted+'px "'+fontName+'"'}
+ if(!fits())lines=wrapText(String(text||''),maxWidth,font).slice(0,maxLines);
  return {lines,size:fitted,font,lineH:fitted*1.42};
 }
 function drawTemplateCaption(text,scene,t,sceneElapsed,sceneDuration,fontName,size,anim,progress,glowIntensity){
