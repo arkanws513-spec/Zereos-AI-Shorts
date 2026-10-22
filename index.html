@@ -41,6 +41,17 @@ body{background:radial-gradient(ellipse at 12% 0%,#1c2b48 0,transparent 35%),rad
 @media(max-width:520px){.template-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.template-swatch{height:105px}.template-info{padding:9px}.scene-input-grid{grid-template-columns:1fr}}
  .media-filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.media-filters .field{min-width:0}.media-reference{font-size:12px;color:#d7b96d;margin:6px 0}.media-empty{padding:14px;border:1px dashed #66502e;border-radius:12px;color:#b9a98f}
  .scene-timeline{display:flex;gap:5px;margin:10px 0 14px;direction:ltr}.scene-timeline button{min-width:0;flex:1;border:1px solid #4b3922;border-radius:8px;background:#17130f;color:#b9a98f;padding:8px 3px;font:600 11px Tajawal, sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.scene-timeline button.active{background:linear-gradient(135deg,#77531e,#35230f);border-color:#e0b65e;color:#ffe8ae}.scene-timeline button:focus-visible{outline:2px solid #f1c35d;outline-offset:2px}
+
+/* Distinct miniature art direction for every template card */
+.template-card[data-template="nebula"] .template-swatch:after{width:62px;height:62px;border-radius:50%;border:2px solid #e3d8ff;background:radial-gradient(circle at 35% 35%,#fff 0 2%,#b9a1ff 5%,#5d3ca8 24%,#11152b 70%);box-shadow:0 0 0 13px #c5a7ff20,0 0 22px #9e72ff99;transform:translate(-34px,-3px)}
+.template-card[data-template="cyber"] .template-swatch:after{width:118px;height:54px;border-radius:2px;border:2px solid #46e4ef;box-shadow:inset 0 0 0 7px #20c7e422,0 0 15px #20c7e455;transform:translateY(2px)}
+.template-card[data-template="ember"] .template-swatch:after{width:82px;height:92px;border:0;border-radius:0;clip-path:polygon(50% 0,65% 30%,100% 52%,70% 100%,30% 87%,0 48%,34% 33%);background:linear-gradient(145deg,#ffd28b,#ff6a35 48%,#8f1d2d);box-shadow:none;transform:translate(-26px,1px)}
+.template-card[data-template="ocean"] .template-swatch:after{width:145px;height:34px;border-radius:50%;border:2px solid #9ceeff;box-shadow:0 10px 0 -4px #5ccfe955,0 20px 0 -7px #5ccfe933;transform:translateY(18px)}
+.template-card[data-template="emerald"] .template-swatch:after{width:52px;height:82px;border-radius:0 100% 0 100%;border:2px solid #a4efc3;box-shadow:inset 0 0 0 8px #31a87922,0 0 16px #31a87944;transform:rotate(38deg) translate(-18px,0)}
+.template-card[data-template="ivory"] .template-swatch:after{width:120px;height:78px;border-radius:1px;border:3px double #f0d39b;box-shadow:inset 0 0 0 6px #e5c58c22;transform:none}
+.template-card[data-template="minimal"] .template-swatch:after{width:105px;height:3px;border:0;border-radius:0;background:#e1e6f5;box-shadow:0 12px 0 #e1e6f544,0 -12px 0 #e1e6f522;transform:translateY(28px)}
+.template-card[data-template="aurora"] .template-swatch:after{width:142px;height:38px;border-radius:50%;border:5px solid #a5ffe3;box-shadow:0 0 0 9px #8bf2d822,0 0 22px #53cbb888;transform:rotate(-20deg) translateY(1px)}
+.template-card[data-template="crystal"] .template-swatch:after{width:78px;height:78px;border-radius:0;clip-path:polygon(50% 0,100% 28%,78% 100%,20% 88%,0 30%);border:2px solid #e3eeff;background:linear-gradient(135deg,#ffffff66,#a2b9ee22 45%,#d6e4ff55);box-shadow:none;transform:rotate(12deg) translate(-20px,0)}
 </style><script src="./storage.js"></script>
 <style id="disable-device-voices">/* Remove the obsolete device-voice reader; generated AI audio remains available below. */ #deviceVoicePanel{display:none!important}</style>
 </head>
