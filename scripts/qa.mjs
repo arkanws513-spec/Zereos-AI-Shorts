@@ -119,6 +119,18 @@ if (html) {
   if (!html.includes('function wordTimings(') || !html.includes('function exportWordSubtitles(') || !html.includes('lineTimingWeight(')) fail('Estimated word timing and word-level subtitle export are missing.');
   if (!process.exitCode) pass('Estimated word timing and SRT/VTT word-level export are present.');
 
+  const drawTextStart = html.indexOf('function drawTextBlock(');
+  const drawTextEnd = html.indexOf('let importedSceneImage=', drawTextStart);
+  const drawTextSource = drawTextStart >= 0 && drawTextEnd > drawTextStart ? html.slice(drawTextStart, drawTextEnd) : '';
+  const templateRoute = drawTextSource.indexOf("if(['royal','nebula','cyber','ocean','ivory'].includes(activeTemplate))");
+  const animationMutation = drawTextSource.indexOf("if(anim==='wordByWord'");
+  if (!html.includes('function selectTemplateCaptionPage(') || !html.includes('selectTemplateCaptionPage(pages,progress,anim)')) {
+    fail('Template-specific caption pagination and page-local text animation are missing.');
+  } else if (templateRoute < 0 || animationMutation < 0 || templateRoute > animationMutation) {
+    fail('Template captions must paginate the complete scene text before applying page-local text animation.');
+  } else if (!process.exitCode) pass('Template pagination preserves full text and animates each caption page independently.');
+  if (html.includes('function fitTemplateLines(')) fail('Unused fitTemplateLines helper should be removed to avoid duplicate layout paths.');
+
   const exportGuidance = html.includes('صيغة MP4') && html.includes('يستخدم WebM');
   if (!exportGuidance) fail('Export guidance should explain that MP4 is attempted when supported and WebM is the fallback.');
   const mp4Candidate = html.indexOf("'video/mp4;codecs=avc1.42E01E,mp4a.40.2'");
