@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#080d18">
+<title>ZEREOS • استوديو الأفاتار الحقيقي</title>
+<style>
+:root{color-scheme:dark;--bg:#080d18;--panel:#111a2a;--line:#28364d;--text:#f4f7ff;--muted:#91a0b8;--cyan:#61e4e8;--violet:#9a7cff;--bad:#ff8585;--good:#78e6b0}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 85% -15%,#26395a 0,transparent 38%),var(--bg);color:var(--text);font:15px/1.6 system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;min-height:100vh}
+header{height:70px;padding:12px clamp(14px,4vw,42px);display:flex;align-items:center;gap:12px;border-bottom:1px solid #ffffff12;background:#080d18d9;backdrop-filter:blur(18px);position:sticky;top:0;z-index:5}
+.logo{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;font-weight:900;background:linear-gradient(135deg,var(--cyan),var(--violet));color:#07111c;box-shadow:0 8px 28px #61e4e833}
+.brand b{display:block;font-size:17px;letter-spacing:.3px}.brand span{display:block;color:var(--muted);font-size:11px}
+a{color:var(--cyan);text-decoration:none;margin-right:auto;font-size:13px}
+main{width:min(1160px,100%);margin:auto;padding:30px clamp(14px,3vw,34px) 48px}
+.hero{margin-bottom:24px}.eyebrow{color:var(--cyan);font-size:11px;font-weight:800;letter-spacing:1.6px}.hero h1{font-size:clamp(25px,4vw,38px);line-height:1.25;margin:8px 0}.hero p{color:var(--muted);max-width:720px;margin:0}
+.layout{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(290px,.85fr);gap:18px;align-items:start}
+.panel{background:linear-gradient(145deg,#131d2eeb,#0d1524f5);border:1px solid var(--line);border-radius:22px;padding:20px;box-shadow:0 18px 50px #0002;min-width:0}.panel h2{font-size:16px;margin:0 0 16px}.field{margin:15px 0}.field label{display:block;font-size:13px;font-weight:700;margin-bottom:7px}.hint{font-size:11px;color:var(--muted);margin-top:6px}
+input[type=text],input[type=password],input[type=url],select,textarea{width:100%;background:#080f1c;border:1px solid #2b3b53;border-radius:12px;color:var(--text);padding:11px 12px;font:inherit;outline:none}textarea{min-height:85px;resize:vertical}
+.drop{border:1px dashed #465c79;border-radius:16px;background:#0a1220;padding:15px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:.2s}.drop:hover{border-color:var(--cyan);background:#0e1a29}.drop .symbol{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:#1c2a40;font-size:21px;flex:none}.drop b{display:block;font-size:13px}.drop small{color:var(--muted);font-size:11px;display:block}.drop input{display:none}.file-name{font-size:11px;color:var(--good);overflow-wrap:anywhere;margin-top:7px}
+.preview{aspect-ratio:9/12;background:linear-gradient(135deg,#101c2c,#090e17);border:1px solid #27374e;border-radius:17px;display:grid;place-items:center;overflow:hidden;position:relative}.preview video,.preview img{width:100%;height:100%;object-fit:contain;background:#060a11}.preview .empty{text-align:center;color:var(--muted);padding:20px}.preview .empty strong{display:block;color:#d9e4f6;margin-bottom:6px}
+.status{margin-top:13px;border:1px solid #293a51;border-radius:13px;background:#0a1220;padding:12px;font-size:12px;color:var(--muted);overflow-wrap:anywhere}.status.good{border-color:#2b6656;color:var(--good)}.status.bad{border-color:#70404a;color:var(--bad)}
+button{font:inherit;cursor:pointer}.primary{width:100%;border:0;border-radius:13px;padding:13px 16px;font-weight:800;color:#07111a;background:linear-gradient(110deg,var(--cyan),#a5caff 55%,var(--violet));box-shadow:0 10px 26px #61e4e81a}.primary:disabled{opacity:.45;cursor:not-allowed}.secondary{border:1px solid #30415b;background:#111b2c;color:#dce8fa;border-radius:11px;padding:9px 12px;font-size:12px}
+.notice{border-right:3px solid var(--violet);padding:10px 12px;background:#17162b;border-radius:8px;font-size:12px;color:#d3c8ff;margin-top:14px}
+.output video{width:100%;border-radius:14px;background:#000;margin-top:12px}.download{display:inline-block;margin-top:10px;padding:10px 14px;background:#193c37;border-radius:10px;color:var(--good);font-weight:700}
+details{margin-top:18px;border-top:1px solid #ffffff12;padding-top:14px}summary{cursor:pointer;color:#c9d5e8;font-size:12px}.small{font-size:11px;color:var(--muted)}
+@media(max-width:800px){.layout{grid-template-columns:1fr}.panel{padding:16px}.preview{aspect-ratio:9/11;max-height:520px}.hero{margin-bottom:18px}}
+</style>
+</head>
+<body>
+<header><div class="logo">Z</div><div class="brand"><b>ZEREOS AI Shorts</b><span>استوديو الأفاتار الواقعي</span></div><a href="./index.html">العودة للاستوديو ←</a></header>
+<main>
+<section class="hero"><div class="eyebrow">REAL-PERSON VIDEO LAB</div><h1>حوّل صورة أو فيديو حقيقي إلى فيديو ناطق</h1><p>مسار تجريبي لمحرك مزامنة شفاه فعلي. اختر صورة أو فيديو تملك حق استخدامه، وأرفق التسجيل الصوتي. لا توجد معاينة مصطنعة: لن يظهر فيديو ناتج إلا بعد أن يرجعه المحرك.</p></section>
+<div class="layout">
+<section class="panel">
+<h2>١ — ملفات المصدر</h2>
+<div class="field"><label>صورة الشخص أو الفيديو الأصلي</label><label class="drop" for="source"><span class="symbol">▧</span><span><b>اختيار صورة أو فيديو</b><small>JPG / PNG / WEBP أو MP4 / MOV / WEBM / MKV</small></span><input id="source" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime,video/webm,video/x-matroska"></label><div id="sourceName" class="file-name"></div><div class="hint">الفيديو يحافظ على حركة الرأس والجسم الأصلية. الصورة تحرّك منطقة الفم فقط، ولا تولّد حركة جسم كاملة.</div></div>
+<div class="field"><label>التعليق الصوتي أو الكلام المسجّل</label><label class="drop" for="audio"><span class="symbol">♫</span><span><b>اختيار ملف صوتي</b><small>WAV / MP3 / M4A / AAC / OGG / FLAC</small></span><input id="audio" type="file" accept="audio/*,.m4a,.aac,.ogg,.flac"></label><div id="audioName" class="file-name"></div></div>
+<div class="field"><label for="fps">معدل الإطارات</label><select id="fps"><option value="25">25 FPS — قياسي</option><option value="24">24 FPS — سينمائي</option><option value="30">30 FPS — أكثر سلاسة</option><option value="20">20 FPS — أخف</option></select></div>
+<button class="primary" id="generate" disabled>إنشاء فيديو MP4 بالمحرك الحقيقي</button>
+<div id="status" class="status">جارٍ التحقق من اتصال محرك GPU…</div>
+<div class="notice">تنبيه واقعي: موقع GitHub Pages لا يشغّل نماذج PyTorch بنفسه. يلزم عامل GPU منفصل مع الأوزان. لن ندّعي أن التوليد يعمل قبل اتصال العامل واختبار ملف الناتج.</div>
+<div class="output" id="output"></div>
+</section>
+<aside class="panel">
+<h2>٢ — المعاينة والاتصال</h2>
+<div class="preview" id="preview"><div class="empty"><strong>معاينة المصدر</strong>ستظهر الصورة أو الفيديو الذي اخترته هنا</div></div>
+<div class="field"><label for="workerUrl">عنوان محرك GPU</label><input id="workerUrl" type="url" placeholder="https://عنوان-العامل-الخاص-بك"><div class="hint">احفظ عنوان العامل بعد نشره. لا تستخدم رابط موقع الواجهة مكانه.</div></div>
+<div class="field"><label for="workerToken">رمز الوصول للعامل (إن كان مفعّلًا)</label><input id="workerToken" type="password" placeholder="اختياري حسب إعداد العامل" autocomplete="off"></div>
+<button class="secondary" id="check">فحص اتصال المحرك</button>
+<div id="engineInfo" class="status">لم يتم فحص العامل بعد.</div>
+<details><summary>ماذا يفعل المحرك الحالي؟</summary><p class="small">يعتمد العامل على MuseTalk 1.5 لمعالجة صوت مع صورة/فيديو مصدر. الصورة الثابتة لا تتحول وحدها إلى أداء كامل أو حركة رأس طبيعية. تحويل النص إلى صوت لم يُربط بهذه الصفحة بعد؛ استخدم ملفًا صوتيًا من محرك الصوت المحلي الحالي.</p><p class="small">لا ترفع صورة أو صوتًا لشخص آخر دون إذنه. اختبر الناتج قبل نشره ولا تقدمه على أنه تسجيل حقيقي.</p></details>
+</aside>
+</div>
+</main>
+<script type="module" src="./real-avatar-studio.js"></script>
+</body></html>
