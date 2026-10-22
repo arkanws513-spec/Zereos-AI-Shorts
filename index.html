@@ -108,7 +108,7 @@ body{background:radial-gradient(ellipse at 12% 0%,#1c2b48 0,transparent 35%),rad
 <div class="checkrow"><label><input type="checkbox" id="dust" checked> جزيئات ذهبية</label><label><input type="checkbox" id="seal" checked> ختم ZEREOS</label><label><input type="checkbox" id="captions" checked> عرض النص</label></div><div class="field"><label for="captionStyle">أسلوب الترجمة داخل الفيديو</label><select id="captionStyle"><option value="classic">سينمائي كلاسيكي</option><option value="karaoke">كلمات متحركة كلمة بكلمة (توقيت تقديري)</option></select><p class="note">وضع الكلمات المتحركة يوزّع توقيت الكلمات تقديريًا داخل المشهد؛ لا يُعدّ مزامنة صوتية دقيقة كلمةً بكلمة.</p></div>
 </div></div>
 <div class="panel hidden" id="tab-audio"><h3 class="smalltitle">الصوت والتعليق الصوتي</h3><div class="fields">
-<div class="field"><label for="narrationFile">إضافة تسجيل صوتي ليُضمّن في الفيديو</label><input id="narrationFile" type="file" accept="audio/*"><div class="filehint" id="fileStatus">اختر تسجيلًا بصيغة MP3 أو WAV. سيجهزه التطبيق قبل التصدير.</div></div>
+<div class="field"><label for="narrationFile">إضافة تسجيل صوتي ليُضمّن في الفيديو</label><input id="narrationFile" type="file" accept="audio/*"><div class="filehint" id="fileStatus">اختر تسجيلًا بصيغة MP3 أو WAV. سيجهزه التطبيق قبل التصدير.</div></div><div class="tool-card" id="liveVoiceRecorder"><h4>🎙️ تسجيل صوتي مباشر بصوتك</h4><p class="note">اقرأ النص بنفسك؛ سيُسجَّل من الميكروفون ثم يمكنك الاستماع إليه واعتماده كتعليق صوتي للفيديو. يتطلب السماح بالميكروفون، ويُحفظ التسجيل على هذا الجهاز فقط.</p><div class="field"><label>النص الذي ستقرأه</label><div id="liveRecordingPrompt" class="filehint" style="white-space:pre-wrap;line-height:1.9;max-height:220px;overflow:auto;border:1px solid #39435d;border-radius:12px;padding:12px">اكتب نص الفيديو في المشاهد أولًا.</div></div><div class="tool-actions"><button class="btn primary" id="recordVoiceBtn" type="button">● بدء التسجيل</button><button class="btn" id="stopVoiceRecordingBtn" type="button" disabled>■ إيقاف التسجيل</button><button class="btn" id="useVoiceRecordingBtn" type="button" disabled>✓ اعتماد الصوت للفيديو</button></div><audio id="liveVoicePreview" controls class="hidden" style="width:100%;margin-top:10px"></audio><div id="liveVoiceStatus" class="filehint" aria-live="polite">جاهز للتسجيل. اقرأ النص بهدوء، ويمكنك إعادة التسجيل قبل اعتماده.</div></div>
 <div class="tool-card" id="voiceLibraryPanel"><h4>مكتبة الأصوات الموحدة</h4><p class="note">تظهر هنا التسجيلات البشرية وملفات الصوت التي ولّدتها أو أضفتها إلى ZEREOS فقط. أصوات الجهاز والنظام مستبعدة من المكتبة.</p><div class="tool-card" id="neuralTtsPanel"><h4>توليد تعليق عربي بالذكاء الاصطناعي — محليًا</h4><p class="note">يعمل نموذج عربي عصبي داخل المتصفح بلا مفتاح API أو رسوم لكل استخدام. أول تشغيل ينزّل النموذج ويخزّنه على جهازك (نحو 16–30 ميجابايت للنموذج، إضافةً إلى ملفات التشغيل). يحتاج إنترنت في المرة الأولى. المحرك العصبي الحالي يعتمد صوتًا أساسيًا واحدًا؛ أنماط الأداء التالية تغيّر السرعة والطبقة لتمنح التسجيلات اختلافًا مسموعًا، لكنها ليست هويات متحدثين مستقلة. إنشاء أشخاص مختلفين فعلًا يحتاج نموذجًا متعدد المتحدثين أو نماذج أصوات إضافية.</p><div class="field"><label for="neuralTtsText">النص المراد تحويله إلى صوت</label><textarea id="neuralTtsText" maxlength="1800" placeholder="اكتب النص العربي هنا أو املأه من مشاهد الفيديو…"></textarea><div class="filehint">لأفضل نتيجة، ابدأ بنص قصير. يمكن توليد عدة ملفات منفصلة للنصوص الطويلة.</div></div><div class="tool-actions"><button class="btn" id="fillTtsFromScenesBtn" type="button">استخدام نص المشاهد</button><button class="btn primary" id="generateNeuralTtsBtn" type="button">✧ توليد الصوت وحفظه بالمكتبة</button></div><div id="neuralTtsStatus" class="filehint" aria-live="polite">جاهز. سيُحفظ الصوت الناتج في مكتبة الأصوات المحلية.</div><audio id="neuralTtsPreview" controls class="hidden" style="width:100%;margin-top:10px"></audio></div><div class="tool-card" id="voiceDesignExternalPanel">
 <h4>🎙️ استوديو الشخصيات الصوتية العربية</h4>
 <p class="note">اختَر شخصية جاهزة، انسخ وصفها مع نصك، ثم افتح أحد المحركات. بعد تنزيل ملف WAV/MP3 استورده مرة واحدة إلى مكتبة ZEREOS وسيبقى محفوظًا محليًا على هذا الجهاز.</p>
@@ -151,7 +151,7 @@ const presets=[
 {title:'سألوا حكيماً: كيف تجد السلام؟',body1:'قال: لا تحمل همّ الغد قبل أن يأتي.',body2:'فبعض الأبواب تُفتح بالصبر، لا بكثرة الطرق.',cta:'احفظ الحكمة وشاركها'}
 ];
 const canvas=$('videoCanvas'),ctx=canvas.getContext('2d');
-let playing=false,recording=false,raf=0,startAt=0,previewElapsed=0,previewOnlyScene=null,particles=[],audioContext=null,musicOsc=[],musicGain=null,recordingDestination=null,narrationBuffer=null,previewNarrationSource=null,narrationLoadToken=0,lastSpeak=-1,currentScene=0;
+let playing=false,recording=false,raf=0,startAt=0,previewElapsed=0,previewOnlyScene=null,particles=[],audioContext=null,musicOsc=[],musicGain=null,recordingDestination=null,narrationBuffer=null,previewNarrationSource=null,narrationLoadToken=0,lastSpeak=-1,currentScene=0;let microphoneStream=null,voiceRecorder=null,voiceChunks=[],recordedVoiceBlob=null,recordedVoiceBuffer=null,recordedVoiceUrl=null,liveVoiceToken=0;
 const W=canvas.width,H=canvas.height;
 function exportProfileSettings(){const profile=$('exportProfile')?.value||'standard';return profile==='mobile'?{fps:24,videoBitsPerSecond:1600000,audioBitsPerSecond:96000}:profile==='high'?{fps:30,videoBitsPerSecond:5000000,audioBitsPerSecond:160000}:{fps:30,videoBitsPerSecond:2800000,audioBitsPerSecond:128000}}
 function texts(){return [$('scriptTitle').value.trim(),$('scriptBody1').value.trim(),$('scriptBody2').value.trim(),$('scriptCta').value.trim()]}
@@ -451,7 +451,7 @@ function playSingleScene(index){if(playing){playing=false;cancelAnimationFrame(r
 function resetPreview(){playing=false;cancelAnimationFrame(raf);previewElapsed=0;lastSpeak=-1;stopPreviewNarration();stopMusic();$('playBtn').textContent='▶ تشغيل المعاينة';drawFrame(0);$('status').textContent='تمت إعادة المعاينة.'}
 function fillPreset(p){$('scriptTitle').value=p.title;$('scriptBody1').value=p.body1;$('scriptBody2').value=p.body2;$('scriptCta').value=p.cta;drawFrame(0);$('status').textContent='تم تطبيق الحكمة.'}
 function renderPresets(){$('presets').innerHTML='';presets.forEach((p,i)=>{const b=document.createElement('button');b.className='preset';b.textContent=(i+1)+'. '+p.title;b.onclick=()=>fillPreset(p);$('presets').appendChild(b)})}
-function update(){ $('fontSizeVal').textContent=$('fontSize').value;$('sceneSecondsVal').textContent=$('sceneSeconds').value;$('volumeVal').textContent=Math.round(Number($('volume').value)*100)+'%';if($('glowIntensityVal')&&$('glowIntensity'))$('glowIntensityVal').textContent=$('glowIntensity').value;if($('narrationVolumeVal'))$('narrationVolumeVal').textContent=Math.round(Number($('narrationVolume').value)*100)+'%';updateWordCount();saveDraft();drawFrame(0)}
+function update(){ $('fontSizeVal').textContent=$('fontSize').value;$('sceneSecondsVal').textContent=$('sceneSeconds').value;$('volumeVal').textContent=Math.round(Number($('volume').value)*100)+'%';if($('glowIntensityVal')&&$('glowIntensity'))$('glowIntensityVal').textContent=$('glowIntensity').value;if($('narrationVolumeVal'))$('narrationVolumeVal').textContent=Math.round(Number($('narrationVolume').value)*100)+'%';updateWordCount();saveDraft();drawFrame(0);updateLiveRecordingPrompt()}
 function updateWordCount(){const content=texts().filter(Boolean).join(' '),words=content.trim()?content.trim().split(/\s+/).length:0;$('wordCount').textContent=words+' كلمة · '+content.length+' حرف'}
 const draftIds=['scriptTitle','scriptBody1','scriptBody2','scriptCta','bulkText','bgStyle','fontFamily','fontSize','sceneSeconds','imageMotion','textAnimation','graphicFrame','sceneTransition','exportProfile','glowIntensity','dust','seal','captions','captionStyle','music','volume','narrationVolume'];
 function saveDraft(){try{const draft={};draftIds.forEach(id=>{const el=$(id);if(el)draft[id]=el.type==='checkbox'?el.checked:el.value});localStorage.setItem('zereos-shorts-draft-v2',JSON.stringify(draft));$('saveState').textContent='تم الحفظ تلقائيًا على هذا الجهاز.'}catch(error){$('saveState').textContent='الحفظ المحلي غير متاح في هذا المتصفح.'}}
@@ -597,6 +597,94 @@ console.error(error);
 $('fileStatus').textContent='تعذر قراءة هذا الملف. جرّب MP3 أو WAV بصيغة أخرى.';
 }
 });
+function updateLiveRecordingPrompt(){
+ const prompt=$('liveRecordingPrompt');if(!prompt)return;
+ const script=texts().filter(Boolean).join('\n\n');
+ prompt.textContent=script||'اكتب نص الفيديو في المشاهد أولًا.';
+}
+function releaseMicrophone(){
+ if(microphoneStream){microphoneStream.getTracks().forEach(track=>track.stop());microphoneStream=null}
+}
+async function startLiveVoiceRecording(){
+ if(voiceRecorder&&voiceRecorder.state==='recording')return;
+ if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){$('liveVoiceStatus').textContent='التسجيل المباشر غير مدعوم في هذا المتصفح. افتح التطبيق في Chrome محدّث عبر HTTPS.';return}
+ const script=texts().filter(Boolean).join('\n\n');
+ if(!script){$('liveVoiceStatus').textContent='اكتب النص الذي تريد قراءته في مشاهد الفيديو أولًا.';return}
+ try{
+  $('recordVoiceBtn').disabled=true;$('liveVoiceStatus').textContent='بانتظار إذن الميكروفون…';
+  const token=++liveVoiceToken;
+  microphoneStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false});
+  if(token!==liveVoiceToken){releaseMicrophone();return}
+  voiceChunks=[];recordedVoiceBlob=null;recordedVoiceBuffer=null;
+  if(recordedVoiceUrl){URL.revokeObjectURL(recordedVoiceUrl);recordedVoiceUrl=null}
+  $('liveVoicePreview').classList.add('hidden');$('useVoiceRecordingBtn').disabled=true;
+  const candidates=['audio/webm;codecs=opus','audio/mp4','audio/webm','audio/ogg;codecs=opus'];
+  let options={};
+  if(MediaRecorder.isTypeSupported){const mime=candidates.find(type=>MediaRecorder.isTypeSupported(type));if(mime)options.mimeType=mime}
+  voiceRecorder=new MediaRecorder(microphoneStream,options);
+  voiceRecorder.ondataavailable=event=>{if(event.data&&event.data.size)voiceChunks.push(event.data)};
+  voiceRecorder.onerror=event=>{$('liveVoiceStatus').textContent='حدث خطأ أثناء التسجيل: '+(event.error?.message||'تعذر تسجيل الصوت.');releaseMicrophone();$('recordVoiceBtn').disabled=false;$('stopVoiceRecordingBtn').disabled=true};
+  voiceRecorder.onstop=async()=>{
+   releaseMicrophone();$('stopVoiceRecordingBtn').disabled=true;
+   const blob=new Blob(voiceChunks,{type:voiceRecorder?.mimeType||voiceChunks[0]?.type||'audio/webm'});
+   voiceChunks=[];
+   if(!blob.size){$('liveVoiceStatus').textContent='لم يُسجّل صوت. تحقق من إذن الميكروفون ثم أعد المحاولة.';$('recordVoiceBtn').disabled=false;return}
+   recordedVoiceBlob=blob;
+   if(recordedVoiceUrl)URL.revokeObjectURL(recordedVoiceUrl);
+   recordedVoiceUrl=URL.createObjectURL(blob);
+   const player=$('liveVoicePreview');player.src=recordedVoiceUrl;player.classList.remove('hidden');player.load();
+   $('liveVoiceStatus').textContent='تم التسجيل ('+Math.max(1,Math.round(blob.size/1024))+' كيلوبايت). جارٍ تجهيز الصوت للفيديو…';
+   try{
+    const ac=ensureAudio();
+    recordedVoiceBuffer=await ac.decodeAudioData(await blob.arrayBuffer());
+    $('useVoiceRecordingBtn').disabled=false;
+    $('liveVoiceStatus').textContent='التسجيل جاهز ('+Math.ceil(recordedVoiceBuffer.duration)+' ثانية). استمع إليه، ثم اضغط «اعتماد الصوت للفيديو».';
+   }catch(error){
+    console.error('تعذر فك ترميز التسجيل الصوتي',error);
+    $('liveVoiceStatus').textContent='تم حفظ التسجيل للمعاينة، لكن المتصفح لم يستطع تجهيز صيغته لدمجها بالفيديو. جرّب التسجيل في Chrome أو استخدم WAV/MP3 من زر الاستيراد.';
+   }finally{$('recordVoiceBtn').disabled=false}
+  };
+  voiceRecorder.start(250);
+  $('recordVoiceBtn').textContent='● جارٍ التسجيل…';$('recordVoiceBtn').disabled=true;$('stopVoiceRecordingBtn').disabled=false;
+  $('liveVoiceStatus').textContent='التسجيل يعمل الآن. اقرأ النص الظاهر بالأعلى، ثم اضغط «إيقاف التسجيل».';
+ }catch(error){
+  releaseMicrophone();$('recordVoiceBtn').disabled=false;$('recordVoiceBtn').textContent='● بدء التسجيل';
+  $('liveVoiceStatus').textContent='تعذر تشغيل الميكروفون: '+(error?.message||'تحقق من إذن الميكروفون وافتح التطبيق عبر HTTPS.');
+ }
+}
+async function stopLiveVoiceRecording(){
+ if(!voiceRecorder||voiceRecorder.state!=='recording')return;
+ $('stopVoiceRecordingBtn').disabled=true;$('liveVoiceStatus').textContent='جارٍ إنهاء التسجيل وتجهيز الملف…';
+ try{voiceRecorder.stop()}catch(error){releaseMicrophone();$('recordVoiceBtn').disabled=false;$('liveVoiceStatus').textContent='تعذر إنهاء التسجيل: '+error.message}
+ $('recordVoiceBtn').textContent='● بدء تسجيل جديد';
+}
+async function useLiveVoiceRecording(){
+ if(!recordedVoiceBlob||!recordedVoiceBuffer){$('liveVoiceStatus').textContent='سجّل صوتك وأوقف التسجيل أولًا.';return}
+ narrationBuffer=recordedVoiceBuffer;$('narrationFile').value='';narrationLoadToken++;importedNarrationMediaId=null;
+ $('fileStatus').textContent='تم اعتماد تسجيلك الشخصي ('+Math.ceil(recordedVoiceBuffer.duration)+' ثانية) للتصدير.';
+ $('liveVoiceStatus').textContent='تم اعتماد صوتك للتعليق في الفيديو. جارٍ حفظ نسخة في مكتبة الأصوات…';
+ $('useVoiceRecordingBtn').disabled=true;
+ try{
+  if(window.ZereosStorage?.local?.saveMedia){
+   const mime=recordedVoiceBlob.type||'audio/webm';
+   const ext=mime.includes('mp4')?'m4a':mime.includes('ogg')?'ogg':mime.includes('wav')?'wav':'webm';
+   const saved=await window.ZereosStorage.local.saveMedia({name:'ZEREOS-Voice-'+Date.now()+'.'+ext,type:mime,kind:'audio',size:recordedVoiceBlob.size,blob:recordedVoiceBlob,projectId:window.ZereosStorage.local.activeProjectId?.()||null,voiceCategory:'human',voiceProfile:'human'});
+   if(saved?.id)importedNarrationMediaId=saved.id;
+   await window.ZereosRefreshVoiceLibrary?.();
+  }
+  window.dispatchEvent(new Event('zereos-project-change'));
+  $('liveVoiceStatus').textContent='تم اعتماد صوتك وحفظ التسجيل محليًا في مكتبة الأصوات. أصبح جاهزًا للمعاينة وتصدير الفيديو.';
+ }catch(error){
+  console.warn('تم اعتماد الصوت لكن تعذر حفظ نسخة في المكتبة',error);
+  $('liveVoiceStatus').textContent='تم اعتماد صوتك للفيديو، لكن تعذر حفظ نسخة بالمكتبة: '+(error?.message||'خطأ تخزين محلي');
+ }
+ $('recordVoiceBtn').textContent='● بدء تسجيل جديد';$('useVoiceRecordingBtn').disabled=false;
+}
+$('recordVoiceBtn')?.addEventListener('click',startLiveVoiceRecording);
+$('stopVoiceRecordingBtn')?.addEventListener('click',stopLiveVoiceRecording);
+$('useVoiceRecordingBtn')?.addEventListener('click',useLiveVoiceRecording);
+window.addEventListener('pagehide',releaseMicrophone);
+
 /* Device-provided voices are intentionally disabled. */
 restoreDraft();initParticles();renderPresets();document.fonts?.ready?.then(()=>drawFrame(0));update();drawFrame(0);
 /* IndexedDB project persistence bootstrap */
