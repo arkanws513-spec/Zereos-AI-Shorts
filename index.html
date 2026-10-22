@@ -237,8 +237,9 @@ function selectTemplateCaptionPage(pages,progress,anim){
   let remaining=Math.max(1,Math.ceil(lines.reduce((sum,line)=>sum+line.split(/\s+/).filter(Boolean).length,0)*Math.max(.04,pageProgress)));
   lines=lines.map(line=>{const words=line.split(/\s+/).filter(Boolean),visible=words.slice(0,remaining).join(' ');remaining=Math.max(0,remaining-words.length);return visible}).filter(Boolean);
  }else if(anim==='typewriter'&&pageProgress<1){
-  let remaining=Math.max(1,Math.ceil(lines.reduce((sum,line)=>sum+line.length,0)*Math.max(.03,pageProgress)));
-  lines=lines.map(line=>{const visible=line.slice(0,remaining);remaining=Math.max(0,remaining-line.length);return visible}).filter(Boolean);
+  const charsByLine=lines.map(line=>Array.from(line));
+  let remaining=Math.max(1,Math.ceil(charsByLine.reduce((sum,chars)=>sum+chars.length,0)*Math.max(.03,pageProgress)));
+  lines=charsByLine.map(chars=>{const visible=chars.slice(0,remaining).join('');remaining=Math.max(0,remaining-chars.length);return visible}).filter(Boolean);
  }
  return {...page,lines:lines.length?lines:['']};
 }
