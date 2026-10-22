@@ -107,7 +107,9 @@ if (html) {
     'appCover', 'startAppBtn', 'videoCanvas', 'playBtn', 'resetBtn',
     'exportBtn', 'narrationFile', 'neuralTtsStatus', 'generateNeuralTtsBtn',
     'fillTtsFromScenesBtn', 'voiceLibraryList', 'mediaList', 'projectsPanel',
-    'exportSrtBtn', 'exportWordSrtBtn', 'exportWordVttBtn'
+    'exportSrtBtn', 'exportWordSrtBtn', 'exportWordVttBtn',
+    'liveVoiceRecorder', 'liveRecordingPrompt', 'recordVoiceBtn', 'stopVoiceRecordingBtn',
+    'useVoiceRecordingBtn', 'liveVoicePreview', 'liveVoiceStatus'
   ];
   for (const id of requiredIds) {
     if (!html.includes('id="' + id + '"') && !html.includes("id='" + id + "'")) {
@@ -115,6 +117,10 @@ if (html) {
     }
   }
   if (!process.exitCode) pass('Essential editor, voice, media and export controls are present.');
+  for (const token of ['navigator.mediaDevices.getUserMedia', 'new MediaRecorder(microphoneStream', 'ac.decodeAudioData(await blob.arrayBuffer())', 'voiceCategory:\'human\'', 'narrationBuffer=recordedVoiceBuffer']) {
+    if (!html.includes(token)) fail('Direct microphone recording workflow is incomplete: missing ' + token);
+  }
+  if (!process.exitCode) pass('Direct microphone recording, decoding and video narration handoff are covered.');
 
   if (!html.includes('function wordTimings(') || !html.includes('function exportWordSubtitles(') || !html.includes('lineTimingWeight(')) fail('Estimated word timing and word-level subtitle export are missing.');
   if (!process.exitCode) pass('Estimated word timing and SRT/VTT word-level export are present.');
