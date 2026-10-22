@@ -1,12 +1,12 @@
 const $ = id => document.getElementById(id);
 const source = $("source"), audio = $("audio"), generate = $("generate");
-let sourceUrl = "", outputUrl = "";
+let sourceUrl = "", outputUrl = "", selectedAudio = null, neuralEngine = null, neuralEnginePromise = null;
 const store = { url: localStorage.getItem("zereos_avatar_worker_url") || "", token: localStorage.getItem("zereos_avatar_worker_token") || "" };
 $("workerUrl").value = store.url;
 $("workerToken").value = store.token;
 function message(el, text, kind="") { el.textContent = text; el.className = "status" + (kind ? " " + kind : ""); }
 function cleanUrl(url) { return (url || "").trim().replace(/\/+$/, ""); }
-function updateReady() { generate.disabled = !(source.files?.[0] && audio.files?.[0] && cleanUrl($("workerUrl").value)); }
+function updateReady() { generate.disabled = !(source.files?.[0] && selectedAudio && cleanUrl($("workerUrl").value)); }
 function previewSource(file) {
   if (sourceUrl) URL.revokeObjectURL(sourceUrl);
   sourceUrl = URL.createObjectURL(file);
@@ -50,13 +50,13 @@ async function checkWorker() {
 $("check").addEventListener("click", checkWorker);
 generate.addEventListener("click", async () => {
   const url = cleanUrl($("workerUrl").value);
-  if (!source.files?.[0] || !audio.files?.[0] || !url) return;
+  if (!source.files?.[0] || !selectedAudio || !url) return;
   const ok = await checkWorker(); if (!ok) return;
   generate.disabled = true; generate.textContent = "جارٍ توليد الفيديو…";
   message($("status"), "يعمل المحرك على الفيديو. لا تغلق الصفحة؛ قد تستغرق المعالجة عدة دقائق.");
   $("output").replaceChildren();
   const form = new FormData();
-  form.append("source", source.files[0]); form.append("audio", audio.files[0]); form.append("fps", $("fps").value);
+  form.append("source", source.files[0]); form.append("audio", selectedAudio, selectedAudio.name || "narration.wav"); form.append("fps", $("fps").value);
   try {
     const headers = store.token ? {"X-Worker-Token": store.token} : {};
     const response = await fetch(url + "/api/avatar/generate", {method:"POST", headers, body:form});
