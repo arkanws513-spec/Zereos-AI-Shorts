@@ -100,7 +100,7 @@ body{background:radial-gradient(ellipse at 12% 0%,#1c2b48 0,transparent 35%),rad
 <div class="panel"><div class="panelhead"><span id="avatarSelectedTitle">إعدادات الرجل العصري</span><label class="checkrow"><input id="avatarEnabled" type="checkbox"> تفعيل الأفاتار</label></div>
 <p class="note">وضع المقدم ثلاثي الأبعاد مستقل عن القوالب. يتم تحريك الوجه والفك داخل المشهد أثناء تشغيل التعليق الصوتي. يمكنك استخدام النموذج المجاني المدمج أو رفع نموذج GLB تملكه لكل شخصية.</p>
 <div class="fields">
-<div class="field"><label for="avatarModelFile">نموذج شخصية ثلاثي الأبعاد (اختياري)</label><input id="avatarModelFile" type="file" accept=".glb,model/gltf-binary"><div class="filehint" id="avatarImageStatus">يُحمَّل النموذج المجاني عند تفعيل الأفاتار لأول مرة؛ حجمه كبير وقد يحتاج اتصالًا سريعًا.</div></div>
+<div class="field"><label for="avatarModelFile">نموذج شخصية ثلاثي الأبعاد (اختياري)</label><input id="avatarModelFile" type="file" accept=".glb,model/gltf-binary"><input id="avatarImageFile" type="file" accept="image/*" hidden aria-hidden="true"><div class="filehint" id="avatarImageStatus">يُحمَّل النموذج المجاني عند تفعيل الأفاتار لأول مرة؛ حجمه كبير وقد يحتاج اتصالًا سريعًا.</div></div>
 <div class="two">
 <div class="field"><label for="avatarScale">حجم الشخصية <span id="avatarScaleValue">100%</span></label><input class="range" id="avatarScale" type="range" min="55" max="125" value="100" step="5"></div>
 <div class="field"><label for="avatarPositionY">الموضع الرأسي <span id="avatarPositionYValue">22%</span></label><input class="range" id="avatarPositionY" type="range" min="5" max="35" value="10" step="1"></div>
