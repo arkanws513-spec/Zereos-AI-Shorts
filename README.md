@@ -13,6 +13,8 @@ Live app: https://arkanws513-spec.github.io/Zereos-AI-Shorts/
 - Per-scene images, selected cinematic templates, text animation, frame style, glow, and caption style are saved with the project and restored when reopened.
 - Local Arabic TTS build pipeline using Nabra TTS and ONNX Runtime Web assets.
 - Audio import and local voice-library workflow.
+- Audio editor with a rendered narration waveform, seek position, adjustable start/end trim, and selected-range preview.
+- Optional local background-music file, looped under the video, with adjustable fade-in/fade-out; supported audio decoding depends on the browser.
 - Captions/subtitle export and scene timing tools; subtitle timing is an estimate based on scene duration and narration length, not word-level alignment.
 - Video export selects a browser-supported MP4 recording format first when available, then falls back to WebM. The actual format depends on the browser/device; verify the downloaded file before publishing.
 
