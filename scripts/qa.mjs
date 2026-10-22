@@ -151,8 +151,8 @@ if (html) {
     try {
       const parserSource = html.slice(parserStart, parserEnd);
       const parseTimedSubtitleText = new Function(parserSource + '; return parseTimedSubtitleText;')();
-      const srtCues = parseTimedSubtitleText('1\\n00:00:01,000 --> 00:00:02,500\\nمرحبا بالعالم');
-      const vttCues = parseTimedSubtitleText('WEBVTT\\n\\n00:00:03.000 --> 00:00:04.200\\nSecond caption');
+      const srtCues = parseTimedSubtitleText('1\n00:00:01,000 --> 00:00:02,500\nمرحبا بالعالم');
+      const vttCues = parseTimedSubtitleText('WEBVTT\n\n00:00:03.000 --> 00:00:04.200\nSecond caption');
       if (srtCues.length !== 1 || srtCues[0].start !== 1000 || srtCues[0].end !== 2500 || srtCues[0].text !== 'مرحبا بالعالم') {
         fail('SRT timestamp parsing regression: unexpected parsed cue.');
       } else if (vttCues.length !== 1 || vttCues[0].start !== 3000 || vttCues[0].end !== 4200 || vttCues[0].text !== 'Second caption') {
