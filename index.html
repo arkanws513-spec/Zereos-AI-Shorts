@@ -151,7 +151,7 @@ function exportProfileSettings(){const profile=$('exportProfile')?.value||'stand
 function texts(){return [$('scriptTitle').value.trim(),$('scriptBody1').value.trim(),$('scriptBody2').value.trim(),$('scriptCta').value.trim()]}
 function wordTimings(text,start,end){const words=String(text||'').trim().split(/\s+/u).filter(Boolean);if(!words.length)return [];const weights=words.map(word=>{let weight=Math.max(1,[...word].length);if(/[،,:؛;]$/u.test(word))weight+=2;if(/[.!؟?…]$/u.test(word))weight+=5;return weight});const sum=weights.reduce((a,b)=>a+b,0)||1;let cursor=start;return words.map((word,index)=>{const wordStart=cursor;cursor=index===words.length-1?end:cursor+(end-start)*weights[index]/sum;return {word,start:wordStart,end:cursor}})}
 function lineTimingWeight(line){const words=String(line||'').trim().split(/\s+/u).filter(Boolean);return words.reduce((sum,word)=>sum+Math.max(1,[...word].length)+(/[،,:؛;]$/u.test(word)?2:0)+(/[.!؟?…]$/u.test(word)?5:0),0)||1}
-let cachedTimelineKey='',cachedTimelineValue=null;
+let cachedTimelineKey='',cachedTimelineValue=null,cachedTimelineBuffer=null;
 function findQuietBoundary(targetMs,totalMs,channelData,sampleRate){
   const hopMs=20,windowMs=40,hop=Math.max(1,Math.round(sampleRate*hopMs/1000)),win=Math.max(hop,Math.round(sampleRate*windowMs/1000));
   const center=Math.round(targetMs/hopMs),radius=Math.max(1,Math.round(Math.min(1200,totalMs*.12)/hopMs));
@@ -171,7 +171,7 @@ function sceneTimeline(){
   const lines=texts(),fixed=Number($('sceneSeconds').value)*1000;
   if(!narrationBuffer||!Number.isFinite(narrationBuffer.duration)||narrationBuffer.duration<=0)return lines.map((_,i)=>({start:i*fixed,end:(i+1)*fixed}));
   const total=narrationBuffer.duration*1000,key=[lines.join('¦'),Math.round(total),narrationBuffer.sampleRate,narrationBuffer.length].join('|');
-  if(key===cachedTimelineKey&&cachedTimelineValue)return cachedTimelineValue;
+  if(narrationBuffer===cachedTimelineBuffer&&key===cachedTimelineKey&&cachedTimelineValue)return cachedTimelineValue;
   const weights=lines.map(line=>Math.max(1,lineTimingWeight(line))),sum=weights.reduce((a,b)=>a+b,0)||1;
   const boundaries=[0];let cursor=0;
   for(let i=0;i<weights.length-1;i++){
@@ -183,7 +183,7 @@ function sceneTimeline(){
     boundaries.push(Math.max(min,Math.min(max,snapped)));
   }
   boundaries.push(total);
-  cachedTimelineValue=weights.map((_,i)=>({start:boundaries[i],end:boundaries[i+1]}));cachedTimelineKey=key;
+  cachedTimelineValue=weights.map((_,i)=>({start:boundaries[i],end:boundaries[i+1]}));cachedTimelineKey=key;cachedTimelineBuffer=narrationBuffer;
   return cachedTimelineValue;
 }
 function updateTimelineUI(active=currentScene){const strip=$('sceneTimelineStrip');if(!strip)return;const timeline=sceneTimeline();strip.querySelectorAll('[data-timeline-scene]').forEach(button=>{const index=Number(button.dataset.timelineScene),item=timeline[index];if(!item)return;button.classList.toggle('active',index===active);button.setAttribute('aria-pressed',String(index===active));button.style.flexGrow=String(Math.max(1,item.end-item.start));button.textContent='مشهد '+(index+1)+' · '+Math.max(1,Math.round((item.end-item.start)/1000))+'ث';button.title='من '+formatTime(item.start/1000)+' إلى '+formatTime(item.end/1000)})}
