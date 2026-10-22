@@ -87,11 +87,20 @@ async def save_upload(upload: UploadFile, destination: Path, allowed: set[str], 
 
 
 def engine_readiness():
-    script = ENGINE_ROOT / "scripts" / "inference.py"
-    model = WEIGHTS_ROOT / "musetalkV15" / "unet.pth"
-    config = WEIGHTS_ROOT / "musetalkV15" / "musetalk.json"
-    whisper = WEIGHTS_ROOT / "whisper"
-    missing = [str(p) for p in (script, model, config, whisper) if not p.exists()]
+    required_paths = [
+        ENGINE_ROOT / "scripts" / "inference.py",
+        WEIGHTS_ROOT / "musetalkV15" / "unet.pth",
+        WEIGHTS_ROOT / "musetalkV15" / "musetalk.json",
+        WEIGHTS_ROOT / "whisper" / "config.json",
+        WEIGHTS_ROOT / "whisper" / "pytorch_model.bin",
+        WEIGHTS_ROOT / "sd-vae" / "config.json",
+        WEIGHTS_ROOT / "sd-vae" / "diffusion_pytorch_model.bin",
+        WEIGHTS_ROOT / "dwpose" / "dw-ll_ucoco_384.pth",
+        WEIGHTS_ROOT / "face-parse-bisent" / "79999_iter.pth",
+        WEIGHTS_ROOT / "face-parse-bisent" / "resnet18-5c106cde.pth",
+        WEIGHTS_ROOT / "syncnet" / "latentsync_syncnet.pt",
+    ]
+    missing = [str(p) for p in required_paths if not p.exists()]
     if shutil.which("ffmpeg") is None:
         missing.append("ffmpeg executable")
     return (not missing, "ready" if not missing else "Missing model/runtime files: " + ", ".join(missing))
@@ -137,12 +146,24 @@ async def generate(
         audio_path = await save_upload(audio, job_dir / "narration", ALLOWED_AUDIO, "الصوت")
         input_video = source_path
         if source_suffix in ALLOWED_IMAGE:
+            # A looped still image has no finite duration; probe the audio explicitly
+            # instead of relying on ffmpeg -shortest when the output has no audio stream.
+            probe = run_checked([
+                "ffprobe", "-v", "error", "-show_entries", "format=duration",
+                "-of", "default=noprint_wrappers=1:nokey=1", str(audio_path)
+            ], timeout=60)
+            try:
+                duration = float(probe.stdout.strip())
+            except (TypeError, ValueError) as exc:
+                raise HTTPException(400, "تعذر تحديد مدة ملف الصوت.") from exc
+            if duration <= 0 or duration > 600:
+                raise HTTPException(400, "مدة الصوت يجب أن تكون أكبر من صفر ولا تتجاوز 10 دقائق.")
             input_video = job_dir / "source_base.mp4"
             run_checked([
-                "ffmpeg", "-y", "-loop", "1", "-i", str(source_path), "-i", str(audio_path),
-                "-vf", "scale='min(1280,iw)':-2,pad=ceil(iw/2)*2:ceil(ih/2)*2",
-                "-r", str(fps), "-tune", "stillimage", "-c:v", "libx264",
-                "-pix_fmt", "yuv420p", "-an", "-shortest", str(input_video)
+                "ffmpeg", "-y", "-loop", "1", "-i", str(source_path),
+                "-vf", "scale=trunc(min(1280\\,iw)/2)*2:-2",
+                "-r", str(fps), "-t", str(duration), "-tune", "stillimage",
+                "-c:v", "libx264", "-pix_fmt", "yuv420p", "-an", str(input_video)
             ], timeout=180)
         config_path = job_dir / "inference.yaml"
         with config_path.open("w", encoding="utf-8") as handle:
