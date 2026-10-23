@@ -17,6 +17,9 @@ function readRequired(file) {
 }
 
 const html = readRequired('index.html');
+const appScript = readRequired('app.js');
+const appCss = readRequired('app.css');
+const source = html + '\n' + appScript;
 const storage = readRequired('storage.js');
 const ttsEngine = readRequired('tts-engine.js');
 const realAvatar = readRequired('real-avatar-studio.js');
@@ -33,6 +36,9 @@ if (html) {
 
   if (!/<script\b[^>]*src=["']\.\/storage\.js["']/i.test(html)) fail('index.html does not load ./storage.js.');
   else pass('Storage adapter is linked from the app shell.');
+  if (!/<script\b[^>]*src=["']\.\/app\.js["']/i.test(html)) fail('index.html does not load ./app.js.');
+  if (!/<link\b[^>]*href=["']\.\/app\.css["']/i.test(html)) fail('index.html does not load ./app.css.');
+  else if (!process.exitCode) pass('Main app logic and styles are separated into version-controlled files.');
 
   const visibleMarkup = html.replace(/<style\b[^>]*>[\s\S]*?<\/style\s*>/gi, '')
     .replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, '');
@@ -139,17 +145,17 @@ if (html) {
     'avatarMouthX', 'avatarMouthY', 'avatarMouthIntensity', 'avatarApplyBtn', 'avatarResetBtn'
   ];
   for (const id of requiredIds) {
-    if (!html.includes('id="' + id + '"') && !html.includes("id='" + id + "'")) {
+    if (!source.includes('id="' + id + '"') && !source.includes("id='" + id + "'")) {
       fail('Essential UI element is missing: #' + id);
     }
   }
   if (!process.exitCode) pass('Essential editor, voice, media and export controls are present.');
   for (const token of ['navigator.mediaDevices?.getUserMedia', 'new MediaRecorder(microphoneStream', 'ac.decodeAudioData(await blob.arrayBuffer())', 'voiceCategory:\'human\'', 'narrationBuffer=recordedVoiceBuffer', 'const activeProjectId=await window.ZereosStorage.local.activeProjectId()']) {
-    if (!html.includes(token)) fail('Direct microphone recording workflow is incomplete: missing ' + token);
+    if (!source.includes(token)) fail('Direct microphone recording workflow is incomplete: missing ' + token);
   }
   if (!process.exitCode) pass('Direct microphone recording, decoding and video narration handoff are covered.');
 
-  if (!html.includes('function wordTimings(') || !html.includes('function exportWordSubtitles(') || !html.includes('lineTimingWeight(')) fail('Estimated word timing and word-level subtitle export are missing.');
+  if (!source.includes('function wordTimings(') || !source.includes('function exportWordSubtitles(') || !source.includes('lineTimingWeight(')) fail('Estimated word timing and word-level subtitle export are missing.');
   for (const feature of [
     'function drawNarrationWaveform()',
     'function updateNarrationEditor()',
@@ -163,11 +169,11 @@ if (html) {
     'activeTimedCue=timedSubtitlesEnabled?timedSubtitleCues.find(',
     'timedSubtitleCues.map(cue=>({line:cue.text'
 ]) {
-    if (!html.includes(feature)) fail('Audio editing/export workflow is incomplete: missing ' + feature);
+    if (!source.includes(feature)) fail('Audio editing/export workflow is incomplete: missing ' + feature);
   }
   if (!process.exitCode) pass('Waveform, trim range, preview seek, local music file and fade controls are wired.');
-  const parserStart = html.indexOf('function parseTimedSubtitleText(');
-  const parserEnd = html.indexOf('function connectTimedSubtitles()', parserStart);
+  const parserStart = source.indexOf('function parseTimedSubtitleText(');
+  const parserEnd = source.indexOf('function connectTimedSubtitles()', parserStart);
   if (parserStart < 0 || parserEnd < 0) {
     fail('Timestamped subtitle parser could not be isolated for behavior tests.');
   } else {
@@ -188,34 +194,34 @@ if (html) {
 
   if (!process.exitCode) pass('Estimated word timing and SRT/VTT word-level export are present.');
   for (const feature of ['function drawAvatar(elapsed)', 'function avatarAmplitude(elapsed)', 'function connectAvatarStudio()', "data-avatar-preset=\"animeWoman\"", "data-avatar-preset=\"hologram\""]) {
-    if (!html.includes(feature)) fail('Talking-avatar studio is incomplete: missing ' + feature);
+    if (!source.includes(feature)) fail('Talking-avatar studio is incomplete: missing ' + feature);
   }
   if (!process.exitCode) pass('Six-profile talking-avatar controls and renderer are present.');
 
-  const drawTextStart = html.indexOf('function drawTextBlock(');
-  const drawTextEnd = html.indexOf('let importedSceneImage=', drawTextStart);
+  const drawTextStart = source.indexOf('function drawTextBlock(');
+  const drawTextEnd = source.indexOf('let importedSceneImage=', drawTextStart);
   const drawTextSource = drawTextStart >= 0 && drawTextEnd > drawTextStart ? html.slice(drawTextStart, drawTextEnd) : '';
   const templateRoute = drawTextSource.indexOf("if(['royal','nebula','cyber','ocean','ivory'].includes(activeTemplate))");
   const animationMutation = drawTextSource.indexOf("if(anim==='wordByWord'");
-  if (!html.includes('function selectTemplateCaptionPage(') || !html.includes('selectTemplateCaptionPage(pages,progress,anim)')) {
+  if (!source.includes('function selectTemplateCaptionPage(') || !source.includes('selectTemplateCaptionPage(pages,progress,anim)')) {
     fail('Template-specific caption pagination and page-local text animation are missing.');
   } else if (templateRoute < 0 || animationMutation < 0 || templateRoute > animationMutation) {
     fail('Template captions must paginate the complete scene text before applying page-local text animation.');
   } else if (!process.exitCode) pass('Template pagination preserves full text and animates each caption page independently.');
-  if (html.includes('function fitTemplateLines(')) fail('Unused fitTemplateLines helper should be removed to avoid duplicate layout paths.');
+  if (source.includes('function fitTemplateLines(')) fail('Unused fitTemplateLines helper should be removed to avoid duplicate layout paths.');
 
-  if (/speechSynthesis|SpeechSynthesisUtterance|deviceVoicePanel|readSceneBtn|readAllBtn|stopVoiceBtn/.test(html)) {
+  if (/speechSynthesis|SpeechSynthesisUtterance|deviceVoicePanel|readSceneBtn|readAllBtn|stopVoiceBtn/.test(source)) {
     fail('Obsolete device-voice playback UI or handlers must not return; use the generated/local audio library instead.');
   } else if (!process.exitCode) pass('Obsolete device-voice playback and its unused handlers are removed.');
 
   const exportGuidance = html.includes('صيغة MP4') && html.includes('يستخدم WebM');
   if (!exportGuidance) fail('Export guidance should explain that MP4 is attempted when supported and WebM is the fallback.');
-  const mp4Candidate = html.indexOf("'video/mp4;codecs=avc1.42E01E,mp4a.40.2'");
-  const webmFallback = html.indexOf("'video/webm;codecs=vp9,opus'");
+  const mp4Candidate = source.indexOf("'video/mp4;codecs=avc1.42E01E,mp4a.40.2'");
+  const webmFallback = source.indexOf("'video/webm;codecs=vp9,opus'");
   if (mp4Candidate < 0 || webmFallback < 0 || mp4Candidate > webmFallback) {
     fail('Exporter should try supported MP4 candidates before WebM fallback candidates.');
   }
-  if (!html.includes("const isMp4=mime.toLowerCase().includes('mp4'),extension=isMp4?'mp4':'webm'")) {
+  if (!source.includes("const isMp4=mime.toLowerCase().includes('mp4'),extension=isMp4?'mp4':'webm'")) {
     fail('Export file extension should match the recorder MIME type.');
   }
 
@@ -265,7 +271,7 @@ if (html) {
     'Object.values(record.sceneImageMediaIds||{})',
     "window.addEventListener('zereos-template-change',scheduleAutoSave)"
   ]) {
-    if (!html.includes(feature)) fail('Cinematic studio regression: missing expected feature or persistence hook: ' + feature);
+    if (!source.includes(feature)) fail('Cinematic studio regression: missing expected feature or persistence hook: ' + feature);
   }
   if (!serviceWorker.includes("const CACHE_NAME = 'zereos-shell-v2'") ||
       !serviceWorker.includes("fetch(request, { cache: 'no-cache' })")) {
