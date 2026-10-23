@@ -630,7 +630,9 @@ function exportWordSubtitles(format='srt'){const lines=texts(),timeline=sceneTim
 function switchTab(name){document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));['script','style','audio','export'].forEach(n=>{const el=$('tab-'+n);if(el)el.classList.toggle('hidden',n!==name)});const titles={script:['المحتوى والمشاهد','اكتب القصة ووزّعها على أربعة مشاهد.'],style:['تصميم المشاهد','اضبط الخلفيات والخط والحركة والهوية البصرية.'],audio:['الصوت والتعليق','اختر الموسيقى وسجّل أو أضف التعليق الصوتي.'],export:['تصدير الفيديو والمشروع','أنشئ الفيديو واحفظ مشروعك أو صدّره.']};if(titles[name]){$('workspaceTitle').textContent=titles[name][0];$('workspaceDescription').textContent=titles[name][1]}document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.page===name));}
 function showToolPage(name){const layout=document.querySelector('main.layout'),editor=$('editorWorkspace'),preview=document.querySelector('.preview'),media=$('mediaPanel'),projects=$('projectsPanel'),standalone=['voiceDesignPage','neuralVoicePage','voiceLibraryPage'],customPages=['templatesPage','sceneStudioPage','avatarPage'],solo=standalone.includes(name);layout.classList.toggle('workspace-library',name==='media'||name==='projects'||solo);if(preview)preview.classList.toggle('hidden',name==='media'||name==='projects'||solo);if(media)media.classList.toggle('hidden',name!=='media');if(projects)projects.classList.toggle('hidden',name!=='projects');editor.classList.toggle('hidden',name==='media'||name==='projects'||solo||customPages.includes(name));customPages.forEach(id=>{const p=$(id);if(p){p.hidden=id!==name;p.classList.toggle('hidden',id!==name)}});standalone.forEach(id=>{const p=$(id);if(p){p.hidden=id!==name;p.classList.toggle('hidden',id!==name)}});document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.page===name));if(name==='media'){$('mediaBtn')?.click();media?.classList.remove('hidden')}if(name==='projects'){$('projectsBtn')?.click();projects?.classList.remove('hidden')}if(['script','style','audio','export'].includes(name)){if(media)media.classList.add('hidden');if(projects)projects.classList.add('hidden');switchTab(name)}if(name==='voiceLibraryPage')window.ZereosRefreshVoiceLibrary?.();if(name==='templatesPage')setVideoTemplate(activeTemplate);if(name==='sceneStudioPage')updateSceneTextPreviews();if(name==='avatarPage')connectAvatarStudio();if(name==='export'){setTimeout(()=>$('tab-export')?.scrollIntoView({behavior:'smooth',block:'start'}),30)}}
 document.querySelectorAll('.nav-item').forEach(button=>button.addEventListener('click',()=>showToolPage(button.dataset.page)));
-$('startAppBtn').addEventListener('click',()=>{$('appCover').classList.add('is-gone');try{sessionStorage.setItem('zereos-cover-seen','1')}catch(_){}});
+const leaveCover=()=>{$('appCover')?.classList.add('is-gone');try{sessionStorage.setItem('zereos-cover-seen','1')}catch(_){}};
+$('startAppBtn').addEventListener('click',leaveCover);
+document.querySelector('.skip-link')?.addEventListener('click',leaveCover);
 try{if(sessionStorage.getItem('zereos-cover-seen')==='1')$('appCover').classList.add('is-gone')}catch(_){}
 
 const voiceCharacterPresets={
@@ -1341,7 +1343,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
  search.addEventListener('input',filterNav);
  search.addEventListener('keydown',event=>{
   if(event.key==='Enter'){
-   const first=buttons.find(button=>!button.hidden);
+   const first=buttons.find(button=>!button.hidden)||navItems.find(item=>item.tagName==='A'&&!item.hidden);
    if(first){first.click();search.value='';filterNav();search.blur()}
   }
   if(event.key==='Escape'){search.value='';filterNav();search.blur()}
