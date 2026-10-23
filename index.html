@@ -1199,7 +1199,7 @@ async function getNeuralEngine(){
    }catch(error){
     throw new Error('تعذر تحميل محرك الصوت من CDN. تحقق من الاتصال بالإنترنت ثم أعد المحاولة. التفاصيل: '+(error?.message||String(error)));
    }
-   if(!NabraTTS||typeof NabraTTS.load!=='function')throw new Error('لم يتم العثور على NabraTTS.load في حزمة الصوت المحلية.');
+   if(!NabraTTS||typeof NabraTTS.load!=='function')throw new Error('لم يتم العثور على NabraTTS.load في الحزمة المحمّلة من CDN.');
    const engine=await NabraTTS.load({dtype:'fp16',device:'auto',cache:true,onProgress:(progress={})=>{
     const file=progress.file||'مكونات الصوت',loaded=Number(progress.loaded)||0,total=Number(progress.total)||0;
     if(total>0)setTtsStatus('جارٍ تنزيل مكونات الصوت: '+file+' · '+Math.min(100,Math.round(loaded/total*100))+'%');
