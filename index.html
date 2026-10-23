@@ -1188,18 +1188,8 @@ async function getNeuralEngine(){
  if(!neuralEnginePromise){
   neuralEnginePromise=(async()=>{
    setTtsStatus('جارٍ تحميل محرك الصوت العربي… قد يستغرق أول تشغيل بعض الوقت.');
-   let NabraTTS;
-   try{
-    // Load the locally bundled, open-source Nabra TTS engine. This keeps the
-    // browser runtime under this app's version control and supports offline reuse.
-    const mod=await import('./vendor/nabra-tts.bundle.js?v=local-build-2');
-    if(mod&&typeof mod.NabraTTS?.load==='function')NabraTTS=mod.NabraTTS;
-    else throw new Error('الملف المحلي لا يحتوي على NabraTTS.load');
-   }catch(error){
-    throw new Error('تعذر تحميل محرك الصوت المحلي. تحقق من ملفات المحرك واتصالك بالإنترنت عند أول تشغيل. التفاصيل: '+(error?.message||String(error)));
-   }
-   if(!NabraTTS||typeof NabraTTS.load!=='function')throw new Error('لم يتم العثور على NabraTTS.load في حزمة الصوت المحلية.');
-   const engine=await NabraTTS.load({dtype:'fp16',device:'auto',cache:true,wasmPaths:new URL('./vendor/ort/',import.meta.url).href,onProgress:(progress={})=>{
+   const {loadNabraTTS}=await import('./tts-engine.js?v=1');
+   const engine=await loadNabraTTS({onProgress:(progress={})=>{
     const file=progress.file||'مكونات الصوت',loaded=Number(progress.loaded)||0,total=Number(progress.total)||0;
     if(total>0)setTtsStatus('جارٍ تنزيل مكونات الصوت: '+file+' · '+Math.min(100,Math.round(loaded/total*100))+'%');
     else setTtsStatus('جارٍ تجهيز مكونات الصوت: '+file);
