@@ -23,6 +23,7 @@ const source = html + '\n' + appScript + '\n' + appCss;
 const storage = readRequired('storage.js');
 const ttsEngine = readRequired('tts-engine.js');
 const realAvatar = readRequired('real-avatar-studio.js');
+const avatarStudio = readRequired('avatar-studio.js');
 const buildWorkflow = readRequired('.github/workflows/build-tts.yml');
 const manifest = readRequired('manifest.webmanifest');
 const serviceWorker = readRequired('service-worker.js');
@@ -83,13 +84,13 @@ if (storage) {
 }
 
 if (buildWorkflow) {
-  for (const token of ['Oddadmix/nabra-tts', 'vendor/nabra-tts.bundle.js', 'vendor/ort']) {
+  for (const token of ['Oddadmix/nabra-tts', '16b5281ce61993df3526740990cf845a3f3036f4', 'vendor/nabra-tts.bundle.js', 'ort-wasm-simd-threaded.jsep.mjs', 'ort-wasm-simd-threaded.jsep.wasm']) {
     if (!buildWorkflow.includes(token)) fail('Local Arabic TTS workflow is missing expected build step: ' + token);
   }
   if (!process.exitCode) pass('Local Arabic TTS build workflow contract checks passed.');
 }
 
-if (ttsEngine && realAvatar && html) {
+if (ttsEngine && realAvatar && avatarStudio && html) {
   if (!html.includes("import('./tts-engine.js?v=1')") || !realAvatar.includes('import("./tts-engine.js?v=1")')) {
     fail('The main editor and real-avatar studio must use the shared local TTS loader.');
   }
@@ -105,7 +106,12 @@ if (ttsEngine && realAvatar && html) {
   if (html.includes('id="saveFromPageBtn"') || html.includes('id="saveProjectBtn"') || !html.includes("id='workspaceQuickSave'")) {
     fail('Project saving should use one canonical visible save action.');
   }
-  if (!process.exitCode) pass('Shared TTS runtime, grouped navigation, keyboard skip link and single-save UX checks passed.');
+  if (!avatarStudio.includes("import('https://esm.sh/@met4citizen/talkinghead@1.8.0?bundle')") ||
+      avatarStudio.includes("import { TalkingHead } from") ||
+      !avatarStudio.includes('await loadTalkingHead()')) {
+    fail('The optional 3D avatar dependency should load lazily only when the avatar feature is used.');
+  }
+  if (!process.exitCode) pass('Shared TTS runtime, lazy avatar dependency, grouped navigation, skip link and single-save UX checks passed.');
 }
 
 if (manifest) {
@@ -273,7 +279,8 @@ if (html) {
   ]) {
     if (!source.includes(feature)) fail('Cinematic studio regression: missing expected feature or persistence hook: ' + feature);
   }
-  if (!serviceWorker.includes("const CACHE_NAME = 'zereos-shell-v3'") ||
+  if (!serviceWorker.includes("const CACHE_NAME = 'zereos-shell-v4'") ||
+      !serviceWorker.includes("new URL('avatar-studio.js', BASE_URL).href") ||
       !serviceWorker.includes("new URL('app.js', BASE_URL).href") ||
       !serviceWorker.includes("new URL('app.css', BASE_URL).href") ||
       !serviceWorker.includes("fetch(request, { cache: 'no-cache' })")) {
