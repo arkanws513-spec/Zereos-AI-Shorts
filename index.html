@@ -1259,4 +1259,138 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') {
       .catch(error => console.warn('تعذر تفعيل وضع التطبيق المثبّت:', error));
   });
 }
-</script><script type="module" src="./avatar-studio.js"></script></body></html>
+</script><script type="module" src="./avatar-studio.js"></script>
+<style id="zereos-workspace-refresh">
+/* Unified workspace polish: navigation, hierarchy, touch targets and focus */
+:root{--z-focus:#c9b6ff;--z-panel-glass:rgba(17,24,39,.94)}
+html{scroll-behavior:smooth;scroll-padding-top:96px}
+body{min-height:100vh}
+button,input,select,textarea{transition:border-color .18s ease,box-shadow .18s ease,background-color .18s ease}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:2px solid var(--z-focus);outline-offset:3px}
+.top{gap:14px}
+.top-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.workspace-quick-save{display:inline-flex;align-items:center;justify-content:center;gap:7px}
+.workspace-local-status{display:inline-flex;align-items:center;gap:7px;color:#b8c6dd;font-size:11px;padding:8px 10px;border:1px solid #2b3850;border-radius:11px;background:#0d1421;white-space:nowrap}
+.workspace-local-status:before{content:"";width:7px;height:7px;border-radius:50%;background:#66d6ad;box-shadow:0 0 12px #66d6ad77}
+.nav-search-wrap{display:grid;gap:6px;padding:0 0 10px;border-bottom:1px solid #28344b;margin-bottom:4px}
+.nav-search-label{font-size:11px;color:#9daac0;padding:0 3px}
+.nav-page-search{width:100%;min-width:0;background:#080d17;border:1px solid #303c54;border-radius:11px;color:#f1f4fb;padding:10px 11px;font-size:13px;direction:rtl}
+.nav-page-search::placeholder{color:#8190a7}
+.nav-search-empty{font-size:12px;color:#c4b4df;line-height:1.7;padding:9px;border:1px dashed #4b5273;border-radius:10px}
+.nav-item[hidden]{display:none!important}
+.nav-item{min-width:0}
+.nav-item>span:last-child{overflow-wrap:anywhere}
+.nav-item.active{box-shadow:inset 3px 0 0 #d8c8ff,0 5px 18px #0002}
+.z-page,.tool-page,.preview,.panel{scroll-margin-top:94px}
+.panelhead{line-height:1.5}
+.btn:disabled{cursor:not-allowed;opacity:.55;filter:saturate(.65)}
+#workspaceToast{position:fixed;z-index:1100;bottom:18px;left:18px;max-width:min(420px,calc(100vw - 36px));padding:12px 15px;border:1px solid #4c5b7c;border-radius:13px;background:#111a2a;color:#edf1fa;box-shadow:0 12px 36px #0008;font-size:13px;line-height:1.7;opacity:0;transform:translateY(8px);pointer-events:none;transition:opacity .2s,transform .2s}
+#workspaceToast.visible{opacity:1;transform:translateY(0)}
+@media(max-width:850px){.top{align-items:flex-start}.top-actions{justify-content:flex-end}.workspace-local-status{display:none}.nav-search-wrap{grid-column:1/-1}.nav-page-search{padding:9px}.nav-item{min-width:0}.nav-item .nav-icon{width:25px;height:25px}.top-actions .btn{font-size:12px}}
+@media(max-width:440px){.top{gap:8px}.top-actions{gap:6px}.top-actions .btn{padding:8px 9px}.brand{gap:8px}.brand .logo{width:36px;height:36px}.brand h1{font-size:19px}.brand p{max-width:155px;line-height:1.5}.nav-item{padding:8px 7px}.nav-item>span:last-child{font-size:11px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
+
+<script id="zereos-workspace-coordinator">
+(function(){
+ 'use strict';
+ const $=id=>document.getElementById(id);
+ const nav=$('toolNav');
+ if(!nav)return;
+ const buttons=Array.from(nav.querySelectorAll('.nav-item[data-page]'));
+ const pageNames={
+  script:'المحتوى والمشاهد',templatesPage:'قوالب الفيديو',sceneStudioPage:'صناعة المشاهد',
+  style:'التصميم',audio:'الصوت والتعليق',voiceDesignPage:'استوديو الأصوات',
+  neuralVoicePage:'المحرك العصبي',voiceLibraryPage:'مكتبة الأصوات',
+  media:'مكتبة الوسائط',projects:'المشاريع',avatarPage:'الأفاتار المتحدث',export:'التصدير'
+ };
+ const searchWrap=document.createElement('div');
+ searchWrap.className='nav-search-wrap';
+ searchWrap.innerHTML='<label class="nav-search-label" for="navPageSearch">بحث سريع عن أداة</label><input id="navPageSearch" class="nav-page-search" type="search" placeholder="اكتب: صوت، مشاهد، تصدير…" autocomplete="off" aria-label="ابحث داخل أدوات الاستوديو"><div id="navSearchEmpty" class="nav-search-empty" hidden>لا توجد أداة بهذا الاسم. جرّب كلمة أخرى.</div>';
+ nav.insertBefore(searchWrap,buttons[0]||null);
+ const search=$('navPageSearch'),empty=$('navSearchEmpty');
+ function filterNav(){
+  const q=(search.value||'').trim().toLocaleLowerCase('ar');
+  let shown=0;
+  buttons.forEach(button=>{
+   const label=(button.innerText+' '+(pageNames[button.dataset.page]||'')).toLocaleLowerCase('ar');
+   const match=!q||label.includes(q);
+   button.hidden=!match;
+   if(match)shown++;
+  });
+  empty.hidden=shown!==0;
+ }
+ search.addEventListener('input',filterNav);
+ search.addEventListener('keydown',event=>{
+  if(event.key==='Enter'){
+   const first=buttons.find(button=>!button.hidden);
+   if(first){first.click();search.value='';filterNav();search.blur()}
+  }
+  if(event.key==='Escape'){search.value='';filterNav();search.blur()}
+ });
+ document.addEventListener('keydown',event=>{
+  if(event.key==='/'&&!event.ctrlKey&&!event.metaKey&&!event.altKey){
+   const tag=event.target&&event.target.tagName;
+   if(tag!=='INPUT'&&tag!=='TEXTAREA'&&tag!=='SELECT'&&!event.target.isContentEditable){
+    event.preventDefault();search.focus();
+   }
+  }
+ });
+ // Make the current workspace explicit and keep navigation coherent across refreshes.
+ const heading=document.createElement('div');
+ heading.id='workspaceRouteStatus';
+ heading.className='workspace-local-status';
+ heading.setAttribute('aria-live','polite');
+ heading.textContent='المساحة الحالية: المحتوى والمشاهد';
+ const top=document.querySelector('.top');
+ const random=$('randomBtn');
+ const actions=document.createElement('div');actions.className='top-actions';
+ if(random&&top){
+  random.parentNode.insertBefore(actions,random);
+  actions.appendChild(random);
+  const save=document.createElement('button');
+  save.type='button';save.className='btn workspace-quick-save';save.id='workspaceQuickSave';
+  save.textContent='▣ حفظ سريع';
+  save.title='حفظ المشروع الحالي على هذا الجهاز';
+  save.addEventListener('click',()=>{
+   const target=$('saveProjectBtn');
+   if(target){target.click();showToast('تم إرسال طلب حفظ المشروع الحالي. راجع حالة الحفظ في مساحة المشاريع.')}
+   else showToast('زر الحفظ غير متاح حاليًا. افتح صفحة المشاريع ثم أعد المحاولة.');
+  });
+  actions.appendChild(save);
+  actions.appendChild(heading);
+ }
+ function showToast(message){
+  let toast=$('workspaceToast');
+  if(!toast){toast=document.createElement('div');toast.id='workspaceToast';toast.setAttribute('role','status');toast.setAttribute('aria-live','polite');document.body.appendChild(toast)}
+  toast.textContent=message;toast.classList.add('visible');
+  if(toast._hide)clearTimeout(toast._hide);
+  toast._hide=setTimeout(()=>toast.classList.remove('visible'),3200);
+ }
+ function updateRoute(){
+  const active=nav.querySelector('.nav-item.active');
+  const name=active?(pageNames[active.dataset.page]||active.innerText.trim()):'المحتوى والمشاهد';
+  heading.textContent='المساحة الحالية: '+name;
+  try{sessionStorage.setItem('zereos-active-page',active?.dataset.page||'script')}catch(_){}
+ }
+ buttons.forEach(button=>button.addEventListener('click',()=>{updateRoute();if(search.value){search.value='';filterNav()}}));
+ // Wait for the existing app shell and storage modules to initialize before restoring a route.
+ window.addEventListener('load',()=>{
+  let saved='script';
+  try{saved=sessionStorage.getItem('zereos-active-page')||'script'}catch(_){}
+  if(buttons.some(button=>button.dataset.page===saved)){
+   const target=buttons.find(button=>button.dataset.page===saved);
+   if(target&&typeof window.showToolPage==='function')window.showToolPage(saved);
+   else target?.click();
+  }
+  updateRoute();
+ });
+ const status=$('saveState');
+ if(status&&typeof MutationObserver!=='undefined'){
+  new MutationObserver(()=>{const message=status.textContent.trim();if(message)heading.title=message}).observe(status,{childList:true,subtree:true,characterData:true});
+ }
+ // Keep navigation controls usable on mobile and after dynamic page changes.
+ filterNav();
+})();
+</script>
+</body></html>
