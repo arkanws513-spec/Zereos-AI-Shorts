@@ -1,11 +1,29 @@
 const $ = id => document.getElementById(id);
 const source = $("source"), audio = $("audio"), generate = $("generate");
-let sourceUrl = "", outputUrl = "", selectedAudio = null, neuralEngine = null, neuralEnginePromise = null;
-const store = { url: localStorage.getItem("zereos_avatar_worker_url") || "", token: "" };
+let sourceUrl = "", outputUrl = "", audioPreviewUrl = "", selectedAudio = null, neuralEngine = null, neuralEnginePromise = null;
+const MAX_UPLOAD_BYTES = 200 * 1024 * 1024;
+function readWorkerUrl() { try { return localStorage.getItem("zereos_avatar_worker_url") || ""; } catch { return ""; } }
+function saveWorkerUrl(url) { try { if (url) localStorage.setItem("zereos_avatar_worker_url", url); else localStorage.removeItem("zereos_avatar_worker_url"); } catch {} }
+const store = { url: readWorkerUrl(), token: "" };
 $("workerUrl").value = store.url;
 $("workerToken").value = store.token;
 function message(el, text, kind="") { el.textContent = text; el.className = "status" + (kind ? " " + kind : ""); }
-function cleanUrl(url) { return (url || "").trim().replace(/\/+$/, ""); }
+function cleanUrl(value) {
+  try {
+    const url = new URL((value || "").trim());
+    const loopback = ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname);
+    if (!["https:", "http:"].includes(url.protocol) || url.username || url.password || url.search || url.hash) return "";
+    if (url.protocol !== "https:" && !loopback) return "";
+    return url.origin + url.pathname.replace(/\/+$/, "");
+  } catch { return ""; }
+}
+function setAudioPreview(blob) {
+  if (audioPreviewUrl) URL.revokeObjectURL(audioPreviewUrl);
+  audioPreviewUrl = URL.createObjectURL(blob);
+  const player = $("audioPreview");
+  player.src = audioPreviewUrl;
+  player.style.display = "block";
+}
 function updateReady() { generate.disabled = !(source.files?.[0] && selectedAudio && cleanUrl($("workerUrl").value) && store.token); }
 function previewSource(file) {
   if (sourceUrl) URL.revokeObjectURL(sourceUrl);
@@ -18,13 +36,30 @@ function previewSource(file) {
   box.appendChild(el);
 }
 source.addEventListener("change", () => {
-  const file = source.files?.[0]; $("sourceName").textContent = file ? file.name + " • " + (file.size / 1048576).toFixed(1) + " MB" : "";
+  const file = source.files?.[0];
+  if (file && file.size > MAX_UPLOAD_BYTES) {
+    source.value = "";
+    $("sourceName").textContent = "";
+    message($("status"), "حجم الصورة أو الفيديو يتجاوز الحد 200 MB.", "bad");
+    updateReady();
+    return;
+  }
+  $("sourceName").textContent = file ? file.name + " • " + (file.size / 1048576).toFixed(1) + " MB" : "";
   if (file) previewSource(file); updateReady();
 });
 audio.addEventListener("change", () => {
-  const file = audio.files?.[0]; selectedAudio = file || null;
+  const file = audio.files?.[0];
+  if (file && file.size > MAX_UPLOAD_BYTES) {
+    audio.value = "";
+    selectedAudio = null;
+    $("audioName").textContent = "";
+    message($("status"), "حجم ملف الصوت يتجاوز الحد 200 MB.", "bad");
+    updateReady();
+    return;
+  }
+  selectedAudio = file || null;
   $("audioName").textContent = file ? file.name + " • " + (file.size / 1048576).toFixed(1) + " MB" : "";
-  if (file) { const player = $("audioPreview"); player.src = URL.createObjectURL(file); player.style.display = "block"; }
+  if (file) setAudioPreview(file);
   updateReady();
 });
 async function getLocalTts() {
@@ -56,14 +91,14 @@ $("makeAudio").addEventListener("click", async () => {
     if (!blob || !blob.size) throw new Error("لم ينتج النموذج ملف صوت صالحًا.");
     selectedAudio = new File([blob], "zereos-narration.wav", {type:"audio/wav"});
     $("audioName").textContent = "صوت مولّد محليًا • " + (blob.size / 1048576).toFixed(2) + " MB";
-    const player = $("audioPreview"); player.src = URL.createObjectURL(blob); player.style.display = "block";
+    setAudioPreview(blob);
     $("ttsStatus").textContent = "تم توليد الصوت محليًا. استمع إليه ثم أنشئ فيديو الأفاتار.";
     updateReady();
   } catch (error) {
     $("ttsStatus").textContent = "فشل توليد الصوت: " + (error.message || String(error));
   } finally { button.disabled = false; }
 });
-$("workerUrl").addEventListener("change", () => { store.url = cleanUrl($("workerUrl").value); localStorage.setItem("zereos_avatar_worker_url", store.url); updateReady(); });
+$("workerUrl").addEventListener("change", () => { store.url = cleanUrl($("workerUrl").value); $("workerUrl").value = store.url; saveWorkerUrl(store.url); updateReady(); });
 $("workerToken").addEventListener("input", () => { store.token = $("workerToken").value.trim(); updateReady(); });
 async function checkWorker() {
   const url = cleanUrl($("workerUrl").value);
@@ -114,6 +149,9 @@ generate.addEventListener("click", async () => {
   } catch (error) {
     message($("status"), "فشل التوليد ولم يتم إنشاء فيديو: " + error.message, "bad");
   } finally { generate.textContent = "إنشاء فيديو MP4 بالمحرك الحقيقي"; updateReady(); }
+});
+window.addEventListener("pagehide", () => {
+  for (const url of [sourceUrl, outputUrl, audioPreviewUrl]) if (url) URL.revokeObjectURL(url);
 });
 updateReady();
 if (store.url) checkWorker();
