@@ -273,7 +273,9 @@ if (html) {
   ]) {
     if (!source.includes(feature)) fail('Cinematic studio regression: missing expected feature or persistence hook: ' + feature);
   }
-  if (!serviceWorker.includes("const CACHE_NAME = 'zereos-shell-v2'") ||
+  if (!serviceWorker.includes("const CACHE_NAME = 'zereos-shell-v3'") ||
+      !serviceWorker.includes("new URL('app.js', BASE_URL).href") ||
+      !serviceWorker.includes("new URL('app.css', BASE_URL).href") ||
       !serviceWorker.includes("fetch(request, { cache: 'no-cache' })")) {
     fail('Service worker must refresh app-shell assets from the network before using cached copies.');
   }
