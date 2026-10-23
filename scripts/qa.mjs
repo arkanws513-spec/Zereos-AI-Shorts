@@ -18,9 +18,11 @@ function readRequired(file) {
 
 const html = readRequired('index.html');
 const appScript = readRequired('app.js');
+const audioWorkflows = readRequired('audio-workflows.js');
+const projectLibrary = readRequired('project-library.js');
 const sceneRenderer = readRequired('scene-renderer.js');
 const appCss = readRequired('app.css');
-const source = html + '\n' + sceneRenderer + '\n' + appScript + '\n' + appCss;
+const source = html + '\n' + sceneRenderer + '\n' + appScript + '\n' + audioWorkflows + '\n' + projectLibrary + '\n' + appCss;
 const storage = readRequired('storage.js');
 const ttsEngine = readRequired('tts-engine.js');
 const realAvatar = readRequired('real-avatar-studio.js');
@@ -179,13 +181,13 @@ if (html) {
     if (!source.includes(feature)) fail('Audio editing/export workflow is incomplete: missing ' + feature);
   }
   if (!process.exitCode) pass('Waveform, trim range, preview seek, local music file and fade controls are wired.');
-  const parserStart = appScript.indexOf('function parseTimedSubtitleText(');
-  const parserEnd = appScript.indexOf('function connectTimedSubtitles()', parserStart);
+  const parserStart = audioWorkflows.indexOf('function parseTimedSubtitleText(');
+  const parserEnd = audioWorkflows.indexOf('function connectTimedSubtitles()', parserStart);
   if (parserStart < 0 || parserEnd < 0) {
     fail('Timestamped subtitle parser could not be isolated for behavior tests.');
   } else {
     try {
-      const parserSource = appScript.slice(parserStart, parserEnd);
+      const parserSource = audioWorkflows.slice(parserStart, parserEnd);
       const parseTimedSubtitleText = new Function(parserSource + '; return parseTimedSubtitleText;')();
       const srtCues = parseTimedSubtitleText('1\n00:00:01,000 --> 00:00:02,500\nمرحبا بالعالم');
       const vttCues = parseTimedSubtitleText('WEBVTT\n\n00:00:03.000 --> 00:00:04.200\nSecond caption');
@@ -280,9 +282,11 @@ if (html) {
   ]) {
     if (!source.includes(feature)) fail('Cinematic studio regression: missing expected feature or persistence hook: ' + feature);
   }
-  if (!serviceWorker.includes("const CACHE_NAME = 'zereos-shell-v5'") ||
+  if (!serviceWorker.includes("const CACHE_NAME = 'zereos-shell-v6'") ||
       !serviceWorker.includes("new URL('avatar-studio.js', BASE_URL).href") ||
       !serviceWorker.includes("new URL('app.js', BASE_URL).href") ||
+      !serviceWorker.includes("new URL('audio-workflows.js', BASE_URL).href") ||
+      !serviceWorker.includes("new URL('project-library.js', BASE_URL).href") ||
       !serviceWorker.includes("new URL('app.css', BASE_URL).href") ||
       !serviceWorker.includes("fetch(request, { cache: 'no-cache' })")) {
     fail('Service worker must refresh app-shell assets from the network before using cached copies.');
