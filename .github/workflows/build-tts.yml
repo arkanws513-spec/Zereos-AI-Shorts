@@ -33,7 +33,11 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p .build
-          git clone --depth 1 https://github.com/Oddadmix/nabra-tts.git .build/nabra-tts
+          git init .build/nabra-tts
+          git -C .build/nabra-tts remote add origin https://github.com/Oddadmix/nabra-tts.git
+          git -C .build/nabra-tts fetch --depth 1 origin 16b5281ce61993df3526740990cf845a3f3036f4
+          git -C .build/nabra-tts checkout --detach FETCH_HEAD
+          test "$(git -C .build/nabra-tts rev-parse HEAD)" = "16b5281ce61993df3526740990cf845a3f3036f4"
           npm --prefix .build/nabra-tts ci
           npm --prefix .build/nabra-tts run build
           test -s .build/nabra-tts/dist/index.js
