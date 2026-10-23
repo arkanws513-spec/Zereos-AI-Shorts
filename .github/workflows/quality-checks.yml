@@ -28,5 +28,8 @@ jobs:
         run: |
           node scripts/qa.mjs
           node --check real-avatar-studio.js
+          node --check storage.js
+          node --check studio-pro.js
+          node --input-type=module --check < tts-engine.js
           node --input-type=module --check < avatar-studio.js
           python -m py_compile avatar-engine/worker.py
