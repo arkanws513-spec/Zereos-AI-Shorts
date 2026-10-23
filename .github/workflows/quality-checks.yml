@@ -29,6 +29,8 @@ jobs:
           node scripts/qa.mjs
           node --check scene-renderer.js
           node --check app.js
+          node --check audio-workflows.js
+          node --check project-library.js
           node --check real-avatar-studio.js
           node --check storage.js
           node --check studio-pro.js
