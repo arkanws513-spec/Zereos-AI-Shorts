@@ -18,8 +18,9 @@ function readRequired(file) {
 
 const html = readRequired('index.html');
 const appScript = readRequired('app.js');
+const sceneRenderer = readRequired('scene-renderer.js');
 const appCss = readRequired('app.css');
-const source = html + '\n' + appScript + '\n' + appCss;
+const source = html + '\n' + sceneRenderer + '\n' + appScript + '\n' + appCss;
 const storage = readRequired('storage.js');
 const ttsEngine = readRequired('tts-engine.js');
 const realAvatar = readRequired('real-avatar-studio.js');
@@ -204,9 +205,9 @@ if (html) {
   }
   if (!process.exitCode) pass('Six-profile talking-avatar controls and renderer are present.');
 
-  const drawTextStart = appScript.indexOf('function drawTextBlock(');
-  const drawTextEnd = appScript.indexOf('let importedSceneImage=', drawTextStart);
-  const drawTextSource = drawTextStart >= 0 && drawTextEnd > drawTextStart ? appScript.slice(drawTextStart, drawTextEnd) : '';
+  const drawTextStart = sceneRenderer.indexOf('function drawTextBlock(');
+  const drawTextEnd = sceneRenderer.indexOf('let importedSceneImage=', drawTextStart);
+  const drawTextSource = drawTextStart >= 0 && drawTextEnd > drawTextStart ? sceneRenderer.slice(drawTextStart, drawTextEnd) : '';
   const templateRoute = drawTextSource.indexOf("if(['royal','nebula','cyber','ocean','ivory'].includes(activeTemplate))");
   const animationMutation = drawTextSource.indexOf("if(anim==='wordByWord'");
   if (!source.includes('function selectTemplateCaptionPage(') || !source.includes('selectTemplateCaptionPage(pages,progress,anim)')) {
@@ -279,7 +280,7 @@ if (html) {
   ]) {
     if (!source.includes(feature)) fail('Cinematic studio regression: missing expected feature or persistence hook: ' + feature);
   }
-  if (!serviceWorker.includes("const CACHE_NAME = 'zereos-shell-v4'") ||
+  if (!serviceWorker.includes("const CACHE_NAME = 'zereos-shell-v5'") ||
       !serviceWorker.includes("new URL('avatar-studio.js', BASE_URL).href") ||
       !serviceWorker.includes("new URL('app.js', BASE_URL).href") ||
       !serviceWorker.includes("new URL('app.css', BASE_URL).href") ||
