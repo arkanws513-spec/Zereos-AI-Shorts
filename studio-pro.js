@@ -32,7 +32,7 @@
     const typing = isTyping(event.target);
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
       event.preventDefault();
-      const save = byId('saveFromPageBtn') || byId('saveProjectBtn');
+      const save = byId('workspaceQuickSave');
       if (save && !save.disabled) save.click();
       return;
     }
