@@ -4,7 +4,7 @@
  */
 import { TalkingHead } from 'https://esm.sh/@met4citizen/talkinghead@1.8.0?bundle';
 
-const MODEL_URL = 'https://raw.githubusercontent.com/met4citizen/TalkingHead/main/avatars/mpfb.glb';
+const MODEL_URL = 'https://raw.githubusercontent.com/met4citizen/TalkingHead/91796631b569ec70aeba1e43f6fa1987e5e4115c/avatars/mpfb.glb';
 const profileModels = Object.create(null);
 const profileBodies = { elderMan: 'M', modernMan: 'M', modernWoman: 'F', hologram: 'F', animeMan: 'M', animeWoman: 'F' };
 let head = null;
