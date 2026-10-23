@@ -28,7 +28,7 @@ jobs:
         with:
           node-version: 22
 
-      - name: Clone and build the official Nabra TTS source
+      - name: Clone and build the official Nabra TTS source (browser-local runtime)
         shell: bash
         run: |
           set -euo pipefail
