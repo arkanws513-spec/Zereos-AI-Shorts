@@ -19,7 +19,7 @@ function readRequired(file) {
 const html = readRequired('index.html');
 const appScript = readRequired('app.js');
 const appCss = readRequired('app.css');
-const source = html + '\n' + appScript;
+const source = html + '\n' + appScript + '\n' + appCss;
 const storage = readRequired('storage.js');
 const ttsEngine = readRequired('tts-engine.js');
 const realAvatar = readRequired('real-avatar-studio.js');
@@ -172,13 +172,13 @@ if (html) {
     if (!source.includes(feature)) fail('Audio editing/export workflow is incomplete: missing ' + feature);
   }
   if (!process.exitCode) pass('Waveform, trim range, preview seek, local music file and fade controls are wired.');
-  const parserStart = source.indexOf('function parseTimedSubtitleText(');
-  const parserEnd = source.indexOf('function connectTimedSubtitles()', parserStart);
+  const parserStart = appScript.indexOf('function parseTimedSubtitleText(');
+  const parserEnd = appScript.indexOf('function connectTimedSubtitles()', parserStart);
   if (parserStart < 0 || parserEnd < 0) {
     fail('Timestamped subtitle parser could not be isolated for behavior tests.');
   } else {
     try {
-      const parserSource = html.slice(parserStart, parserEnd);
+      const parserSource = appScript.slice(parserStart, parserEnd);
       const parseTimedSubtitleText = new Function(parserSource + '; return parseTimedSubtitleText;')();
       const srtCues = parseTimedSubtitleText('1\n00:00:01,000 --> 00:00:02,500\nمرحبا بالعالم');
       const vttCues = parseTimedSubtitleText('WEBVTT\n\n00:00:03.000 --> 00:00:04.200\nSecond caption');
@@ -198,9 +198,9 @@ if (html) {
   }
   if (!process.exitCode) pass('Six-profile talking-avatar controls and renderer are present.');
 
-  const drawTextStart = source.indexOf('function drawTextBlock(');
-  const drawTextEnd = source.indexOf('let importedSceneImage=', drawTextStart);
-  const drawTextSource = drawTextStart >= 0 && drawTextEnd > drawTextStart ? html.slice(drawTextStart, drawTextEnd) : '';
+  const drawTextStart = appScript.indexOf('function drawTextBlock(');
+  const drawTextEnd = appScript.indexOf('let importedSceneImage=', drawTextStart);
+  const drawTextSource = drawTextStart >= 0 && drawTextEnd > drawTextStart ? appScript.slice(drawTextStart, drawTextEnd) : '';
   const templateRoute = drawTextSource.indexOf("if(['royal','nebula','cyber','ocean','ivory'].includes(activeTemplate))");
   const animationMutation = drawTextSource.indexOf("if(anim==='wordByWord'");
   if (!source.includes('function selectTemplateCaptionPage(') || !source.includes('selectTemplateCaptionPage(pages,progress,anim)')) {
