@@ -1,7 +1,7 @@
 /* ZEREOS app shell cache. Large model/WASM assets are intentionally not precached. */
 'use strict';
 
-const CACHE_NAME = 'zereos-shell-v3';
+const CACHE_NAME = 'zereos-shell-v4';
 const BASE_URL = new URL('./', self.location.href);
 const SHELL_URLS = [
   BASE_URL.href,
@@ -12,6 +12,7 @@ const SHELL_URLS = [
   new URL('studio-pro.js', BASE_URL).href,
   new URL('studio-pro.css', BASE_URL).href,
   new URL('tts-engine.js', BASE_URL).href,
+  new URL('avatar-studio.js', BASE_URL).href,
   new URL('manifest.webmanifest', BASE_URL).href,
   new URL('assets/zereos-icon.svg', BASE_URL).href
 ];
