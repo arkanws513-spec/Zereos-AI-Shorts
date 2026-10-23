@@ -27,6 +27,7 @@ jobs:
       - name: Validate app structure and inline JavaScript syntax
         run: |
           node scripts/qa.mjs
+          node --check app.js
           node --check real-avatar-studio.js
           node --check storage.js
           node --check studio-pro.js
