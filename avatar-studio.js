@@ -2,7 +2,21 @@
  * Engine: @met4citizen/talkinghead (MIT). Default sample model: MPFB (CC0).
  * No hosted inference, account, API key, or paid runtime is used.
  */
-import { TalkingHead } from 'https://esm.sh/@met4citizen/talkinghead@1.8.0?bundle';
+let TalkingHeadCtor = null;
+let talkingHeadPromise = null;
+async function loadTalkingHead() {
+  if (TalkingHeadCtor) return TalkingHeadCtor;
+  if (!talkingHeadPromise) {
+    talkingHeadPromise = import('https://esm.sh/@met4citizen/talkinghead@1.8.0?bundle')
+      .then(mod => {
+        if (typeof mod?.TalkingHead !== 'function') throw new Error('TalkingHead constructor is unavailable.');
+        TalkingHeadCtor = mod.TalkingHead;
+        return TalkingHeadCtor;
+      })
+      .catch(error => { talkingHeadPromise = null; throw error; });
+  }
+  return talkingHeadPromise;
+}
 
 const MODEL_URL = 'https://raw.githubusercontent.com/met4citizen/TalkingHead/91796631b569ec70aeba1e43f6fa1987e5e4115c/avatars/mpfb.glb';
 const profileModels = Object.create(null);
@@ -56,7 +70,8 @@ async function ensureHead(profileId) {
 
   loading = (async () => {
     const mount = ensureHost();
-    status('جارٍ تحميل شخصية ثلاثية الأبعاد متحركة لأول مرة… قد يستغرق ذلك وقتًا حسب سرعة الإنترنت والجهاز.');
+    status('جارٍ تحميل محرك الأفاتار ثلاثي الأبعاد لأول مرة…');
+    const TalkingHead = await loadTalkingHead();
     if (!head) {
       head = new TalkingHead(mount, {
         cameraView: 'upper',
