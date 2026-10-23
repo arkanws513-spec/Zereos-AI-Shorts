@@ -2,7 +2,7 @@
  * Keep one pinned runtime entry and one engine instance per page.
  * The model is downloaded from the upstream model host on first use and cached by the browser.
  */
-const RUNTIME_URL = './vendor/nabra-tts.bundle.js?v=local-build-2';
+const RUNTIME_URL = './vendor/nabra-tts.bundle.js?v=nabra-16b5281';
 let runtimePromise = null;
 let enginePromise = null;
 
