@@ -20,6 +20,12 @@ Live app: https://arkanws513-spec.github.io/Zereos-AI-Shorts/
 - Optional six-profile talking-avatar studio (modern man, modern woman, older man, hologram, anime man, anime woman), with local portrait upload, size/position controls, mouth-position calibration and audio-level-reactive mouth movement. Portrait uploads remain in the current browser session. The current mouth animation is approximate, not phoneme-accurate AI lip-sync; anime profiles use a lightweight built-in illustration unless a custom image is uploaded.
 - Video export selects a browser-supported MP4 recording format first when available, then falls back to WebM. The actual format depends on the browser/device; verify the downloaded file before publishing.
 
+## Real-person avatar studio (temporary free GPU option)
+
+The real-person lip-sync studio uses a separate MuseTalk GPU worker; GitHub Pages cannot run CUDA inference itself. A Colab launcher notebook is included at [avatar-engine/Free_GPU_Colab_Launcher.ipynb](avatar-engine/Free_GPU_Colab_Launcher.ipynb). It can use a free GPU only when Google Colab grants one; access, runtime duration, and model-download success are not guaranteed. Keep the notebook session open while rendering. It creates a temporary Cloudflare URL and a random token for that session; never publish the token. Enter both in the [real avatar studio](https://arkanws513-spec.github.io/Zereos-AI-Shorts/real-avatar-studio.html). No paid inference API key is required, but this is a temporary session—not a permanent always-on service.
+
+The notebook downloads large upstream model files. Run it only for media you own or have permission to use, and review upstream model/license notices before commercial use. The worker verifies that generated MP4s contain audio and video streams and have a duration close to the input narration.
+
 ## Run locally
 
 Because the app uses browser modules and local assets, serve the repository through a local HTTP server rather than opening `index.html` as a `file://` URL.
