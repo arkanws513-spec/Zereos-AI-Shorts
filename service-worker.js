@@ -1,7 +1,7 @@
 /* ZEREOS app shell cache. Large model/WASM assets are intentionally not precached. */
 'use strict';
 
-const CACHE_NAME = 'zereos-shell-v5';
+const CACHE_NAME = 'zereos-shell-v6';
 const BASE_URL = new URL('./', self.location.href);
 const SHELL_URLS = [
   BASE_URL.href,
@@ -9,6 +9,8 @@ const SHELL_URLS = [
   new URL('storage.js', BASE_URL).href,
   new URL('scene-renderer.js', BASE_URL).href,
   new URL('app.js', BASE_URL).href,
+  new URL('audio-workflows.js', BASE_URL).href,
+  new URL('project-library.js', BASE_URL).href,
   new URL('app.css', BASE_URL).href,
   new URL('studio-pro.js', BASE_URL).href,
   new URL('studio-pro.css', BASE_URL).href,
