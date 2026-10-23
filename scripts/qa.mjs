@@ -18,7 +18,9 @@ function readRequired(file) {
 
 const html = readRequired('index.html');
 const storage = readRequired('storage.js');
-const workflow = readRequired('.github/workflows/build-tts.yml');
+const ttsEngine = readRequired('tts-engine.js');
+const realAvatar = readRequired('real-avatar-studio.js');
+const buildWorkflow = readRequired('.github/workflows/build-tts.yml');
 const manifest = readRequired('manifest.webmanifest');
 const serviceWorker = readRequired('service-worker.js');
 
@@ -74,11 +76,30 @@ if (storage) {
   if (!process.exitCode) pass('Local project/media storage API contract checks passed.');
 }
 
-if (workflow) {
+if (buildWorkflow) {
   for (const token of ['Oddadmix/nabra-tts', 'vendor/nabra-tts.bundle.js', 'vendor/ort']) {
-    if (!workflow.includes(token)) fail('Local Arabic TTS workflow is missing expected build step: ' + token);
+    if (!buildWorkflow.includes(token)) fail('Local Arabic TTS workflow is missing expected build step: ' + token);
   }
   if (!process.exitCode) pass('Local Arabic TTS build workflow contract checks passed.');
+}
+
+if (ttsEngine && realAvatar && html) {
+  if (!html.includes("import('./tts-engine.js?v=1')") || !realAvatar.includes('import("./tts-engine.js?v=1")')) {
+    fail('The main editor and real-avatar studio must use the shared local TTS loader.');
+  }
+  if (html.includes("import('./vendor/nabra-tts.bundle.js") || realAvatar.includes('vendor/nabra-tts.bundle.js')) {
+    fail('Duplicate direct TTS runtime loading found outside tts-engine.js.');
+  }
+  for (const token of ["dtype: 'fp16'", "wasmPaths: new URL('./vendor/ort/'", 'enginePromise']) {
+    if (!ttsEngine.includes(token)) fail('Shared TTS loader is missing expected runtime configuration: ' + token);
+  }
+  if (!html.includes('href="#mainContent"') || !html.includes('id="mainContent"') || !html.includes('nav-section-label')) {
+    fail('The main workspace must include a skip link and grouped navigation.');
+  }
+  if (html.includes('id="saveFromPageBtn"') || html.includes('id="saveProjectBtn"') || !html.includes("id='workspaceQuickSave'")) {
+    fail('Project saving should use one canonical visible save action.');
+  }
+  if (!process.exitCode) pass('Shared TTS runtime, grouped navigation, keyboard skip link and single-save UX checks passed.');
 }
 
 if (manifest) {
@@ -257,7 +278,9 @@ if (html) {
     'vendor/ort/ort-wasm-simd-threaded.jsep.mjs',
     'vendor/ort/ort-wasm-simd-threaded.jsep.wasm'
   ]) {
-    if (!fs.existsSync(path.join(root, asset))) fail('Required local TTS asset is missing: ' + asset);
+    const assetPath = path.join(root, asset);
+    if (!fs.existsSync(assetPath)) fail('Required local TTS asset is missing: ' + asset);
+    else if (fs.statSync(assetPath).size === 0) fail('Required local TTS asset is empty: ' + asset);
   }
   if (!process.exitCode) pass('Local TTS runtime assets are present and export-format messaging is consistent.');
 }
