@@ -47,13 +47,17 @@ jobs:
             --bundle --format=esm --platform=browser --target=es2022 \
             --external:react --external:module --external:node:* --external:fs --external:path --external:url --external:worker_threads --external:crypto --outfile=vendor/nabra-tts.bundle.js
           ORT_DIST=.build/nabra-tts/node_modules/onnxruntime-web/dist
-          cp -f "$ORT_DIST"/*.wasm "$ORT_DIST"/*.mjs "$ORT_DIST"/*.js vendor/ort/
+          # The bundled ONNX Runtime Web build has JSEP enabled, which supports
+          # WebGPU and its WASM fallback. Only its matching loader/binary pair is needed.
+          cp -f "$ORT_DIST/ort-wasm-simd-threaded.jsep.mjs" "$ORT_DIST/ort-wasm-simd-threaded.jsep.wasm" vendor/ort/
+          find vendor/ort -maxdepth 1 -type f \
+            ! -name 'ort-wasm-simd-threaded.jsep.mjs' \
+            ! -name 'ort-wasm-simd-threaded.jsep.wasm' -delete
           test -s vendor/nabra-tts.bundle.js
           test -s vendor/ort/ort-wasm-simd-threaded.jsep.mjs
-          test -n "$(find vendor/ort -maxdepth 1 -name '*.wasm' -print -quit)"
+          test -s vendor/ort/ort-wasm-simd-threaded.jsep.wasm
           echo "Bundled TTS: $(wc -c < vendor/nabra-tts.bundle.js) bytes"
-          echo "WASM assets: $(find vendor/ort -maxdepth 1 -name '*.wasm' | wc -l)"
-          echo "JS runtime assets: $(find vendor/ort -maxdepth 1 -type f -name '*.mjs' | wc -l)"
+          echo "Required ONNX runtime assets: $(find vendor/ort -maxdepth 1 -type f | wc -l)"
 
       - name: Commit generated local runtime assets
         shell: bash
