@@ -11,7 +11,8 @@ Live app: https://arkanws513-spec.github.io/Zereos-AI-Shorts/
 - Project save/restore and media library using browser IndexedDB.
 - Project JSON export/import, with associated media included up to the app's built-in size limits.
 - Per-scene images, selected cinematic templates, text animation, frame style, glow, and caption style are saved with the project and restored when reopened.
-- Local Arabic TTS build pipeline using Nabra TTS and ONNX Runtime Web assets.
+- Shared local Arabic TTS loader used by the main studio and real-avatar studio; Nabra model assets are cached by the browser after first use.
+- The WevoLabs Arabic voice link remains available as an external tool; its voice is separate from the local Nabra engine.
 - Audio import and local voice-library workflow.
 - Audio editor with a rendered narration waveform, seek position, adjustable start/end trim, and selected-range preview.
 - Optional local background-music file, looped under the video, with adjustable fade-in/fade-out; supported audio decoding depends on the browser.
