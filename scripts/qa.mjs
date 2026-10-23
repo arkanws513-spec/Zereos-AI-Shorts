@@ -181,13 +181,13 @@ if (html) {
     if (!source.includes(feature)) fail('Audio editing/export workflow is incomplete: missing ' + feature);
   }
   if (!process.exitCode) pass('Waveform, trim range, preview seek, local music file and fade controls are wired.');
-  const parserStart = audioWorkflows.indexOf('function parseTimedSubtitleText(');
-  const parserEnd = audioWorkflows.indexOf('function connectTimedSubtitles()', parserStart);
+  const parserStart = appScript.indexOf('function parseTimedSubtitleText(');
+  const parserEnd = appScript.indexOf('function connectTimedSubtitles()', parserStart);
   if (parserStart < 0 || parserEnd < 0) {
     fail('Timestamped subtitle parser could not be isolated for behavior tests.');
   } else {
     try {
-      const parserSource = audioWorkflows.slice(parserStart, parserEnd);
+      const parserSource = appScript.slice(parserStart, parserEnd);
       const parseTimedSubtitleText = new Function(parserSource + '; return parseTimedSubtitleText;')();
       const srtCues = parseTimedSubtitleText('1\n00:00:01,000 --> 00:00:02,500\nمرحبا بالعالم');
       const vttCues = parseTimedSubtitleText('WEBVTT\n\n00:00:03.000 --> 00:00:04.200\nSecond caption');
