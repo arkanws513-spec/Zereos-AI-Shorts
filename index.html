@@ -762,13 +762,37 @@ $('fileStatus').textContent='جارٍ تجهيز الملف الصوتي…';
 try{
 const ac=ensureAudio(),bytes=await file.arrayBuffer(),decoded=await ac.decodeAudioData(bytes);
 if(token!==narrationLoadToken)return;
-narrationBuffer=decoded;narrationTrimStart=0;narrationTrimEnd=decoded.duration;narrationSeekSeconds=0;updateNarrationEditor();
+narrationBuffer=decoded;narrationScriptSnapshot=texts().map(line=>String(line||'').trim()).join('\n');narrationTrimStart=0;narrationTrimEnd=decoded.duration;narrationSeekSeconds=0;updateNarrationEditor();
 $('fileStatus').textContent='تم تجهيز '+file.name+' ('+Math.ceil(decoded.duration)+' ثانية) وسيُضمّن في الفيديو.';
 }catch(error){
 if(token!==narrationLoadToken)return;
 console.error(error);
 $('fileStatus').textContent='تعذر قراءة هذا الملف. جرّب MP3 أو WAV أو ملفًا صوتيًا آخر يدعمه المتصفح.';updateNarrationEditor();
 }
+});
+// Prevent narration from a previous wisdom/script being reused after the text changes.
+let narrationScriptSnapshot = '';
+function clearStaleNarrationForScriptChange(){
+ const currentScript=texts().map(line=>String(line||'').trim()).join('\n');
+ if(!narrationBuffer&&!importedNarrationMediaId)return;
+ if(currentScript===narrationScriptSnapshot)return;
+ narrationLoadToken++;
+ stopPreviewNarration();
+ narrationBuffer=null;
+ importedNarrationMediaId=null;
+ narrationTrimStart=0;
+ narrationTrimEnd=null;
+ narrationSeekSeconds=0;
+ const fileInput=$('narrationFile');
+ if(fileInput)fileInput.value='';
+ updateNarrationEditor();
+ $('fileStatus').textContent='تغيّر نص الحكمة؛ تم إلغاء التعليق الصوتي السابق حتى لا يُستخدم مع نص مختلف. اختر أو ولّد صوتًا جديدًا.';
+ if(playing){playing=false;cancelAnimationFrame(raf);$('playBtn').textContent='▶ تشغيل المعاينة';}
+ scheduleAutoSave();
+}
+['scriptTitle','scriptBody1','scriptBody2','scriptCta'].forEach(id=>{
+ const el=$(id);
+ if(el){el.addEventListener('input',clearStaleNarrationForScriptChange);el.addEventListener('change',clearStaleNarrationForScriptChange);}
 });
 function updateLiveRecordingPrompt(){
  const prompt=$('liveRecordingPrompt');if(!prompt)return;
@@ -949,7 +973,7 @@ restoreDraft();initParticles();renderPresets();document.fonts?.ready?.then(()=>d
     }catch(error){alert('تعذر حفظ الملفات. قد تكون مساحة المتصفح غير كافية: '+error.message)}
     finally{e.target.value=''}
   };
-  async function selectVoiceAssetForVideo(asset,button){const status=$('voiceLibraryStatus'),fileStatus=$('fileStatus'),mainStatus=$('status'),oldLabel=button?.textContent;try{if(!asset?.blob)throw new Error('ملف الصوت غير متاح في التخزين المحلي.');if(button){button.disabled=true;button.textContent='جارٍ تجهيز الصوت…'}if(status)status.textContent='جارٍ تجهيز '+asset.name+' لاستخدامه في الفيديو…';const ac=ensureAudio();const bytes=await asset.blob.arrayBuffer();let decoded;try{decoded=await ac.decodeAudioData(bytes.slice(0));}catch(firstError){decoded=await new Promise((resolve,reject)=>ac.decodeAudioData(bytes.slice(0),resolve,reject));}if(!decoded||!decoded.length)throw new Error('تم فتح الملف لكن لم يُقرأ منه صوت. جرّب إعادة توليده.');await ac.resume();narrationBuffer=decoded;importedNarrationMediaId=asset.id;narrationLoadToken++;$('narrationFile').value='';fileStatus.textContent='تم اختيار '+asset.name+' ('+Math.ceil(decoded.duration)+' ثانية) وسيُضمّن في الفيديو.';if(status)status.textContent='تم اختيار '+asset.name+' للتصدير بنجاح.';mainStatus.textContent='تم تجهيز الملف الصوتي من مكتبة الأصوات.';scheduleAutoSave();if(button)button.textContent='تم الاختيار ✓';}catch(error){console.error('Selecting local narration failed',error);const message='تعذر تجهيز الملف الصوتي: '+(error?.message||String(error));if(status)status.textContent=message;fileStatus.textContent=message;mainStatus.textContent=message;if(button)button.textContent=oldLabel||'إعادة المحاولة';}finally{if(button){button.disabled=false;if(button.textContent==='جارٍ تجهيز الصوت…')button.textContent=oldLabel||'استخدام في الفيديو';}}}
+  async function selectVoiceAssetForVideo(asset,button){const status=$('voiceLibraryStatus'),fileStatus=$('fileStatus'),mainStatus=$('status'),oldLabel=button?.textContent;try{if(!asset?.blob)throw new Error('ملف الصوت غير متاح في التخزين المحلي.');if(button){button.disabled=true;button.textContent='جارٍ تجهيز الصوت…'}if(status)status.textContent='جارٍ تجهيز '+asset.name+' لاستخدامه في الفيديو…';const ac=ensureAudio();const bytes=await asset.blob.arrayBuffer();let decoded;try{decoded=await ac.decodeAudioData(bytes.slice(0));}catch(firstError){decoded=await new Promise((resolve,reject)=>ac.decodeAudioData(bytes.slice(0),resolve,reject));}if(!decoded||!decoded.length)throw new Error('تم فتح الملف لكن لم يُقرأ منه صوت. جرّب إعادة توليده.');await ac.resume();narrationBuffer=decoded;narrationScriptSnapshot=texts().map(line=>String(line||'').trim()).join('\n');importedNarrationMediaId=asset.id;narrationLoadToken++;$('narrationFile').value='';fileStatus.textContent='تم اختيار '+asset.name+' ('+Math.ceil(decoded.duration)+' ثانية) وسيُضمّن في الفيديو.';if(status)status.textContent='تم اختيار '+asset.name+' للتصدير بنجاح.';mainStatus.textContent='تم تجهيز الملف الصوتي من مكتبة الأصوات.';scheduleAutoSave();if(button)button.textContent='تم الاختيار ✓';}catch(error){console.error('Selecting local narration failed',error);const message='تعذر تجهيز الملف الصوتي: '+(error?.message||String(error));if(status)status.textContent=message;fileStatus.textContent=message;mainStatus.textContent=message;if(button)button.textContent=oldLabel||'إعادة المحاولة';}finally{if(button){button.disabled=false;if(button.textContent==='جارٍ تجهيز الصوت…')button.textContent=oldLabel||'استخدام في الفيديو';}}}
   async function renderVoiceLibrary(){
     const list=$('voiceLibraryList');if(!list)return;
     list.replaceChildren();
@@ -1074,7 +1098,7 @@ restoreDraft();initParticles();renderPresets();document.fonts?.ready?.then(()=>d
     if(!p||!p.editor)return;
     currentProjectId=p.id;window.ZereosStorage.local.setActiveProjectId(p.id);
     if(importedSceneImage)URL.revokeObjectURL(importedSceneImage);importedSceneImage=null;importedSceneImageObject=null;importedSceneMediaId=null;if(importedSceneVideo)importedSceneVideo.pause();importedSceneVideo=null;if(importedSceneVideoUrl)URL.revokeObjectURL(importedSceneVideoUrl);importedSceneVideoUrl=null;importedSceneVideoMediaId=null;importedNarrationMediaId=null;stopPreviewNarration();narrationBuffer=null;Object.keys(sceneImageUrls).forEach(key=>{try{URL.revokeObjectURL(sceneImageUrls[key])}catch(_){}});Object.keys(sceneImageUrls).forEach(key=>delete sceneImageUrls[key]);Object.keys(sceneImageObjects).forEach(key=>delete sceneImageObjects[key]);Object.keys(sceneImageMediaIds).forEach(key=>delete sceneImageMediaIds[key]);
-    if(p.narrationMediaId){try{const audioAsset=await window.ZereosStorage.local.getMedia(p.narrationMediaId);if(audioAsset?.blob){const ac=ensureAudio();narrationBuffer=await ac.decodeAudioData(await audioAsset.blob.arrayBuffer());importedNarrationMediaId=audioAsset.id;$('fileStatus').textContent='تم استعادة التعليق الصوتي: '+audioAsset.name}}catch(error){console.warn('تعذر استعادة التعليق الصوتي',error)}}
+    if(p.narrationMediaId){try{const audioAsset=await window.ZereosStorage.local.getMedia(p.narrationMediaId);if(audioAsset?.blob){const ac=ensureAudio();narrationBuffer=await ac.decodeAudioData(await audioAsset.blob.arrayBuffer());narrationScriptSnapshot=texts().map(line=>String(line||'').trim()).join('\n');importedNarrationMediaId=audioAsset.id;$('fileStatus').textContent='تم استعادة التعليق الصوتي: '+audioAsset.name}}catch(error){console.warn('تعذر استعادة التعليق الصوتي',error)}}
     if(p.imageMediaId){try{const asset=await window.ZereosStorage.local.getMedia(p.imageMediaId);if(asset?.blob){const url=URL.createObjectURL(asset.blob),img=new Image();await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src=url});importedSceneImage=url;importedSceneImageObject=img;importedSceneMediaId=asset.id}}catch(error){console.warn('تعذر استعادة صورة المشروع',error)}}
     if(p.videoMediaId){try{const asset=await window.ZereosStorage.local.getMedia(p.videoMediaId);if(asset?.blob){const url=URL.createObjectURL(asset.blob),video=document.createElement('video');video.muted=true;video.loop=true;video.playsInline=true;video.preload='auto';video.src=url;await new Promise((resolve,reject)=>{video.onloadedmetadata=resolve;video.onerror=reject});importedSceneVideo=video;importedSceneVideoUrl=url;importedSceneVideoMediaId=asset.id}}catch(error){console.warn('تعذر استعادة فيديو خلفية المشروع',error)}}
     for(const [index,id] of Object.entries(p.sceneImageMediaIds||{})){try{const asset=await window.ZereosStorage.local.getMedia(id);if(!asset?.blob)continue;const url=URL.createObjectURL(asset.blob),img=new Image();await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src=url});sceneImageUrls[index]=url;sceneImageObjects[index]=img;sceneImageMediaIds[index]=asset.id;const state=$('sceneFileState'+index);if(state)state.textContent='تم استعادة الصورة: '+asset.name}catch(error){console.warn('تعذر استعادة صورة المشهد '+index,error)}}
