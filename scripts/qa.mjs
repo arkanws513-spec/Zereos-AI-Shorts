@@ -210,7 +210,7 @@ if (html) {
   const drawTextStart = sceneRenderer.indexOf('function drawTextBlock(');
   const drawTextEnd = sceneRenderer.indexOf('let importedSceneImage=', drawTextStart);
   const drawTextSource = drawTextStart >= 0 && drawTextEnd > drawTextStart ? sceneRenderer.slice(drawTextStart, drawTextEnd) : '';
-  const templateRoute = drawTextSource.indexOf("if(['royal','nebula','cyber','ocean','ivory'].includes(activeTemplate))");
+  const templateRoute = drawTextSource.indexOf("if(['royal','nebula','cyber','ocean','ivory','zereosIvory','zereosNoir'].includes(activeTemplate))");
   const animationMutation = drawTextSource.indexOf("if(anim==='wordByWord'");
   if (!source.includes('function selectTemplateCaptionPage(') || !source.includes('selectTemplateCaptionPage(pages,progress,anim)')) {
     fail('Template-specific caption pagination and page-local text animation are missing.');
@@ -267,6 +267,13 @@ if (html) {
     '.template-card[data-template="ember"] .template-swatch:after',
     '.template-card[data-template="ocean"] .template-swatch:after',
     '.template-card[data-template="crystal"] .template-swatch:after',
+    'data-template="zereosIvory"',
+    'data-template="zereosNoir"',
+    'function drawZereosTemplateBackground(id)',
+    "activeTemplate==='zereosIvory'",
+    "activeTemplate==='zereosNoir'",
+    "assets/template-zereos-ivory.svg",
+    "assets/template-zereos-noir.svg",
     "activeTemplate==='nebula'",
     "activeTemplate==='cyber'",
     "activeTemplate==='ocean'",
@@ -282,7 +289,7 @@ if (html) {
   ]) {
     if (!source.includes(feature)) fail('Cinematic studio regression: missing expected feature or persistence hook: ' + feature);
   }
-  if (!serviceWorker.includes("const CACHE_NAME = 'zereos-shell-v6'") ||
+  if (!serviceWorker.includes("const CACHE_NAME = 'zereos-shell-v7'") ||
       !serviceWorker.includes("new URL('avatar-studio.js', BASE_URL).href") ||
       !serviceWorker.includes("new URL('app.js', BASE_URL).href") ||
       !serviceWorker.includes("new URL('audio-workflows.js', BASE_URL).href") ||
