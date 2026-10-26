@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="864" height="1536" viewBox="0 0 864 1536">
+ <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e9d9b9"/><stop offset=".5" stop-color="#d1b98d"/><stop offset="1" stop-color="#e9d9b9"/></linearGradient><radialGradient id="halo"><stop stop-color="#95672e" stop-opacity=".28"/><stop offset="1" stop-color="#95672e" stop-opacity="0"/></radialGradient><linearGradient id="metal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#342519"/><stop offset=".5" stop-color="#95672e"/><stop offset="1" stop-color="#d1b98d"/></linearGradient><filter id="noise"><feTurbulence baseFrequency=".7" numOctaves="2" seed="4"/><feColorMatrix values=".2 0 0 0 .2 0 .2 0 0 .2 0 0 .2 0 .1 0 0 0 .16 0"/></filter></defs>
+ <rect width="864" height="1536" fill="url(#bg)"/><ellipse cx="432" cy="480" rx="520" ry="640" fill="url(#halo)"/>
+ <g fill="none" stroke="#95672e" opacity=".45" stroke-width="2"><path d="M60 65H804V1470H60Z M74 79H790V1456H74Z"/><path d="M60 65q70 0 70 70q0 45-45 45M804 65q-70 0-70 70q0 45 45 45M60 1470q70 0 70-70q0-45-45-45M804 1470q-70 0-70-70q0-45 45-45"/></g>
+ <path d="M0 0H864V185L770 250H94L0 185Z" fill="#f6e9ca" stroke="url(#metal)" stroke-width="4"/>
+ <path d="M18 18H846V1518H18Z" fill="none" stroke="#a17a42" stroke-width="3" opacity=".9"/><path d="M32 32H832V1504H32Z" fill="none" stroke="#a17a42" stroke-width="1" opacity=".55"/>
+ <g fill="none" stroke="#a17a42" stroke-width="3"><path d="M32 32h120v28M832 32H712v28M32 1504h120v-28M832 1504H712v-28"/><path d="M32 300h18v936H32M832 300h-18v936h18" opacity=".5"/></g>
+ <circle cx="432" cy="137" r="83" fill="#f6e9ca" stroke="url(#metal)" stroke-width="5"/><circle cx="432" cy="137" r="71" fill="none" stroke="#a17a42" stroke-width="1.5"/>
+ <path d="M401 74l7-16 15 13 9-22 9 22 15-13 7 16-10 12h-42z" fill="url(#metal)"/>
+ <text x="432" y="156" text-anchor="middle" font-family="Georgia,serif" font-weight="bold" font-size="73" fill="url(#metal)">Z</text>
+ <text x="432" y="197" text-anchor="middle" font-family="Georgia,serif" letter-spacing="4" font-size="20" fill="#342519">ZEREOS</text>
+ <text x="432" y="224" text-anchor="middle" font-family="serif" font-size="18" fill="#342519">حكم زيريوس</text>
+ <path d="M180 252H684" stroke="#a17a42" stroke-width="2"/><path d="M432 241l12 11-12 11-12-11z" fill="none" stroke="#a17a42" stroke-width="3"/>
+ <rect x="92" y="290" width="680" height="1090" rx="5" fill="none" stroke="#a17a42" stroke-width="2"/>
+ <g opacity=".11" fill="none" stroke="#95672e" stroke-width="5"><circle cx="432" cy="830" r="160"/><circle cx="432" cy="830" r="145"/><path d="M350 880Q280 800 365 720Q350 790 432 800Q514 790 499 720Q584 800 514 880"/><text x="432" y="875" text-anchor="middle" font-family="Georgia" font-size="155" fill="#95672e" stroke="none">Z</text></g>
+ <g><rect x="78" y="535" width="708" height="466" rx="28" fill="rgba(255,249,235,.94)" stroke="#a17a42" stroke-width="4"/><rect x="91" y="548" width="682" height="440" rx="20" fill="none" stroke="#a17a42" stroke-width="1.5" opacity=".8"/><path d="M112 574h100m440 0h100M112 962h100m440 0h100" stroke="#a17a42" stroke-width="2"/><path d="M432 561l12 13-12 13-12-13zM432 950l12 13-12 13-12-13z" fill="none" stroke="#a17a42" stroke-width="2"/></g>
+ <path d="M0 1495H864" stroke="url(#metal)" stroke-width="5"/><path d="M280 1440H584" stroke="#a17a42" stroke-width="2"/><path d="M432 1426l14 14-14 14-14-14z" fill="none" stroke="#a17a42" stroke-width="3"/>
+ </svg>
