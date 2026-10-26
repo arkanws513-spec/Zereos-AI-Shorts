@@ -210,7 +210,7 @@ if (html) {
   const drawTextStart = sceneRenderer.indexOf('function drawTextBlock(');
   const drawTextEnd = sceneRenderer.indexOf('let importedSceneImage=', drawTextStart);
   const drawTextSource = drawTextStart >= 0 && drawTextEnd > drawTextStart ? sceneRenderer.slice(drawTextStart, drawTextEnd) : '';
-  const templateRoute = drawTextSource.indexOf("if(['royal','nebula','cyber','ocean','ivory','zereosIvory','zereosNoir'].includes(activeTemplate))");
+  const templateRoute = drawTextSource.indexOf("if(isImageTemplate(activeTemplate))");
   const animationMutation = drawTextSource.indexOf("if(anim==='wordByWord'");
   if (!source.includes('function selectTemplateCaptionPage(') || !source.includes('selectTemplateCaptionPage(pages,progress,anim)')) {
     fail('Template-specific caption pagination and page-local text animation are missing.');
@@ -274,6 +274,17 @@ if (html) {
     "activeTemplate==='zereosNoir'",
     "assets/template-zereos-ivory.svg",
     "assets/template-zereos-noir.svg",
+    "assets/template-zereos-royal.svg",
+    "assets/template-zereos-nebula.svg",
+    "assets/template-zereos-cyber.svg",
+    "assets/template-zereos-ember.svg",
+    "assets/template-zereos-ocean.svg",
+    "assets/template-zereos-emerald.svg",
+    "assets/template-zereos-manuscript.svg",
+    "assets/template-zereos-minimal.svg",
+    "assets/template-zereos-aurora.svg",
+    "assets/template-zereos-crystal.svg",
+    "function isImageTemplate(id)",
     "activeTemplate==='nebula'",
     "activeTemplate==='cyber'",
     "activeTemplate==='ocean'",
