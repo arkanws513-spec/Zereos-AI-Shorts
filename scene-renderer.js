@@ -210,7 +210,7 @@ function drawTextBlock(text,scene,t,sceneElapsed=0,sceneDuration=Number($('scene
  const anim=$('textAnimation')?.value||'fadeUp',frame=$('graphicFrame')?.value||'ornate';
  const progress=Math.max(0,Math.min(1,sceneElapsed/Math.max(1,sceneDuration)));
  const glowIntensity=Number($('glowIntensity')?.value??18);
- if(['royal','nebula','cyber','ocean','ivory','zereosIvory','zereosNoir'].includes(activeTemplate)){
+ if(isImageTemplate(activeTemplate)){
   drawTemplateCaption(text,scene,t,sceneElapsed,sceneDuration,fontName,size,anim,progress,glowIntensity);return;
  }
  if(anim==='wordByWord'&&String(text||'').trim()){
