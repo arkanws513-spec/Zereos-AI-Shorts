@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="864" height="1536" viewBox="0 0 864 1536">
+<defs>
+ <linearGradient id="marble" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff7e6"/><stop offset=".48" stop-color="#e8d8bc"/><stop offset="1" stop-color="#fff0d7"/></linearGradient>
+ <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff0bd"/><stop offset=".25" stop-color="#b9883d"/><stop offset=".55" stop-color="#f9dda0"/><stop offset="1" stop-color="#75501e"/></linearGradient>
+ <linearGradient id="column" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#8b704d"/><stop offset=".18" stop-color="#fff0d7"/><stop offset=".52" stop-color="#e1c9a5"/><stop offset=".78" stop-color="#fff5e3"/><stop offset="1" stop-color="#9b7b53"/></linearGradient>
+ <linearGradient id="banner" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#25201b"/><stop offset=".5" stop-color="#08090d"/><stop offset="1" stop-color="#30261a"/></linearGradient>
+ <radialGradient id="medal"><stop stop-color="#3c2b19"/><stop offset=".72" stop-color="#111114"/><stop offset="1" stop-color="#5d4525"/></radialGradient>
+ <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="9"/></filter>
+ <filter id="texture"><feTurbulence type="fractalNoise" baseFrequency=".55" numOctaves="2" seed="12"/><feColorMatrix values=".15 0 0 0 .7 .15 0 0 0 .62 .15 0 0 0 .48 0 0 0 .09 0"/></filter>
+ <g id="column"><rect x="0" y="0" width="48" height="650" rx="5" fill="url(#column)" stroke="#a98754" stroke-width="2"/><path d="M4 0V650M12 0V650M37 0V650M44 0V650" stroke="#b69a70" stroke-width="2" opacity=".65"/><path d="M-8 0H56L48 20H0Z" fill="url(#gold)" stroke="#97703c" stroke-width="2"/><path d="M-14 20H62V34H-14Z" fill="url(#column)" stroke="#a98754" stroke-width="2"/><path d="M-10 635H58V655H-10Z" fill="url(#gold)" stroke="#a98754" stroke-width="2"/></g>
+ <g id="laurel" fill="none" stroke="url(#gold)" stroke-width="4"><path d="M0 90C-44 62-45 25-25 0"/><path d="M-8 78l-24-8m17-7l-23-8m20-7l-17-13m20 1l-11-18"/></g>
+</defs>
+<rect width="864" height="1536" fill="url(#marble)"/>
+<rect width="864" height="1536" filter="url(#texture)" opacity=".38"/>
+<path d="M80 0C140 180 30 260 100 420S70 700 130 840 80 1120 140 1320 110 1450 80 1536M770 0C720 170 830 260 760 440S800 690 740 850 790 1120 720 1300 750 1460 780 1536" fill="none" stroke="#bfa77f" stroke-width="2" opacity=".24"/>
+<path d="M0 0H864V190L790 240H74L0 190Z" fill="#e7d5b6" opacity=".65"/>
+<g opacity=".98"><use href="#column" x="18" y="12"/><use href="#column" x="798" y="12"/></g>
+<g fill="url(#gold)" stroke="#8c632b" stroke-width="2"><path d="M0 0H190L176 22H0ZM674 0H864V22H688Z"/><path d="M0 44H150L142 58H0ZM714 44H864V58H722Z"/></g>
+<g transform="translate(0 0)">
+ <path d="M44 70H162V350L103 414L44 350Z" fill="#b7a184" opacity=".3"/>
+ <path d="M52 54H158V342L105 400L52 342Z" fill="url(#banner)" stroke="url(#gold)" stroke-width="4"/>
+ <path d="M63 65H147V337L105 380L63 337Z" fill="none" stroke="#d6b36e" stroke-width="1.5"/>
+ <text x="105" y="127" fill="#f4d48b" font-size="48" font-family="Georgia" text-anchor="middle">Z</text><path d="M84 145Q105 118 126 145M85 151l-12 19m12-7l-11 16m47-28l12 19m-12-7l11 16" stroke="#d8b56e" fill="none" stroke-width="2"/>
+ <text x="105" y="215" fill="#f2d18b" font-size="22" font-family="serif" text-anchor="middle">فكر</text><text x="105" y="250" fill="#f2d18b" font-size="22" font-family="serif" text-anchor="middle">تعلم</text><text x="105" y="285" fill="#f2d18b" font-size="22" font-family="serif" text-anchor="middle">تطور</text>
+ <path d="M52 342L105 400L158 342" fill="none" stroke="url(#gold)" stroke-width="4"/>
+ <path d="M706 54H812V342L759 400L706 342Z" fill="url(#banner)" stroke="url(#gold)" stroke-width="4"/><path d="M717 65H801V337L759 380L717 337Z" fill="none" stroke="#d6b36e" stroke-width="1.5"/>
+ <text x="759" y="127" fill="#f4d48b" font-size="48" font-family="Georgia" text-anchor="middle">Z</text><path d="M738 145Q759 118 780 145M739 151l-12 19m12-7l-11 16m47-28l12 19m-12-7l11 16" stroke="#d8b56e" fill="none" stroke-width="2"/>
+ <text x="759" y="215" fill="#f2d18b" font-size="22" font-family="serif" text-anchor="middle">حكمة</text><text x="759" y="250" fill="#f2d18b" font-size="22" font-family="serif" text-anchor="middle">تجربة</text><text x="759" y="285" fill="#f2d18b" font-size="22" font-family="serif" text-anchor="middle">نتيجة</text><path d="M706 342L759 400L812 342" fill="none" stroke="url(#gold)" stroke-width="4"/>
+</g>
+<g opacity=".65" fill="#d8c5a4"><path d="M185 160L220 118L254 160Z"/><path d="M610 160L645 118L679 160Z"/><path d="M180 170H684V182H180Z"/></g>
+<circle cx="432" cy="178" r="111" fill="#000" opacity=".15" filter="url(#shadow)"/>
+<circle cx="432" cy="170" r="100" fill="url(#medal)" stroke="url(#gold)" stroke-width="5"/>
+<circle cx="432" cy="170" r="87" fill="none" stroke="#e2c17a" stroke-width="1.5"/>
+<g transform="translate(432 160)" stroke="url(#gold)" fill="none" stroke-width="3"><path d="M-52 40Q-98 0-55-53Q-58-15-37-3Q-57-28-25-66Q-31-22 0-4Q31-22 25-66Q57-28 37-3Q58-15 55-53Q98 0 52 40"/><path d="M-43 40Q-15 61 0 54Q15 61 43 40"/></g>
+<path d="M399 85L408 65L421 80L432 52L443 80L456 65L465 85L457 95H407Z" fill="url(#gold)"/>
+<text x="432" y="187" text-anchor="middle" fill="#f6d99b" font-family="Georgia,serif" font-size="96" font-weight="bold">Z</text>
+<text x="432" y="230" text-anchor="middle" fill="#f4d48b" font-family="Georgia,serif" font-size="27" letter-spacing="3">ZEREOS</text>
+<text x="432" y="257" text-anchor="middle" fill="#f4d48b" font-family="serif" font-size="23">حكم زيريوس</text>
+<path d="M150 292H714M150 300H714" stroke="url(#gold)" stroke-width="2"/>
+<path d="M150 292l14-8v16zM714 292l-14-8v16z" fill="url(#gold)"/>
+<rect x="114" y="320" width="636" height="1092" rx="6" fill="none" stroke="#b99354" stroke-width="3"/>
+<rect x="126" y="332" width="612" height="1068" rx="5" fill="none" stroke="#e4c88f" stroke-width="1.5"/>
+<g opacity=".2" fill="none" stroke="#a98c5d" stroke-width="2"><path d="M126 350h70v42h-42v-20h22v-10h-50M738 350h-70v42h42v-20h-22v-10h50M126 1380h70v-42h-42v20h22v10h-50M738 1380h-70v-42h42v20h-22v10h50"/></g>
+<g opacity=".18" transform="translate(432 830)"><circle r="120" fill="none" stroke="#b08b4f" stroke-width="3"/><circle r="105" fill="none" stroke="#b08b4f" stroke-width="2"/><path d="M-65 45Q-110 0-50-65Q-65-20 0-10Q65-20 50-65Q110 0 65 45" fill="none" stroke="#b08b4f" stroke-width="8"/><text y="30" text-anchor="middle" fill="#b08b4f" font-family="Georgia" font-size="140">Z</text></g>
+<path d="M120 1415H744" stroke="#b99354" stroke-width="2"/><path d="M432 1402l15 13-15 13-15-13z" fill="none" stroke="url(#gold)" stroke-width="4"/>
+<g transform="translate(0 0)">
+ <path d="M0 1240H200L210 1536H0Z" fill="#ded0b6"/><path d="M0 1240H200L210 1270H0Z" fill="url(#gold)"/>
+ <g transform="translate(8 1300)"><rect width="178" height="38" rx="5" fill="#17151a" stroke="url(#gold)" stroke-width="3"/><path d="M10 8H168M10 30H168" stroke="#d3ad61" stroke-width="2"/><text x="89" y="25" text-anchor="middle" fill="#f1d08b" font-size="19" font-family="Georgia">ZEREOS</text><rect y="42" width="190" height="38" rx="5" fill="#2c2119" stroke="url(#gold)" stroke-width="3"/><path d="M10 50H180M10 72H180" stroke="#d3ad61" stroke-width="2"/><rect x="5" y="84" width="196" height="42" rx="5" fill="#efe0c5" stroke="#b18b4e" stroke-width="3"/><path d="M15 94H190M15 116H190" stroke="#b18b4e" stroke-width="2"/></g>
+ <path d="M650 1536V1370Q650 1340 682 1328L710 1318L740 1330Q774 1348 780 1382V1536Z" fill="url(#column)" stroke="#b18b4e" stroke-width="3"/>
+ <ellipse cx="715" cy="1322" rx="56" ry="66" fill="url(#column)" stroke="#b18b4e" stroke-width="3"/><path d="M660 1305Q672 1254 715 1250Q760 1254 772 1305L760 1335L744 1318L729 1333L715 1319L700 1333L685 1318L670 1335Z" fill="#eee0c7" stroke="#a88657" stroke-width="3"/>
+ <path d="M675 1305Q684 1268 714 1266Q745 1268 755 1305" fill="none" stroke="#a88657" stroke-width="5"/><path d="M682 1293l17-15 15 8 15-8 17 15" fill="none" stroke="#a88657" stroke-width="4"/>
+ <path d="M646 1440H812V1462H646ZM632 1492H830V1516H632Z" fill="url(#gold)" stroke="#a88657" stroke-width="3"/>
+</g>
+<path d="M0 1502H864V1536H0Z" fill="url(#marble)"/><path d="M0 1502H864" stroke="url(#gold)" stroke-width="5"/>
+</svg>
