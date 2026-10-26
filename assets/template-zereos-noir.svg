@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="864" height="1536" viewBox="0 0 864 1536">
+<defs>
+ <linearGradient id="black" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#19120c"/><stop offset=".5" stop-color="#080807"/><stop offset="1" stop-color="#21150b"/></linearGradient>
+ <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff0bd"/><stop offset=".25" stop-color="#a96d1e"/><stop offset=".55" stop-color="#ffd979"/><stop offset="1" stop-color="#4e2c0c"/></linearGradient>
+ <linearGradient id="column" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#130e09"/><stop offset=".18" stop-color="#6e481d"/><stop offset=".4" stop-color="#21170c"/><stop offset=".72" stop-color="#080807"/><stop offset="1" stop-color="#b0782a"/></linearGradient>
+ <linearGradient id="banner" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#080808"/><stop offset=".5" stop-color="#17100a"/><stop offset="1" stop-color="#050505"/></linearGradient>
+ <radialGradient id="medal"><stop stop-color="#38230e"/><stop offset=".72" stop-color="#090909"/><stop offset="1" stop-color="#d6a348"/></radialGradient>
+ <filter id="glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="16"/></filter>
+ <filter id="texture"><feTurbulence type="fractalNoise" baseFrequency=".62" numOctaves="3" seed="17"/><feColorMatrix values=".12 0 0 0 .25 .12 0 0 0 .17 .12 0 0 0 .08 0 0 0 .23 0"/></filter>
+ <g id="column"><rect x="0" y="0" width="48" height="650" rx="5" fill="url(#column)" stroke="url(#gold)" stroke-width="3"/><path d="M4 0V650M12 0V650M37 0V650M44 0V650" stroke="#d39b3d" stroke-width="2" opacity=".5"/><path d="M-8 0H56L48 20H0Z" fill="url(#gold)" stroke="#9b681e" stroke-width="2"/><path d="M-14 20H62V34H-14Z" fill="url(#column)" stroke="url(#gold)" stroke-width="2"/><path d="M-10 635H58V655H-10Z" fill="url(#gold)" stroke="#a26b20" stroke-width="2"/></g>
+</defs>
+<rect width="864" height="1536" fill="url(#black)"/>
+<rect width="864" height="1536" filter="url(#texture)" opacity=".52"/>
+<radialGradient id="fire"><stop stop-color="#f9a52b" stop-opacity=".68"/><stop offset="1" stop-color="#f05a12" stop-opacity="0"/></radialGradient>
+<ellipse cx="432" cy="70" rx="470" ry="300" fill="url(#fire)" opacity=".72"/>
+<path d="M0 0H864V190L790 240H74L0 190Z" fill="#120d08" stroke="url(#gold)" stroke-width="3"/>
+<g><use href="#column" x="18" y="12"/><use href="#column" x="798" y="12"/></g>
+<g fill="url(#gold)" stroke="#5e390e" stroke-width="2"><path d="M0 0H190L176 22H0ZM674 0H864V22H688Z"/><path d="M0 44H150L142 58H0ZM714 44H864V58H722Z"/></g>
+<g>
+ <path d="M52 54H158V342L105 400L52 342Z" fill="url(#banner)" stroke="url(#gold)" stroke-width="4"/>
+ <path d="M63 65H147V337L105 380L63 337Z" fill="none" stroke="#dcae4e" stroke-width="1.5"/>
+ <text x="105" y="127" fill="#f4c76a" font-size="48" font-family="Georgia" text-anchor="middle">Z</text><path d="M84 145Q105 118 126 145M85 151l-12 19m12-7l-11 16m47-28l12 19m-12-7l11 16" stroke="#d8a847" fill="none" stroke-width="2"/>
+ <text x="105" y="215" fill="#f3c46a" font-size="22" font-family="serif" text-anchor="middle">فكر</text><text x="105" y="250" fill="#f3c46a" font-size="22" font-family="serif" text-anchor="middle">تعلم</text><text x="105" y="285" fill="#f3c46a" font-size="22" font-family="serif" text-anchor="middle">تطور</text>
+ <path d="M52 342L105 400L158 342" fill="none" stroke="url(#gold)" stroke-width="4"/>
+ <path d="M706 54H812V342L759 400L706 342Z" fill="url(#banner)" stroke="url(#gold)" stroke-width="4"/><path d="M717 65H801V337L759 380L717 337Z" fill="none" stroke="#dcae4e" stroke-width="1.5"/>
+ <text x="759" y="127" fill="#f4c76a" font-size="48" font-family="Georgia" text-anchor="middle">Z</text><path d="M738 145Q759 118 780 145M739 151l-12 19m12-7l-11 16m47-28l12 19m-12-7l11 16" stroke="#d8a847" fill="none" stroke-width="2"/>
+ <text x="759" y="215" fill="#f3c46a" font-size="22" font-family="serif" text-anchor="middle">حكمة</text><text x="759" y="250" fill="#f3c46a" font-size="22" font-family="serif" text-anchor="middle">تجربة</text><text x="759" y="285" fill="#f3c46a" font-size="22" font-family="serif" text-anchor="middle">نتيجة</text><path d="M706 342L759 400L812 342" fill="none" stroke="url(#gold)" stroke-width="4"/>
+</g>
+<circle cx="432" cy="170" r="116" fill="#f9a52b" opacity=".25" filter="url(#glow)"/>
+<circle cx="432" cy="170" r="100" fill="url(#medal)" stroke="url(#gold)" stroke-width="5"/>
+<circle cx="432" cy="170" r="87" fill="none" stroke="#e2b45c" stroke-width="1.5"/>
+<g transform="translate(432 160)" stroke="url(#gold)" fill="none" stroke-width="3"><path d="M-52 40Q-98 0-55-53Q-58-15-37-3Q-57-28-25-66Q-31-22 0-4Q31-22 25-66Q57-28 37-3Q58-15 55-53Q98 0 52 40"/><path d="M-43 40Q-15 61 0 54Q15 61 43 40"/></g>
+<path d="M399 85L408 65L421 80L432 52L443 80L456 65L465 85L457 95H407Z" fill="url(#gold)"/>
+<text x="432" y="187" text-anchor="middle" fill="#f8d88f" font-family="Georgia,serif" font-size="96" font-weight="bold">Z</text>
+<text x="432" y="230" text-anchor="middle" fill="#f4c76a" font-family="Georgia,serif" font-size="27" letter-spacing="3">ZEREOS</text>
+<text x="432" y="257" text-anchor="middle" fill="#f4c76a" font-family="serif" font-size="23">حكم زيريوس</text>
+<path d="M150 292H714M150 300H714" stroke="url(#gold)" stroke-width="2"/><path d="M150 292l14-8v16zM714 292l-14-8v16z" fill="url(#gold)"/>
+<rect x="114" y="320" width="636" height="1092" rx="6" fill="none" stroke="url(#gold)" stroke-width="3"/>
+<rect x="126" y="332" width="612" height="1068" rx="5" fill="none" stroke="#8c5b1e" stroke-width="1.5"/>
+<g opacity=".28" fill="none" stroke="#a46a21" stroke-width="2"><path d="M126 350h70v42h-42v-20h22v-10h-50M738 350h-70v42h42v-20h-22v-10h50M126 1380h70v-42h-42v20h22v10h-50M738 1380h-70v-42h42v20h-22v10h50"/></g>
+<g opacity=".15" transform="translate(432 830)"><circle r="120" fill="none" stroke="#b98737" stroke-width="3"/><circle r="105" fill="none" stroke="#b98737" stroke-width="2"/><path d="M-65 45Q-110 0-50-65Q-65-20 0-10Q65-20 50-65Q110 0 65 45" fill="none" stroke="#b98737" stroke-width="8"/><text y="30" text-anchor="middle" fill="#b98737" font-family="Georgia" font-size="140">Z</text></g>
+<path d="M120 1415H744" stroke="url(#gold)" stroke-width="2"/><path d="M432 1402l15 13-15 13-15-13z" fill="none" stroke="url(#gold)" stroke-width="4"/>
+<g>
+ <path d="M0 1240H200L210 1536H0Z" fill="#110d09"/><path d="M0 1240H200L210 1270H0Z" fill="url(#gold)"/>
+ <g transform="translate(8 1300)"><rect width="178" height="38" rx="5" fill="#080808" stroke="url(#gold)" stroke-width="3"/><path d="M10 8H168M10 30H168" stroke="#d3a34b" stroke-width="2"/><text x="89" y="25" text-anchor="middle" fill="#f1ca72" font-size="19" font-family="Georgia">ZEREOS</text><rect y="42" width="190" height="38" rx="5" fill="#25170b" stroke="url(#gold)" stroke-width="3"/><path d="M10 50H180M10 72H180" stroke="#d3a34b" stroke-width="2"/><rect x="5" y="84" width="196" height="42" rx="5" fill="#15100b" stroke="#b18b4e" stroke-width="3"/><path d="M15 94H190M15 116H190" stroke="#b18b4e" stroke-width="2"/></g>
+ <path d="M650 1536V1370Q650 1340 682 1328L710 1318L740 1330Q774 1348 780 1382V1536Z" fill="url(#column)" stroke="url(#gold)" stroke-width="3"/>
+ <ellipse cx="715" cy="1322" rx="56" ry="66" fill="url(#column)" stroke="url(#gold)" stroke-width="3"/><path d="M660 1305Q672 1254 715 1250Q760 1254 772 1305L760 1335L744 1318L729 1333L715 1319L700 1333L685 1318L670 1335Z" fill="#3c2a17" stroke="#a47a36" stroke-width="3"/>
+ <path d="M675 1305Q684 1268 714 1266Q745 1268 755 1305" fill="none" stroke="#a88657" stroke-width="5"/><path d="M682 1293l17-15 15 8 15-8 17 15" fill="none" stroke="#a88657" stroke-width="4"/>
+ <path d="M646 1440H812V1462H646ZM632 1492H830V1516H632Z" fill="url(#gold)" stroke="#a88657" stroke-width="3"/>
+</g>
+<path d="M0 1502H864V1536H0Z" fill="#090807"/><path d="M0 1502H864" stroke="url(#gold)" stroke-width="5"/>
+</svg>
