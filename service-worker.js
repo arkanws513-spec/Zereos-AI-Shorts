@@ -1,7 +1,7 @@
 /* ZEREOS app shell cache. Large model/WASM assets are intentionally not precached. */
 'use strict';
 
-const CACHE_NAME = 'zereos-shell-v7';
+const CACHE_NAME = 'zereos-shell-v8';
 const BASE_URL = new URL('./', self.location.href);
 const SHELL_URLS = [
   BASE_URL.href,
@@ -19,7 +19,17 @@ const SHELL_URLS = [
   new URL('manifest.webmanifest', BASE_URL).href,
   new URL('assets/zereos-icon.svg', BASE_URL).href,
   new URL('assets/template-zereos-ivory.svg', BASE_URL).href,
-  new URL('assets/template-zereos-noir.svg', BASE_URL).href
+  new URL('assets/template-zereos-noir.svg', BASE_URL).href,
+  new URL('assets/template-zereos-royal.svg', BASE_URL).href,
+  new URL('assets/template-zereos-nebula.svg', BASE_URL).href,
+  new URL('assets/template-zereos-cyber.svg', BASE_URL).href,
+  new URL('assets/template-zereos-ember.svg', BASE_URL).href,
+  new URL('assets/template-zereos-ocean.svg', BASE_URL).href,
+  new URL('assets/template-zereos-emerald.svg', BASE_URL).href,
+  new URL('assets/template-zereos-manuscript.svg', BASE_URL).href,
+  new URL('assets/template-zereos-minimal.svg', BASE_URL).href,
+  new URL('assets/template-zereos-aurora.svg', BASE_URL).href,
+  new URL('assets/template-zereos-crystal.svg', BASE_URL).href
 ];
 
 self.addEventListener('install', event => {
