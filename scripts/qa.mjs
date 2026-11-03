@@ -83,7 +83,7 @@ if (html) {
 
 if (videoStudioHtml && videoStudioJs) {
   for (const id of ['vsVideoFile','vsAudioFile','vsVideo','vsNarration','vsExportBtn','vsStatus','vsProgressBar']) {
-    if (!new RegExp('id=["\\']' + id + '["\\']').test(videoStudioHtml)) fail('Video Studio is missing required control: ' + id);
+    if (!videoStudioHtml.includes('id="' + id + '"') && !videoStudioHtml.includes("id='" + id + "'")) fail('Video Studio is missing required control: ' + id);
   }
   if (!videoStudioHtml.includes('src="./video-studio.js"')) fail('Video Studio page does not load its controller.');
   if (!videoStudioJs.includes('await waitForVideoMetadata()')) fail('Video export must wait for valid video metadata before recording.');
@@ -314,7 +314,7 @@ if (html) {
   ]) {
     if (!source.includes(feature)) fail('Cinematic studio regression: missing expected feature or persistence hook: ' + feature);
   }
-  if (!serviceWorker.includes("const CACHE_NAME = 'zereos-shell-v8'") ||
+  if (!serviceWorker.includes("const CACHE_NAME = 'zereos-shell-v9'") ||
       !serviceWorker.includes("new URL('avatar-studio.js', BASE_URL).href") ||
       !serviceWorker.includes("new URL('app.js', BASE_URL).href") ||
       !serviceWorker.includes("new URL('audio-workflows.js', BASE_URL).href") ||
