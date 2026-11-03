@@ -288,6 +288,8 @@ await streamQueue;
 if(streamFailure)throw Error('تعذر نقل أجزاء الفيديو إلى ملف التنزيل: '+(streamFailure.message||String(streamFailure)));
 streamDownload.port.postMessage({type:'finish'});
 streamFinished=true;
+const mime=recorder.mimeType||selectedMime||'video/webm';
+const extension=mime.toLowerCase().includes('mp4')?'mp4':'webm';
 drawFrame(0);
 $('status').textContent='اكتمل إنشاء الفيديو ('+Math.round(duration/1000)+' ثانية) بصيغة '+extension.toUpperCase()+' · جودة '+({'mobile':'خفيف','standard':'قياسي','high':'مرتفعة'}[$('exportProfile')?.value||'standard'])+'. جرّب تشغيل الملف من المعرض قبل مشاركته.';
 }catch(err){
