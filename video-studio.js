@@ -18,8 +18,26 @@ function ensureAudioGraph(){
  updateGains();
  return audioContext;
 }
-videoInput.addEventListener('change',()=>{const file=videoInput.files?.[0];if(!file)return;if(!file.size){status('ملف الفيديو فارغ أو لم يكتمل اختياره من الهاتف.');return}if(file.type&&!file.type.startsWith('video/')&&file.type!=='application/octet-stream'){status('الملف المختار ليس بصيغة فيديو. اختر فيديو من المعرض.');return}release(videoUrl);videoUrl=URL.createObjectURL(file);video.pause();video.src=videoUrl;video.load();$('vsVideoInfo').textContent=file.name+' · '+(file.size/1048576).toFixed(1)+' MB';$('vsVideoTrackLabel').textContent=file.name;status('تم استيراد الملف من الهاتف. جارٍ فحص إمكانية تشغيله…');ready()});
-audioInput.addEventListener('change',()=>{const file=audioInput.files?.[0];if(!file)return;if(!file.size){status('ملف الصوت فارغ أو لم يكتمل اختياره من الهاتف.');return}if(file.type&&!file.type.startsWith('audio/')&&file.type!=='application/octet-stream'){status('الملف المختار ليس ملفًا صوتيًا. اختر MP3 أو M4A أو WAV أو OGG.');return}release(audioUrl);audioUrl=URL.createObjectURL(file);audio.pause();audio.src=audioUrl;audio.load();$('vsAudioInfo').textContent=file.name+' · '+(file.size/1048576).toFixed(1)+' MB';$('vsAudioTrackLabel').textContent=file.name;status('تم استيراد الصوت من الهاتف. جارٍ فحص الملف…');ready()});
+function inferMediaType(file,kind){
+ const ext=(file.name.split('.').pop()||'').toLowerCase();
+ const types=kind==='video'?{mp4:'video/mp4',m4v:'video/mp4',mov:'video/quicktime',webm:'video/webm',ogv:'video/ogg',ogg:'video/ogg','3gp':'video/3gpp',mkv:'video/x-matroska'}:{wav:'audio/wav',wave:'audio/wav',mp3:'audio/mpeg',m4a:'audio/mp4',aac:'audio/aac',ogg:'audio/ogg',opus:'audio/ogg',flac:'audio/flac'};
+ const detected=types[ext]||'';
+ const supplied=(file.type||'').toLowerCase();
+ return supplied&&supplied!=='application/octet-stream'&&supplied!=='binary/octet-stream'?supplied:detected||(kind==='video'?'video/mp4':'audio/mpeg');
+}
+function prepareMediaFile(file,kind){
+ const type=inferMediaType(file,kind);
+ return file.type===type?file:new Blob([file],{type});
+}
+function mediaError(el,file,kind){
+ const code=el.error?.code||0, supplied=file?.type||'غير محدد';
+ const reasons={1:'تم إيقاف قراءة الملف قبل اكتمالها.',2:'تعذر قراءة الملف من ذاكرة الهاتف.',3:'المتصفح فشل في فك ترميز بيانات الوسائط.',4:'صيغة الحاوية أو ترميز الملف غير مدعوم.'};
+ const detail=reasons[code]||'تعذر تشغيل الملف.';
+ if(code===4&&kind==='video')return detail+' إذا كان MP4 بترميز HEVC/H.265، حوّله إلى H.264/AVC ثم أعد استيراده. نوع الملف: '+inferMediaType(file,'video')+'؛ النوع الأصلي: '+supplied+'.';
+ return detail+' رمز الخطأ: '+code+'؛ نوع الملف: '+supplied+'.';
+}
+videoInput.addEventListener('change',()=>{const file=videoInput.files?.[0];if(!file)return;if(!file.size){status('ملف الفيديو فارغ أو لم يكتمل اختياره من الهاتف.');return}if(file.type&&!file.type.startsWith('video/')&&!['application/octet-stream','binary/octet-stream'].includes(file.type)){status('الملف المختار ليس بصيغة فيديو. اختر فيديو من المعرض.');return}release(videoUrl);videoUrl=URL.createObjectURL(prepareMediaFile(file,'video'));video.pause();video.preload='auto';video.src=videoUrl;video.load();$('vsVideoInfo').textContent=file.name+' · '+(file.size/1048576).toFixed(1)+' MB';$('vsVideoTrackLabel').textContent=file.name;status('تم استيراد الفيديو وفحص نوعه. جارٍ تحميل أول إطار…');ready()});
+audioInput.addEventListener('change',()=>{const file=audioInput.files?.[0];if(!file)return;if(!file.size){status('ملف الصوت فارغ أو لم يكتمل اختياره من الهاتف.');return}if(file.type&&!file.type.startsWith('audio/')&&!['application/octet-stream','binary/octet-stream'].includes(file.type)){status('الملف المختار ليس ملفًا صوتيًا. اختر MP3 أو M4A أو WAV أو OGG.');return}release(audioUrl);audioUrl=URL.createObjectURL(prepareMediaFile(file,'audio'));audio.pause();audio.preload='auto';audio.src=audioUrl;audio.load();$('vsAudioInfo').textContent=file.name+' · '+(file.size/1048576).toFixed(1)+' MB';$('vsAudioTrackLabel').textContent=file.name;status('تم استيراد الصوت مع ضبط نوع الملف تلقائيًا.');ready()});
 $('vsOffset').addEventListener('input',syncUI);
 $('vsAudioVolume').addEventListener('input',e=>{$('vsVolumeValue').textContent=Math.round(+e.target.value*100)+'%';if(narrationGain)narrationGain.gain.value=audioUrl?+e.target.value:0;else audio.volume=+e.target.value});
 $('vsVideoVolume').addEventListener('input',e=>{$('vsVideoVolumeValue').textContent=Math.round(+e.target.value*100)+'%';if(videoGain)videoGain.gain.value=+e.target.value;else video.volume=+e.target.value});
@@ -29,8 +47,8 @@ async function stopPreview(){video.onended=null;video.pause();audio.pause();try{
 $('vsPreviewBtn').addEventListener('click',async()=>{if(!videoUrl)return;await stopPreview();updateGains();const offset=+$('vsOffset').value;try{if(audioContext)await audioContext.resume();await video.play();if(audioUrl){audio.currentTime=0;if(offset===0)await audio.play();else setTimeout(()=>{if(!video.paused&&audioUrl)audio.play().catch(()=>{})},offset*1000)}$('vsStopBtn').disabled=false;$('vsPreviewBtn').disabled=true;video.onended=stopPreview;audio.onended=()=>{status('انتهى التعليق الصوتي؛ يستمر الفيديو بصوته الأصلي حتى نهاية المقطع.')};status('المعاينة تعمل.');}catch(err){status('تعذر تشغيل المعاينة: '+err.message)}});
 $('vsStopBtn').addEventListener('click',stopPreview);
 video.addEventListener('loadedmetadata',()=>{$('vsDuration').textContent=time(video.duration);$('vsVideoTrackLabel').textContent=$('vsVideoTrackLabel').textContent.split(' · ')[0]+' · '+time(video.duration);status('الفيديو جاهز. يمكنك إضافة صوت أو بدء المعاينة والتصدير.');ready()});
-video.addEventListener('error',()=>{if(videoUrl)status('تعذر تشغيل ملف الفيديو على هذا المتصفح. جرّب MP4 بترميز H.264 أو WebM.');});
-audio.addEventListener('error',()=>{if(audioUrl)status('تعذر قراءة ملف الصوت. جرّب MP3 أو M4A أو WAV.');});
+video.addEventListener('error',()=>{if(videoUrl)status('تعذر تشغيل الفيديو: '+mediaError(video,videoInput.files?.[0],'video'));});
+audio.addEventListener('error',()=>{if(audioUrl)status('تعذر قراءة الصوت: '+mediaError(audio,audioInput.files?.[0],'audio'));});
 async function waitForVideoMetadata(){
  if(video.readyState>=1&&Number.isFinite(video.duration)&&video.duration>0&&video.videoWidth>0&&video.videoHeight>0)return;
  await new Promise((resolve,reject)=>{
@@ -41,6 +59,18 @@ async function waitForVideoMetadata(){
   const onError=()=>{if(settled)return;settled=true;cleanup();reject(Error('تعذر قراءة الفيديو. جرّب ملف MP4 أو WebM سليمًا.'))};
   const timer=setTimeout(()=>{if(settled)return;settled=true;cleanup();reject(Error('استغرق تحميل بيانات الفيديو وقتًا طويلًا. انتظر ظهور مدة الفيديو ثم أعد التصدير.'))},15000);
   video.addEventListener('loadedmetadata',check);video.addEventListener('error',onError);check();
+ });
+}
+async function waitForVideoFrame(){
+ if(video.readyState>=2&&video.videoWidth>0&&video.videoHeight>0)return;
+ await new Promise((resolve,reject)=>{
+  let settled=false;
+  const cleanup=()=>{clearTimeout(timer);video.removeEventListener('loadeddata',check);video.removeEventListener('canplay',check);video.removeEventListener('error',onError)};
+  const finish=()=>{if(settled)return;settled=true;cleanup();resolve()};
+  const check=()=>{if(video.readyState>=2&&video.videoWidth>0&&video.videoHeight>0)finish()};
+  const onError=()=>{if(settled)return;settled=true;cleanup();reject(Error('فشل فك ترميز الفيديو قبل التصدير: '+mediaError(video,videoInput.files?.[0],'video')))};
+  const timer=setTimeout(()=>{if(settled)return;settled=true;cleanup();reject(Error('لم يستطع المتصفح تحميل إطار الفيديو الأول. قد يكون ترميز الملف غير مدعوم على هذا الهاتف.'))},12000);
+  video.addEventListener('loadeddata',check);video.addEventListener('canplay',check);video.addEventListener('error',onError);check();
  });
 }
 async function exportVideo(){
@@ -56,6 +86,7 @@ async function exportVideo(){
   video.onended=null;
   $('vsProgressLabel').textContent='جارٍ تحميل بيانات الفيديو…';
   await waitForVideoMetadata();
+  await waitForVideoFrame();
   const ac=ensureAudioGraph();await ac.resume();
   if(ac.state!=='running')throw Error('تعذر تشغيل الصوت في المتصفح. اضغط تصدير مرة أخرى.');
   video.currentTime=0;audio.currentTime=0;updateGains();

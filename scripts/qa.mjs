@@ -88,7 +88,8 @@ if (videoStudioHtml && videoStudioJs) {
   if (!videoStudioHtml.includes('src="./video-studio.js"')) fail('Video Studio page does not load its controller.');
   if (!videoStudioJs.includes('await waitForVideoMetadata()')) fail('Video export must wait for valid video metadata before recording.');
   if (!videoStudioJs.includes('video.onended=null;') || !videoStudioJs.includes('video.currentTime>=duration-.2')) fail('Video export must clear preview end handlers and detect the actual end of playback without relying only on the ended event.');
-  if (!videoStudioJs.includes("file.type!=='application/octet-stream'") || !videoStudioJs.includes('if(!file.size)')) fail('Phone media import must accept generic Android MIME types while rejecting empty files.');
+  if (!videoStudioJs.includes('function inferMediaType(file,kind)') || !videoStudioJs.includes('new Blob([file],{type})') || !videoStudioJs.includes('if(!file.size)')) fail('Phone media import must normalize generic Android MIME types while rejecting empty files.');
+  if (!videoStudioJs.includes('async function waitForVideoFrame()') || !videoStudioJs.includes("mediaError(video,videoInput.files?.[0],'video')")) fail('Video import must verify a decodable first frame and report media error details.');
   if (!videoStudioJs.includes('if(!narrationSource){narrationSource=audioContext.createMediaElementSource(audio)')) fail('Narration MediaElementSource must be created once and reused after audio removal.');
   if (videoStudioJs.includes('narrationSource=null;narrationGain=null')) fail('Clearing narration must not discard the reusable MediaElementSource node.');
   if (!videoStudioJs.includes('توقف تشغيل الفيديو قبل نهايته')) fail('Video export must have a bounded wait and a useful playback-stall error.');
@@ -322,7 +323,7 @@ if (html) {
   ]) {
     if (!source.includes(feature)) fail('Cinematic studio regression: missing expected feature or persistence hook: ' + feature);
   }
-  if (!serviceWorker.includes("const CACHE_NAME = 'zereos-shell-v11'") ||
+  if (!serviceWorker.includes("const CACHE_NAME = 'zereos-shell-v12'") ||
       !serviceWorker.includes("new URL('avatar-studio.js', BASE_URL).href") ||
       !serviceWorker.includes("new URL('app.js', BASE_URL).href") ||
       !serviceWorker.includes("new URL('audio-workflows.js', BASE_URL).href") ||
