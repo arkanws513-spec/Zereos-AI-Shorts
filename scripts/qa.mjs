@@ -87,11 +87,14 @@ if (videoStudioHtml && videoStudioJs) {
   }
   if (!videoStudioHtml.includes('src="./video-studio.js"')) fail('Video Studio page does not load its controller.');
   if (!videoStudioJs.includes('await waitForVideoMetadata()')) fail('Video export must wait for valid video metadata before recording.');
+  if (!videoStudioJs.includes('video.onended=null;') || !videoStudioJs.includes('video.currentTime>=duration-.2')) fail('Video export must clear preview end handlers and detect the actual end of playback without relying only on the ended event.');
+  if (!videoStudioJs.includes("file.type!=='application/octet-stream'") || !videoStudioJs.includes('if(!file.size)')) fail('Phone media import must accept generic Android MIME types while rejecting empty files.');
   if (!videoStudioJs.includes('if(!narrationSource){narrationSource=audioContext.createMediaElementSource(audio)')) fail('Narration MediaElementSource must be created once and reused after audio removal.');
   if (videoStudioJs.includes('narrationSource=null;narrationGain=null')) fail('Clearing narration must not discard the reusable MediaElementSource node.');
-  if (!videoStudioJs.includes('انتهت مهلة انتظار نهاية الفيديو')) fail('Video export must have a bounded wait for the video ended event.');
+  if (!videoStudioJs.includes('توقف تشغيل الفيديو قبل نهايته')) fail('Video export must have a bounded wait and a useful playback-stall error.');
   if (!videoStudioJs.includes('beginStreamDownload(mime)') || videoStudioJs.includes('new Blob(chunks')) fail('Video export must stream chunks directly to the download instead of buffering the complete movie in RAM.');
   if (!serviceWorker.includes('ZEREOS_STREAM_START') || !serviceWorker.includes('new ReadableStream') || !serviceWorker.includes('event.waitUntil(keepAlive)')) fail('Service worker streaming download endpoint is incomplete.');
+  if (!serviceWorker.includes('Keep the completed stream addressable until the browser') || !serviceWorker.includes('zereosStreams.delete(streamMatch[1])')) fail('Completed video streams must remain available until the browser starts fetching the download.');
   for (const safeguard of ['const maxEdge=mobile?720:1280,fps=mobile?20:24;', 'canvas.captureStream(fps)', 'videoBitsPerSecond:quality', "navigator.wakeLock?.request('screen')", 'await wakeLock?.release()']) {
     if (!videoStudioJs.includes(safeguard)) fail('Mobile video export safeguard is missing: ' + safeguard);
   }
@@ -249,7 +252,7 @@ if (html) {
   if (mp4Candidate < 0 || webmFallback < 0 || mp4Candidate > webmFallback) {
     fail('Exporter should try supported MP4 candidates before WebM fallback candidates.');
   }
-  if (!source.includes("const isMp4=mime.toLowerCase().includes('mp4'),extension=isMp4?'mp4':'webm'")) {
+  if (!videoStudioJs.includes("const filename='zereos-gameplay-'+Date.now()+'.'+(mime.toLowerCase().includes('mp4')?'mp4':'webm')")) {
     fail('Export file extension should match the recorder MIME type.');
   }
 
