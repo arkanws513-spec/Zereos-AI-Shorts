@@ -53,21 +53,14 @@ async function exportVideo(){
   let lastError=null;
   const recorderOptions=candidate=>({mimeType:candidate,videoBitsPerSecond:quality,audioBitsPerSecond:128000});
   for(const candidate of candidates){
-   let trial=null;
    try{
     if(MediaRecorder.isTypeSupported&&!MediaRecorder.isTypeSupported(candidate))continue;
-    trial=new MediaRecorder(output,recorderOptions(candidate));
-    await new Promise((resolve,reject)=>{
-     trial.onstart=()=>{try{trial.stop()}catch(err){reject(err)}};
-     trial.onstop=resolve;
-     trial.onerror=e=>reject(e.error||Error('فشل اختبار صيغة التسجيل'));
-     trial.start(1000);
-    });
-    mime=trial.mimeType||candidate;break;
-   }catch(err){lastError=err;try{if(trial&&trial.state!=='inactive')trial.stop()}catch{}}
+    recorder=new MediaRecorder(output,recorderOptions(candidate));
+    mime=recorder.mimeType||candidate;
+    break;
+   }catch(err){lastError=err;recorder=null}
   }
-  if(!mime)throw Error('لم يقبل المتصفح أي صيغة تصدير متاحة: '+(lastError?.message||'صيغة غير مدعومة'));
-  try{recorder=new MediaRecorder(output,{mimeType:mime,videoBitsPerSecond:quality,audioBitsPerSecond:128000})}catch(err){throw Error('المتصفح رفض إعداد الترميز: '+(err.message||lastError?.message||'صيغة غير مدعومة'))}
+  if(!recorder)throw Error('لم يقبل المتصفح أي صيغة تصدير متاحة: '+(lastError?.message||'صيغة غير مدعومة'));
   mime=recorder.mimeType||mime||'video/webm';
   chunks=[];
   doneRecording=new Promise((resolve,reject)=>{resolveRecording=resolve;rejectRecording=reject});
@@ -87,7 +80,14 @@ async function exportVideo(){
    if(!video.ended&&elapsed<duration+.5)localRaf=requestAnimationFrame(paint);
   };
   localRaf=requestAnimationFrame(paint);
-  await new Promise(resolve=>{if(video.ended){resolve();return}video.addEventListener('ended',resolve,{once:true})});
+  await new Promise((resolve,reject)=>{
+   if(video.ended){resolve();return}
+   let settled=false;
+   const finish=()=>{if(settled)return;settled=true;clearTimeout(endTimer);video.removeEventListener('ended',onEnded);resolve()};
+   const onEnded=()=>finish();
+   const endTimer=setTimeout(()=>{if(video.ended||video.currentTime>=duration-.25)finish();else{if(settled)return;settled=true;video.removeEventListener('ended',onEnded);reject(Error('انتهت مهلة انتظار نهاية الفيديو؛ تحقق من سلامة ملف الفيديو ثم أعد المحاولة.'))}},Math.max(15000,(duration+15)*1000));
+   video.addEventListener('ended',onEnded,{once:true});
+  });
   if(localRaf)cancelAnimationFrame(localRaf);recording=false;clearTimeout(offsetTimer);audio.pause();
   if(recorder.state!=='inactive')recorder.stop();await doneRecording;
   const actualMime=recorder.mimeType||chunks.find(c=>c.type)?.type||mime||'video/webm';
