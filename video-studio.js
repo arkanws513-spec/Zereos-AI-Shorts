@@ -1,7 +1,7 @@
 (()=>{'use strict';
 const $=id=>document.getElementById(id);
 const video=$('vsVideo'),audio=$('vsNarration'),videoInput=$('vsVideoFile'),audioInput=$('vsAudioFile');
-let videoUrl=null,audioUrl=null,recording=false,recorder=null,raf=0,startedAt=0;
+let videoUrl=null,audioUrl=null,recording=false,recorder=null,raf=0,startedAt=0,wakeLock=null;
 let audioContext=null,videoSource=null,narrationSource=null,videoGain=null,narrationGain=null,recordingDestination=null;
 const status=msg=>{$('vsStatus').textContent=msg};
 const time=s=>{s=Math.max(0,Number(s)||0);return String(Math.floor(s/60)).padStart(2,'0')+':'+String(Math.floor(s%60)).padStart(2,'0')};
@@ -54,19 +54,25 @@ async function exportVideo(){
   const ac=ensureAudioGraph();await ac.resume();
   if(ac.state!=='running')throw Error('تعذر تشغيل الصوت في المتصفح. اضغط تصدير مرة أخرى.');
   video.currentTime=0;audio.currentTime=0;updateGains();
-  const sourceW=video.videoWidth||720,sourceH=video.videoHeight||1280,scale=Math.min(1,1920/Math.max(sourceW,sourceH));
+  const sourceW=video.videoWidth||720,sourceH=video.videoHeight||1280;
+  // Keep memory use predictable on phones: the original implementation could
+  // allocate a 1080p/30fps canvas and retain a large recording in RAM.
+  const mobile=matchMedia('(max-width: 760px)').matches||(Number(navigator.deviceMemory)>0&&Number(navigator.deviceMemory)<=4);
+  const maxEdge=mobile?720:1280,fps=mobile?20:24;
+  const scale=Math.min(1,maxEdge/Math.max(sourceW,sourceH));
   canvas=document.createElement('canvas');canvas.width=Math.max(2,Math.round(sourceW*scale/2)*2);canvas.height=Math.max(2,Math.round(sourceH*scale/2)*2);
   const ctx=canvas.getContext('2d',{alpha:false});if(!ctx)throw Error('تعذر إنشاء مساحة رسم الفيديو.');
   ctx.drawImage(video,0,0,canvas.width,canvas.height);
-  canvasStream=canvas.captureStream(30);
+  canvasStream=canvas.captureStream(fps);
   const audioTrack=recordingDestination.stream.getAudioTracks().find(t=>t.readyState==='live');
   const videoTrack=canvasStream.getVideoTracks().find(t=>t.readyState==='live');
   if(!audioTrack||!videoTrack)throw Error('تعذر تجهيز مسارات الصوت أو الفيديو.');
   const output=new MediaStream([videoTrack,audioTrack]);
-  const quality=({compact:2000000,standard:4000000,high:8000000})[$('vsQuality').value]||4000000;
+  const qualityMap=mobile?{compact:900000,standard:1400000,high:1800000}:{compact:1800000,standard:3000000,high:4500000};
+  const quality=qualityMap[$('vsQuality').value]||qualityMap.standard;
   const candidates=['video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4','video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'];
   let lastError=null;
-  const recorderOptions=candidate=>({mimeType:candidate,videoBitsPerSecond:quality,audioBitsPerSecond:128000});
+  const recorderOptions=candidate=>({mimeType:candidate,videoBitsPerSecond:quality,audioBitsPerSecond:mobile?96000:128000});
   for(const candidate of candidates){
    try{
     if(MediaRecorder.isTypeSupported&&!MediaRecorder.isTypeSupported(candidate))continue;
@@ -85,14 +91,16 @@ async function exportVideo(){
   const duration=Number(video.duration);
   if(!Number.isFinite(duration)||duration<=0)throw Error('مدة الفيديو غير صالحة؛ تعذر بدء التصدير.');
   startedAt=performance.now();startTime=startedAt;
-  recorder.start(1000);
+  // Prevent Android from suspending the export when the screen dims.
+  try{wakeLock=await navigator.wakeLock?.request('screen')}catch(_){}
+  recorder.start(2000);
   await video.play();
   if(audioUrl){audio.currentTime=0;if(+ $('vsOffset').value<=0){await audio.play()}else offsetTimer=setTimeout(()=>{if(recording&&!video.paused)audio.play().catch(()=>{})},+$('vsOffset').value*1000)}
   $('vsStopBtn').disabled=true;$('vsPreviewBtn').disabled=true;
   const paint=now=>{
    if(!recording)return;
    try{if(video.readyState>=2)ctx.drawImage(video,0,0,canvas.width,canvas.height)}catch(err){console.warn('Frame capture skipped',err)}
-   const elapsed=(now-startTime)/1000;$('vsProgressTime').textContent=time(elapsed);$('vsProgressBar').value=Math.min(99,elapsed/Math.max(.1,duration)*100);
+   const elapsed=Math.min(duration,Math.max(0,Number(video.currentTime)||((now-startTime)/1000)));$('vsProgressTime').textContent=time(elapsed);$('vsProgressBar').value=Math.min(99,elapsed/Math.max(.1,duration)*100);
    if(!video.ended&&elapsed<duration+.5)localRaf=requestAnimationFrame(paint);
   };
   localRaf=requestAnimationFrame(paint);
@@ -115,7 +123,7 @@ async function exportVideo(){
   if(recorder&&recorder.state!=='inactive'){try{recorder.stop()}catch{}}
   status('تعذر التصدير: '+(err?.message||String(err)));
  }finally{
-  recording=false;audio.pause();video.pause();canvasStream?.getTracks().forEach(t=>t.stop());$('vsStopBtn').disabled=true;ready();
+  recording=false;audio.pause();video.pause();canvasStream?.getTracks().forEach(t=>t.stop());try{await wakeLock?.release()}catch(_){}wakeLock=null;$('vsStopBtn').disabled=true;ready();
  }
 }
 function downloadBlob(blob,mime){const ext=(mime||blob.type).toLowerCase().includes('mp4')?'mp4':'webm',url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='zereos-gameplay-'+Date.now()+'.'+ext;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),120000)}
