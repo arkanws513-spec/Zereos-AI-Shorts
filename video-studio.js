@@ -45,7 +45,7 @@ async function exportVideo(){
  if(!videoUrl||recording)return;
  if(!('MediaRecorder'in window)||!HTMLCanvasElement.prototype.captureStream){status('تسجيل الفيديو غير مدعوم في هذا المتصفح. جرّب Chrome محدّثًا.');return}
  let canvasStream=null,canvas=null,localRaf=0,offsetTimer=null,doneRecording=null,resolveRecording=null,rejectRecording=null;
- let chunks=[],mime='',startTime=0;
+ let mime='',startTime=0,streamDownload=null,streamQueue=Promise.resolve();
  recording=true;ready();$('vsProgress').hidden=false;$('vsProgressBar').value=0;$('vsProgressLabel').textContent='جارٍ تجهيز الفيديو والصوت…';
  try{
   await stopPreview();
@@ -83,10 +83,11 @@ async function exportVideo(){
   }
   if(!recorder)throw Error('لم يقبل المتصفح أي صيغة تصدير متاحة: '+(lastError?.message||'صيغة غير مدعومة'));
   mime=recorder.mimeType||mime||'video/webm';
-  chunks=[];
   doneRecording=new Promise((resolve,reject)=>{resolveRecording=resolve;rejectRecording=reject});
-  recorder.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
-  recorder.onstop=()=>resolveRecording();
+  streamDownload=await beginStreamDownload(mime);
+  if(!streamDownload)throw Error('متصفحك لم يفعّل التنزيل المتدفق. أغلق الصفحة وافتحها مجددًا من التطبيق لتفعيل التحديث، ثم أعد المحاولة.');
+  recorder.ondataavailable=e=>{if(e.data&&e.data.size&&streamDownload){streamQueue=streamQueue.then(async()=>{const bytes=await e.data.arrayBuffer();streamDownload.port.postMessage({type:'chunk',bytes},[bytes])}).catch(err=>{console.error('Streaming download failed',err);rejectRecording(err)})}};
+  recorder.onstop=()=>{streamQueue.then(()=>{streamDownload?.port.postMessage({type:'close'});resolveRecording()}).catch(rejectRecording)};
   recorder.onerror=e=>rejectRecording(e.error||Error('فشل تسجيل الفيديو'));
   const duration=Number(video.duration);
   if(!Number.isFinite(duration)||duration<=0)throw Error('مدة الفيديو غير صالحة؛ تعذر بدء التصدير.');
@@ -114,17 +115,28 @@ async function exportVideo(){
   });
   if(localRaf)cancelAnimationFrame(localRaf);recording=false;clearTimeout(offsetTimer);audio.pause();
   if(recorder.state!=='inactive')recorder.stop();await doneRecording;
-  const actualMime=recorder.mimeType||chunks.find(c=>c.type)?.type||mime||'video/webm';
-  const blob=new Blob(chunks,{type:actualMime});if(!blob.size)throw Error('ملف التصدير فارغ.');
-  if(typeof window.ysFixWebmDuration==='function'&&actualMime.toLowerCase().includes('webm')){try{const fixed=await window.ysFixWebmDuration(blob,Math.round(duration*1000),{logger:false});if(fixed?.size)downloadBlob(fixed,actualMime)}catch(err){console.warn('WebM duration metadata was not updated',err);downloadBlob(blob,actualMime)}}else downloadBlob(blob,actualMime);
-  $('vsProgressBar').value=100;$('vsProgressLabel').textContent='اكتمل التصدير';status('اكتمل التصدير. افحص الملف الناتج وتأكد من وجود صوت اللعبة والتعليق. الصيغة: '+(actualMime.includes('mp4')?'MP4':'WebM')+'.');
+  const actualMime=recorder.mimeType||mime||'video/webm';
+  streamDownload?.port.postMessage({type:'finish'});
+  $('vsProgressBar').value=100;$('vsProgressLabel').textContent='اكتمل التصدير';status('اكتمل التصدير بالتنزيل المتدفق دون تجميع الفيديو كاملًا في ذاكرة الهاتف. الصيغة: '+(actualMime.includes('mp4')?'MP4':'WebM')+'.');
  }catch(err){
-  recording=false;if(localRaf)cancelAnimationFrame(localRaf);clearTimeout(offsetTimer);
+  recording=false;if(localRaf)cancelAnimationFrame(localRaf);clearTimeout(offsetTimer);try{streamDownload?.port.postMessage({type:'abort'})}catch{}
   if(recorder&&recorder.state!=='inactive'){try{recorder.stop()}catch{}}
   status('تعذر التصدير: '+(err?.message||String(err)));
  }finally{
-  recording=false;audio.pause();video.pause();canvasStream?.getTracks().forEach(t=>t.stop());try{await wakeLock?.release()}catch(_){}wakeLock=null;$('vsStopBtn').disabled=true;ready();
+  recording=false;audio.pause();video.pause();canvasStream?.getTracks().forEach(t=>t.stop());streamDownload?.port.close();streamDownload=null;try{await wakeLock?.release()}catch(_){}wakeLock=null;$('vsStopBtn').disabled=true;ready();
  }
+}
+async function beginStreamDownload(mime){
+ const controller=navigator.serviceWorker?.controller;
+ if(!controller||!window.MessageChannel)return null;
+ const token='z'+Date.now().toString(36)+Math.random().toString(36).slice(2);
+ const filename='zereos-gameplay-'+Date.now()+'.'+(mime.toLowerCase().includes('mp4')?'mp4':'webm');
+ const channel=new MessageChannel();
+ const ready=new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('تعذر تجهيز مسار حفظ الفيديو. أعد فتح الاستوديو.')),8000);channel.port1.onmessage=e=>{if(e.data?.type==='ready'){clearTimeout(timer);resolve(true)}else if(e.data?.type==='error'){clearTimeout(timer);reject(Error(e.data.message||'تعذر تجهيز التنزيل'))}}});
+ controller.postMessage({type:'ZEREOS_STREAM_START',token,filename,mime},[channel.port2]);
+ await ready;
+ const a=document.createElement('a');a.href=new URL('./__zereos_stream__/'+token,location.href).href;a.download=filename;a.style.display='none';document.body.appendChild(a);a.click();a.remove();
+ return {port:channel.port1};
 }
 function downloadBlob(blob,mime){const ext=(mime||blob.type).toLowerCase().includes('mp4')?'mp4':'webm',url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='zereos-gameplay-'+Date.now()+'.'+ext;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),120000)}
 $('vsExportBtn').addEventListener('click',exportVideo);
