@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#080c16"><title>ZEREOS Video Studio</title>
+<link rel="stylesheet" href="./app.css"><link rel="stylesheet" href="./studio-pro.css"><link rel="stylesheet" href="./video-studio.css">
+</head>
+<body class="video-studio-page">
+<header class="top vs-top"><a class="btn" href="./index.html">← العودة إلى ZEREOS Shorts</a><div class="brand"><div class="logo">✦</div><div><h1>ZEREOS VIDEO STUDIO</h1><p>استيراد الفيديو · تركيب الصوت · المزامنة والتصدير</p></div></div></header>
+<main class="vs-shell">
+<section class="z-hero"><span class="eyebrow">VIDEO EDITOR · LOCAL WORKFLOW</span><h2>حوّل تسجيلات هاتفك إلى فيديو جاهز للنشر</h2><p>استورد فيديو من معرض الهاتف، وأضف تعليقًا صوتيًا من مكتبة ZEREOS أو ملفًا صوتيًا، ثم اضبط التزامن وصدّر النتيجة محليًا.</p></section>
+<div class="vs-grid">
+<section class="panel vs-editor">
+<div class="panelhead"><span>١ · ملفات المشروع</span><span class="badge">المعالجة على جهازك</span></div>
+<div class="vs-field"><label for="vsVideoFile">فيديو المعركة من الهاتف</label><input id="vsVideoFile" type="file" accept="video/*"><small id="vsVideoInfo">اختر MP4 أو WebM أو صيغة فيديو يدعمها متصفحك.</small></div>
+<div class="vs-field"><label for="vsAudioFile">التعليق الصوتي</label><input id="vsAudioFile" type="file" accept="audio/*"><small id="vsAudioInfo">يمكنك تصدير الصوت من ZEREOS Shorts ثم استيراده هنا.</small></div>
+<div class="vs-actions"><button class="btn" id="vsUseLibrary" type="button">فتح مكتبة الأصوات في ZEREOS ↗</button><button class="btn" id="vsClearAudio" type="button">إزالة الصوت</button></div>
+<div class="vs-divider"></div>
+<div class="panelhead"><span>٢ · ضبط المزامنة</span><span class="badge" id="vsSyncReadout">0.0 ثانية</span></div>
+<div class="vs-field"><label for="vsOffset">تأخير بداية التعليق عن بداية الفيديو</label><input id="vsOffset" type="range" min="0" max="30" step="0.1" value="0"><small>حرّك المؤشر إذا كان التعليق يجب أن يبدأ بعد بداية المشهد. التزامن هنا يدوي ودقيق، وليس تحليلًا تلقائيًا للكلام.</small></div>
+<div class="vs-field"><label for="vsAudioVolume">مستوى صوت التعليق <output id="vsVolumeValue">100%</output></label><input id="vsAudioVolume" type="range" min="0" max="1" step="0.05" value="1"></div>
+<div class="vs-field"><label for="vsVideoVolume">صوت اللعبة الأصلي <output id="vsVideoVolumeValue">35%</output></label><input id="vsVideoVolume" type="range" min="0" max="1" step="0.05" value="0.35"></div>
+<div class="vs-actions"><button class="btn primary" id="vsPreviewBtn" type="button" disabled>▶ معاينة متزامنة</button><button class="btn" id="vsStopBtn" type="button" disabled>إيقاف المعاينة</button></div>
+<div class="vs-divider"></div>
+<div class="panelhead"><span>٣ · التصدير</span><span class="badge">MP4 / WebM حسب دعم المتصفح</span></div>
+<div class="vs-field"><label for="vsQuality">جودة التسجيل</label><select id="vsQuality"><option value="standard">قياسية · 4 Mbps</option><option value="high">مرتفعة · 8 Mbps</option><option value="compact">خفيفة · 2 Mbps</option></select></div>
+<button class="btn export" id="vsExportBtn" type="button" disabled>⇩ تصدير الفيديو بالصوت</button>
+<div class="vs-progress" id="vsProgress" hidden><div><span id="vsProgressLabel">جارٍ تجهيز الفيديو…</span><span id="vsProgressTime">00:00</span></div><progress id="vsProgressBar" max="100" value="0"></progress></div>
+<p class="note" id="vsStatus" role="status" aria-live="polite">ابدأ باختيار فيديو وصوت. لا يتم رفع ملفاتك إلى خادم؛ تتم المعالجة داخل المتصفح.</p>
+</section>
+<section class="panel vs-preview-panel">
+<div class="panelhead"><span>معاينة الفيديو</span><span class="badge" id="vsDuration">00:00</span></div>
+<div class="vs-stage"><video id="vsVideo" playsinline controls preload="metadata"></video><div class="vs-empty" id="vsEmpty"><span>▶</span><strong>المعاينة ستظهر هنا</strong><small>ارفع تسجيل المعركة من هاتفك</small></div></div>
+<div class="vs-track"><div class="vs-track-head"><strong>مسار الفيديو</strong><span id="vsVideoTrackLabel">لم يُحمّل فيديو</span></div><div class="vs-track-bar"><span>▰ فيديو اللعبة</span></div></div>
+<div class="vs-track"><div class="vs-track-head"><strong>مسار التعليق</strong><span id="vsAudioTrackLabel">لم يُحمّل صوت</span></div><div class="vs-track-bar audio"><span>♫ التعليق الصوتي</span></div></div>
+<audio id="vsNarration" preload="metadata"></audio>
+<p class="note">ملاحظة: التصدير يسجل الفيديو والصوت في مسار واحد. قد تختلف صيغة الملف النهائية حسب إمكانيات Chrome أو المتصفح على هاتفك. اترك صفحة الاستوديو مفتوحة حتى ينتهي التصدير.</p>
+</section>
+</div>
+</main>
+<script src="./video-studio.js"></script>
+</body></html>
