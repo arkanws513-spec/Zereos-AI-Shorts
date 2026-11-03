@@ -51,16 +51,23 @@ async function exportVideo(){
   const quality=({compact:2000000,standard:4000000,high:8000000})[$('vsQuality').value]||4000000;
   const candidates=['video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4','video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'];
   let lastError=null;
+  const recorderOptions=candidate=>({mimeType:candidate,videoBitsPerSecond:quality,audioBitsPerSecond:128000});
   for(const candidate of candidates){
+   let trial=null;
    try{
     if(MediaRecorder.isTypeSupported&&!MediaRecorder.isTypeSupported(candidate))continue;
-    const trial=new MediaRecorder(output,{mimeType:candidate,videoBitsPerSecond:quality,audioBitsPerSecond:128000});
-    trial.start(1000);trial.stop();mime=candidate;break;
-   }catch(err){lastError=err}
+    trial=new MediaRecorder(output,recorderOptions(candidate));
+    await new Promise((resolve,reject)=>{
+     trial.onstart=()=>{try{trial.stop()}catch(err){reject(err)}};
+     trial.onstop=resolve;
+     trial.onerror=e=>reject(e.error||Error('فشل اختبار صيغة التسجيل'));
+     trial.start(1000);
+    });
+    mime=trial.mimeType||candidate;break;
+   }catch(err){lastError=err;try{if(trial&&trial.state!=='inactive')trial.stop()}catch{}}
   }
-  let options={videoBitsPerSecond:quality,audioBitsPerSecond:128000};
-  if(mime)options.mimeType=mime;
-  try{recorder=new MediaRecorder(output,options)}catch(err){throw Error('المتصفح رفض إعداد الترميز: '+(err.message||lastError?.message||'صيغة غير مدعومة'))}
+  if(!mime)throw Error('لم يقبل المتصفح أي صيغة تصدير متاحة: '+(lastError?.message||'صيغة غير مدعومة'));
+  try{recorder=new MediaRecorder(output,{mimeType:mime,videoBitsPerSecond:quality,audioBitsPerSecond:128000})}catch(err){throw Error('المتصفح رفض إعداد الترميز: '+(err.message||lastError?.message||'صيغة غير مدعومة'))}
   mime=recorder.mimeType||mime||'video/webm';
   chunks=[];
   doneRecording=new Promise((resolve,reject)=>{resolveRecording=resolve;rejectRecording=reject});
