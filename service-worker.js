@@ -79,7 +79,7 @@ self.addEventListener('fetch', event => {
   if (request.method !== 'GET' || new URL(request.url).origin !== self.location.origin) return;
 
   const url = new URL(request.url);
-  const streamMatch = url.pathname.match(/\\/__zereos_stream__\\/([^/]+)$/);
+  const streamMatch = url.pathname.match(/\/__zereos_stream__\/([^/]+)$/);
   if (streamMatch) {
     const entry = zereosStreams.get(streamMatch[1]);
     if (!entry) { event.respondWith(new Response('Export stream not found', { status: 404 })); return; }
