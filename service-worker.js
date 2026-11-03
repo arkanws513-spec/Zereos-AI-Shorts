@@ -1,7 +1,7 @@
 /* ZEREOS app shell cache. Large model/WASM assets are intentionally not precached. */
 'use strict';
 
-const CACHE_NAME = 'zereos-shell-v10';
+const CACHE_NAME = 'zereos-shell-v11';
 const BASE_URL = new URL('./', self.location.href);
 const SHELL_URLS = [
   BASE_URL.href,
@@ -58,15 +58,17 @@ self.addEventListener('message', event => {
   const data = event.data || {};
   if (data.type !== 'ZEREOS_STREAM_START' || !event.ports[0]) return;
   const port = event.ports[0];
-  let controller;
+  let controller, keepAliveResolve;
+  const keepAlive = new Promise(resolve => { keepAliveResolve = resolve; });
+  event.waitUntil(keepAlive);
   const stream = new ReadableStream({ start(c) { controller = c; } });
-  zereosStreams.set(data.token, { stream, controller, filename: data.filename, mime: data.mime, port });
+  zereosStreams.set(data.token, { stream, controller, filename: data.filename, mime: data.mime, port, keepAliveResolve });
   port.onmessage = message => {
     const item = message.data || {};
     try {
       if (item.type === 'chunk' && controller) controller.enqueue(new Uint8Array(item.bytes));
-      else if ((item.type === 'close' || item.type === 'finish') && controller) { controller.close(); controller = null; zereosStreams.delete(data.token); }
-      else if (item.type === 'abort' && controller) { controller.error(new Error('Export cancelled')); controller = null; zereosStreams.delete(data.token); }
+      else if ((item.type === 'close' || item.type === 'finish') && controller) { controller.close(); controller = null; zereosStreams.delete(data.token); keepAliveResolve?.(); }
+      else if (item.type === 'abort' && controller) { controller.error(new Error('Export cancelled')); controller = null; zereosStreams.delete(data.token); keepAliveResolve?.(); }
     } catch (_) { zereosStreams.delete(data.token); }
   };
   port.postMessage({ type: 'ready' });
