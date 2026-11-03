@@ -21,14 +21,14 @@ video.addEventListener('loadedmetadata',()=>{$('vsDuration').textContent=time(vi
 async function exportVideo(){if(!videoUrl||recording)return;if(!video.captureStream&&!video.mozCaptureStream){status('هذا المتصفح لا يتيح تسجيل مسار الفيديو. جرّب Chrome حديثًا.');return}
 const capture=video.captureStream?video.captureStream.bind(video):video.mozCaptureStream.bind(video);
 const mimeCandidates=['video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4','video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'];
-const mime=mimeCandidates.find(t=>MediaRecorder.isTypeSupported(t));if(!mime){status('لا توجد صيغة تسجيل مدعومة في هذا المتصفح.');return}
-let stream=null,audioStream=null,chunks=[];recording=true;ready();$('vsProgress').hidden=false;$('vsProgressBar').value=0;
+const supportedMimes=mimeCandidates.filter(t=>{try{return MediaRecorder.isTypeSupported(t)}catch{return false}});if(!supportedMimes.length){status('لا توجد صيغة تسجيل مدعومة في هذا المتصفح. جرّب Chrome محدثًا.');return}
+let stream=null,audioStream=null,chunks=[],mime=null;recording=true;ready();$('vsProgress').hidden=false;$('vsProgressBar').value=0;
 try{
  await stopPreview();video.currentTime=0;video.volume=+$('vsVideoVolume').value;audio.volume=+$('vsAudioVolume').value;
  stream=capture();const tracks=[...stream.getVideoTracks(),...stream.getAudioTracks()];
  if(audioUrl){audio.currentTime=0;const audioCapture=audio.captureStream?audio.captureStream():audio.mozCaptureStream?.();if(audioCapture){audioStream=audioCapture;tracks.push(...audioCapture.getAudioTracks())}else{throw new Error('المتصفح لا يدعم التقاط صوت التعليق.')} }
  const output=new MediaStream(tracks);const bitrate=({compact:2000000,standard:4000000,high:8000000})[$('vsQuality').value]||4000000;
- recorder=new MediaRecorder(output,{mimeType:mime,videoBitsPerSecond:bitrate});recorder.ondataavailable=e=>{if(e.data?.size)chunks.push(e.data)};
+ let lastEncoderError=null;for(const candidate of supportedMimes){for(const options of [{mimeType:candidate,videoBitsPerSecond:bitrate},{mimeType:candidate},{}]){try{recorder=new MediaRecorder(output,options);mime=recorder.mimeType||candidate;break}catch(err){lastEncoderError=err;recorder=null}}if(recorder)break}if(!recorder)throw new Error('المتصفح رفض إعدادات الترميز المتاحة'+(lastEncoderError?.message?': '+lastEncoderError.message:''));recorder.ondataavailable=e=>{if(e.data?.size)chunks.push(e.data)};
  const done=new Promise((resolve,reject)=>{recorder.onstop=resolve;recorder.onerror=e=>reject(e.error||new Error('فشل التسجيل'))});
  recorder.start(1000);startedAt=Date.now();const offset=+$('vsOffset').value;
  await video.play();if(audioUrl){if(offset===0)await audio.play();else setTimeout(()=>{if(recording&&!video.paused)audio.play().catch(()=>{})},offset*1000)}
