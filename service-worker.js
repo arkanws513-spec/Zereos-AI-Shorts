@@ -1,7 +1,7 @@
 /* ZEREOS app shell cache. Large model/WASM assets are intentionally not precached. */
 'use strict';
 
-const CACHE_NAME = 'zereos-shell-v9';
+const CACHE_NAME = 'zereos-shell-v10';
 const BASE_URL = new URL('./', self.location.href);
 const SHELL_URLS = [
   BASE_URL.href,
@@ -51,11 +51,43 @@ self.addEventListener('activate', event => {
   })());
 });
 
+// Stream MediaRecorder chunks straight to the browser download response.
+// This avoids retaining the entire exported movie in the Android tab's RAM.
+const zereosStreams = new Map();
+self.addEventListener('message', event => {
+  const data = event.data || {};
+  if (data.type !== 'ZEREOS_STREAM_START' || !event.ports[0]) return;
+  const port = event.ports[0];
+  let controller;
+  const stream = new ReadableStream({ start(c) { controller = c; } });
+  zereosStreams.set(data.token, { stream, controller, filename: data.filename, mime: data.mime, port });
+  port.onmessage = message => {
+    const item = message.data || {};
+    try {
+      if (item.type === 'chunk' && controller) controller.enqueue(new Uint8Array(item.bytes));
+      else if ((item.type === 'close' || item.type === 'finish') && controller) { controller.close(); controller = null; zereosStreams.delete(data.token); }
+      else if (item.type === 'abort' && controller) { controller.error(new Error('Export cancelled')); controller = null; zereosStreams.delete(data.token); }
+    } catch (_) { zereosStreams.delete(data.token); }
+  };
+  port.postMessage({ type: 'ready' });
+});
+
 self.addEventListener('fetch', event => {
   const request = event.request;
   if (request.method !== 'GET' || new URL(request.url).origin !== self.location.origin) return;
 
   const url = new URL(request.url);
+  const streamMatch = url.pathname.match(/\\/__zereos_stream__\\/([^/]+)$/);
+  if (streamMatch) {
+    const entry = zereosStreams.get(streamMatch[1]);
+    if (!entry) { event.respondWith(new Response('Export stream not found', { status: 404 })); return; }
+    event.respondWith(new Response(entry.stream, { headers: {
+      'Content-Type': entry.mime || 'application/octet-stream',
+      'Content-Disposition': 'attachment; filename="' + String(entry.filename).replace(/["\\\\\\r\\n]/g, '') + '"',
+      'Cache-Control': 'no-store'
+    }}));
+    return;
+  }
   const isNavigation = request.mode === 'navigate';
   const isShellAsset = SHELL_URLS.includes(url.href);
   if (!isNavigation && !isShellAsset) return;
