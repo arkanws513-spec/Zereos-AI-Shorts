@@ -176,11 +176,46 @@ function stopPreviewNarration(){if(!previewNarrationSource)return;const source=p
 function startPreviewNarration(offsetMs=0,durationMs=null){stopPreviewNarration();if(!narrationBuffer||!Number.isFinite(narrationBuffer.duration)||narrationBuffer.duration<=0)return;const ac=ensureAudio(),source=ac.createBufferSource(),gain=ac.createGain(),trimStart=Math.min(narrationTrimStart,Math.max(0,narrationBuffer.duration-.05)),trimEnd=effectiveNarrationEnd(),absoluteOffset=Math.max(trimStart,Math.min(trimEnd-.01,trimStart+offsetMs/1000)),available=Math.max(.01,trimEnd-absoluteOffset),duration=Number.isFinite(durationMs)?Math.max(.01,Math.min(available,durationMs/1000)):available;source.buffer=narrationBuffer;gain.gain.value=Number($('narrationVolume')?.value??1);source.connect(gain);gain.connect(ac.destination);source.onended=()=>{if(previewNarrationSource===source){previewNarrationSource=null;try{source.disconnect();gain.disconnect()}catch(error){}}};previewNarrationSource=source;source.start(0,absoluteOffset,duration)}
 function stopMusic(){musicOsc.forEach(o=>{try{o.stop()}catch(e){}});musicOsc=[];if(musicBufferSource){try{musicBufferSource.stop()}catch(e){}try{musicBufferSource.disconnect()}catch(e){}musicBufferSource=null}}
 function startMusic(){const ac=ensureAudio();stopMusic();const target=Number($('volume').value),fadeIn=Math.max(0,Number($('musicFadeIn')?.value||0));musicGain.gain.cancelScheduledValues(ac.currentTime);musicGain.gain.setValueAtTime(0,ac.currentTime);if($('music').value==='none'&&!musicBuffer)return;musicGain.gain.linearRampToValueAtTime(target,ac.currentTime+fadeIn);if(musicBuffer){musicBufferSource=ac.createBufferSource();musicBufferSource.buffer=musicBuffer;musicBufferSource.loop=true;musicBufferSource.connect(musicGain);musicBufferSource.start(0);return}const notes=$('music').value==='dramatic'?[110,146.83,164.81,123.47]:[130.81,164.81,196,146.83];notes.forEach((hz,i)=>{const osc=ac.createOscillator(),gain=ac.createGain(),filter=ac.createBiquadFilter();osc.type=i===0?'sine':'triangle';osc.frequency.value=hz;filter.type='lowpass';filter.frequency.value=500;gain.gain.value=i===0?.12:.035;osc.connect(filter);filter.connect(gain);gain.connect(musicGain);osc.start();musicOsc.push(osc)})}
+
+async function beginVideoStreamDownload(mime){
+ if(!('serviceWorker'in navigator)||!window.MessageChannel)throw Error('متصفح الهاتف لا يدعم التنزيل المتدفق. افتح التطبيق في Chrome محدّث.');
+ await navigator.serviceWorker.register('./service-worker.js',{scope:'./'});
+ await navigator.serviceWorker.ready;
+ let controller=navigator.serviceWorker.controller;
+ if(!controller){
+  await new Promise(resolve=>{
+   let settled=false;
+   const finish=()=>{if(settled)return;settled=true;clearTimeout(timer);navigator.serviceWorker.removeEventListener('controllerchange',finish);resolve()};
+   const timer=setTimeout(finish,6000);
+   navigator.serviceWorker.addEventListener('controllerchange',finish);
+  });
+  controller=navigator.serviceWorker.controller;
+ }
+ if(!controller)throw Error('تم تجهيز التطبيق لأول مرة. حدّث الصفحة مرة واحدة ثم أعد التصدير.');
+ const token='z'+Date.now().toString(36)+Math.random().toString(36).slice(2);
+ const ext=String(mime).toLowerCase().includes('mp4')?'mp4':'webm';
+ const filename='zereos-shorts-'+Date.now()+'.'+ext;
+ const channel=new MessageChannel();
+ const ready=new Promise((resolve,reject)=>{
+  const timer=setTimeout(()=>reject(Error('انتهت مهلة تجهيز ملف التنزيل. أعد المحاولة.')),8000);
+  channel.port1.onmessage=e=>{
+   if(e.data?.type==='ready'){clearTimeout(timer);resolve(true)}
+   else if(e.data?.type==='error'){clearTimeout(timer);reject(Error(e.data.message||'تعذر تجهيز التنزيل'))}
+  };
+ });
+ controller.postMessage({type:'ZEREOS_STREAM_START',token,filename,mime},[channel.port2]);
+ await ready;
+ const a=document.createElement('a');
+ a.href=new URL('./__zereos_stream__/'+token,location.href).href;
+ a.download=filename;a.style.display='none';
+ document.body.appendChild(a);a.click();a.remove();
+ return {port:channel.port1,filename};
+}
+
 async function exportVideo(){
 if(recording)return;
 if(!('MediaRecorder'in window)||!canvas.captureStream){$('status').textContent='تسجيل الفيديو غير مدعوم في هذا المتصفح. افتح الصفحة في Chrome محدّث.';return}
-let ac=null,recorder=null,canvasStream=null,localRaf=0,narrationSource=null;
-const chunks=[];
+let ac=null,recorder=null,canvasStream=null,localRaf=0,narrationSource=null,streamDownload=null,streamQueue=Promise.resolve(),streamFailure=null,streamFinished=false;
 try{
 if(playing){playing=false;previewOnlyScene=null;cancelAnimationFrame(raf);$('playBtn').textContent='▶ تشغيل المعاينة'}stopPreviewNarration();
 recording=true;$('exportBtn').disabled=true;$('exportBtn').textContent='جارٍ تجهيز الفيديو والصوت…';$('status').textContent='يتم تسجيل الفيديو والصوت. اترك الصفحة مفتوحة حتى يبدأ التنزيل.';
@@ -205,7 +240,6 @@ for(const candidate of mimeCandidates){
 try{
 if(MediaRecorder.isTypeSupported&&!MediaRecorder.isTypeSupported(candidate))continue;
 const trial=new MediaRecorder(stream,{mimeType:candidate,videoBitsPerSecond:profileSettings.videoBitsPerSecond,audioBitsPerSecond:profileSettings.audioBitsPerSecond});
-trial.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
 trial.onerror=e=>console.error('MediaRecorder error',e.error||e);
 recorder=trial;selectedMime=trial.mimeType||candidate;break;
 }catch(error){startError=error;console.warn('تعذر إعداد التصدير بصيغة '+candidate,error)}
@@ -213,7 +247,6 @@ recorder=trial;selectedMime=trial.mimeType||candidate;break;
 if(!recorder){
 try{
 recorder=new MediaRecorder(stream,{videoBitsPerSecond:profileSettings.videoBitsPerSecond,audioBitsPerSecond:profileSettings.audioBitsPerSecond});
-recorder.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
 recorder.onerror=e=>console.error('MediaRecorder error',e.error||e);
 selectedMime=recorder.mimeType||'';
 }catch(error){throw Error('المتصفح رفض إعدادات ترميز الفيديو. جرّب فتح التطبيق في Chrome محدّث. '+(error?.message||startError?.message||''))}
@@ -224,6 +257,17 @@ rejectRecording=reject;
 recorder.onstop=resolve;
 recorder.onerror=e=>reject(e.error||Error('تعذر تسجيل الفيديو'));
 });
+streamDownload=await beginVideoStreamDownload(recorder.mimeType||selectedMime||'video/webm');
+recorder.ondataavailable=e=>{
+ if(!e.data||!e.data.size||!streamDownload)return;
+ streamQueue=streamQueue.then(async()=>{
+  const bytes=await e.data.arrayBuffer();
+  streamDownload.port.postMessage({type:'chunk',bytes},[bytes]);
+ }).catch(error=>{
+  streamFailure=error;
+  try{if(recorder&&recorder.state!=='inactive')recorder.stop()}catch(_){}
+ });
+};
 const duration=Math.max(10000,totalMs()),start=performance.now(),fadeIn=Math.max(0,Number($('musicFadeIn')?.value||0)),fadeOut=Math.max(0,Number($('musicFadeOut')?.value||0)),fadeOutAt=Math.max(ac.currentTime+fadeIn,ac.currentTime+duration/1000-fadeOut);
 if(fadeOut>0){musicGain.gain.setValueAtTime(Number($('volume').value),Math.min(fadeOutAt,ac.currentTime+duration/1000-.01));musicGain.gain.linearRampToValueAtTime(0,ac.currentTime+duration/1000)}
 try{recorder.start(1000)}catch(error){throw Error('تعذر بدء تسجيل الفيديو: '+(error?.message||''))}
@@ -240,24 +284,20 @@ try{if(recorder&&recorder.state!=='inactive')recorder.stop()}catch(error){reject
 };
 localRaf=requestAnimationFrame(paint);
 await doneRecording;
-const mime=recorder.mimeType||chunks.find(chunk=>chunk.type)?.type||selectedMime||'video/webm';
-let blob=new Blob(chunks,{type:mime});
-if(mime.toLowerCase().includes('webm')&&typeof window.ysFixWebmDuration==='function'){try{blob=await window.ysFixWebmDuration(blob,duration,{logger:false})}catch(metaError){console.warn('تعذر إصلاح بيانات مدة WebM:',metaError)}}
-if(!blob.size)throw Error('الملف الناتج فارغ.');
-if(duration>=10000&&chunks.length<2)throw Error('التسجيل لم يكتمل: لم يستقبل التطبيق بيانات فيديو كافية. أعد المحاولة واترك الصفحة مفتوحة.');
-const isMp4=mime.toLowerCase().includes('mp4'),extension=isMp4?'mp4':'webm';
-const url=URL.createObjectURL(blob),link=document.createElement('a');
-link.href=url;link.download='zereos-shorts-'+Date.now()+'.'+extension;
-document.body.appendChild(link);link.click();link.remove();
-setTimeout(()=>URL.revokeObjectURL(url),120000);
+await streamQueue;
+if(streamFailure)throw Error('تعذر نقل أجزاء الفيديو إلى ملف التنزيل: '+(streamFailure.message||String(streamFailure)));
+streamDownload.port.postMessage({type:'finish'});
+streamFinished=true;
 drawFrame(0);
 $('status').textContent='اكتمل إنشاء الفيديو ('+Math.round(duration/1000)+' ثانية) بصيغة '+extension.toUpperCase()+' · جودة '+({'mobile':'خفيف','standard':'قياسي','high':'مرتفعة'}[$('exportProfile')?.value||'standard'])+'. جرّب تشغيل الملف من المعرض قبل مشاركته.';
 }catch(err){
+if(streamDownload&&!streamFinished){try{streamDownload.port.postMessage({type:'abort'})}catch(_){}}
 console.error(err);
 $('status').textContent='لم يكتمل التصدير: '+(err.message||'خطأ غير معروف');
 }finally{
 if(localRaf)cancelAnimationFrame(localRaf);
 if(recorder&&recorder.state!=='inactive'){try{recorder.stop()}catch(e){}}
+if(streamDownload){try{streamDownload.port.close()}catch(_){}streamDownload=null;}
 if(canvasStream)canvasStream.getTracks().forEach(track=>track.stop());
 if(narrationSource){try{narrationSource.stop()}catch(e){}try{narrationSource.disconnect()}catch(e){}}
 stopMusic();if(importedSceneVideo)importedSceneVideo.pause();
