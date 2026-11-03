@@ -62,12 +62,16 @@ self.addEventListener('message', event => {
   const keepAlive = new Promise(resolve => { keepAliveResolve = resolve; });
   event.waitUntil(keepAlive);
   const stream = new ReadableStream({ start(c) { controller = c; } });
-  zereosStreams.set(data.token, { stream, controller, filename: data.filename, mime: data.mime, port, keepAliveResolve });
+  const expiry = setTimeout(() => {
+    const stale = zereosStreams.get(data.token);
+    if (stale) { zereosStreams.delete(data.token); stale.keepAliveResolve?.(); }
+  }, 120000);
+  zereosStreams.set(data.token, { stream, controller, filename: data.filename, mime: data.mime, port, keepAliveResolve, expiry });
   port.onmessage = message => {
     const item = message.data || {};
     try {
       if (item.type === 'chunk' && controller) controller.enqueue(new Uint8Array(item.bytes));
-      else if ((item.type === 'close' || item.type === 'finish') && controller) { controller.close(); controller = null; /* Keep the completed stream addressable until the browser's download request arrives. */ keepAliveResolve?.(); }
+      else if ((item.type === 'close' || item.type === 'finish') && controller) { controller.close(); controller = null; /* Keep the completed stream addressable until the browser's download request arrives. */ }
       else if (item.type === 'abort' && controller) { controller.error(new Error('Export cancelled')); controller = null; zereosStreams.delete(data.token); keepAliveResolve?.(); }
     } catch (_) { zereosStreams.delete(data.token); }
   };
@@ -84,6 +88,8 @@ self.addEventListener('fetch', event => {
     const entry = zereosStreams.get(streamMatch[1]);
     if (!entry) { event.respondWith(new Response('Export stream not found', { status: 404 })); return; }
     zereosStreams.delete(streamMatch[1]);
+    clearTimeout(entry.expiry);
+    entry.keepAliveResolve?.();
     event.respondWith(new Response(entry.stream, { headers: {
       'Content-Type': entry.mime || 'application/octet-stream',
       'Content-Disposition': 'attachment; filename="' + String(entry.filename).replace(/["\\\\\\r\\n]/g, '') + '"',
