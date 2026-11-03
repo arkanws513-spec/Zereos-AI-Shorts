@@ -20,7 +20,7 @@ function ensureAudioGraph(){
 }
 function inferMediaType(file,kind){
  const ext=(file.name.split('.').pop()||'').toLowerCase();
- const types=kind==='video'?{mp4:'video/mp4',m4v:'video/mp4',mov:'video/quicktime',webm:'video/webm',ogv:'video/ogg',ogg:'video/ogg',3gp:'video/3gpp',mkv:'video/x-matroska'}:{wav:'audio/wav',wave:'audio/wav',mp3:'audio/mpeg',m4a:'audio/mp4',aac:'audio/aac',ogg:'audio/ogg',opus:'audio/ogg',flac:'audio/flac'};
+ const types=kind==='video'?{mp4:'video/mp4',m4v:'video/mp4',mov:'video/quicktime',webm:'video/webm',ogv:'video/ogg',ogg:'video/ogg','3gp':'video/3gpp',mkv:'video/x-matroska'}:{wav:'audio/wav',wave:'audio/wav',mp3:'audio/mpeg',m4a:'audio/mp4',aac:'audio/aac',ogg:'audio/ogg',opus:'audio/ogg',flac:'audio/flac'};
  const detected=types[ext]||'';
  const supplied=(file.type||'').toLowerCase();
  return supplied&&supplied!=='application/octet-stream'&&supplied!=='binary/octet-stream'?supplied:detected||(kind==='video'?'video/mp4':'audio/mpeg');
