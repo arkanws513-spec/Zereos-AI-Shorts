@@ -90,6 +90,8 @@ if (videoStudioHtml && videoStudioJs) {
   if (!videoStudioJs.includes('if(!narrationSource){narrationSource=audioContext.createMediaElementSource(audio)')) fail('Narration MediaElementSource must be created once and reused after audio removal.');
   if (videoStudioJs.includes('narrationSource=null;narrationGain=null')) fail('Clearing narration must not discard the reusable MediaElementSource node.');
   if (!videoStudioJs.includes('انتهت مهلة انتظار نهاية الفيديو')) fail('Video export must have a bounded wait for the video ended event.');
+  if (!videoStudioJs.includes('beginStreamDownload(mime)') || videoStudioJs.includes('new Blob(chunks')) fail('Video export must stream chunks directly to the download instead of buffering the complete movie in RAM.');
+  if (!serviceWorker.includes('ZEREOS_STREAM_START') || !serviceWorker.includes('new ReadableStream') || !serviceWorker.includes('event.waitUntil(keepAlive)')) fail('Service worker streaming download endpoint is incomplete.');
   for (const safeguard of ['const maxEdge=mobile?720:1280,fps=mobile?20:24;', 'canvas.captureStream(fps)', 'videoBitsPerSecond:quality', "navigator.wakeLock?.request('screen')", 'await wakeLock?.release()']) {
     if (!videoStudioJs.includes(safeguard)) fail('Mobile video export safeguard is missing: ' + safeguard);
   }
@@ -317,7 +319,7 @@ if (html) {
   ]) {
     if (!source.includes(feature)) fail('Cinematic studio regression: missing expected feature or persistence hook: ' + feature);
   }
-  if (!serviceWorker.includes("const CACHE_NAME = 'zereos-shell-v9'") ||
+  if (!serviceWorker.includes("const CACHE_NAME = 'zereos-shell-v11'") ||
       !serviceWorker.includes("new URL('avatar-studio.js', BASE_URL).href") ||
       !serviceWorker.includes("new URL('app.js', BASE_URL).href") ||
       !serviceWorker.includes("new URL('audio-workflows.js', BASE_URL).href") ||
