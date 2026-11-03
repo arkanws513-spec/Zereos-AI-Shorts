@@ -30,6 +30,8 @@ const avatarStudio = readRequired('avatar-studio.js');
 const buildWorkflow = readRequired('.github/workflows/build-tts.yml');
 const manifest = readRequired('manifest.webmanifest');
 const serviceWorker = readRequired('service-worker.js');
+const videoStudioHtml = readRequired('video-studio.html');
+const videoStudioJs = readRequired('video-studio.js');
 
 if (html) {
   if (!/<html\b[^>]*lang=["']ar["']/i.test(html)) fail('index.html should declare Arabic language.');
@@ -77,6 +79,18 @@ if (html) {
     fs.rmSync(tempDir, { recursive: true, force: true });
   }
   if (inlineCount && !process.exitCode) pass(`JavaScript syntax validated for ${inlineCount} inline script(s).`);
+}
+
+if (videoStudioHtml && videoStudioJs) {
+  for (const id of ['vsVideoFile','vsAudioFile','vsVideo','vsNarration','vsExportBtn','vsStatus','vsProgressBar']) {
+    if (!new RegExp('id=["\\']' + id + '["\\']').test(videoStudioHtml)) fail('Video Studio is missing required control: ' + id);
+  }
+  if (!videoStudioHtml.includes('src="./video-studio.js"')) fail('Video Studio page does not load its controller.');
+  if (!videoStudioJs.includes('await waitForVideoMetadata()')) fail('Video export must wait for valid video metadata before recording.');
+  if (!videoStudioJs.includes('if(!narrationSource){narrationSource=audioContext.createMediaElementSource(audio)')) fail('Narration MediaElementSource must be created once and reused after audio removal.');
+  if (videoStudioJs.includes('narrationSource=null;narrationGain=null')) fail('Clearing narration must not discard the reusable MediaElementSource node.');
+  if (!videoStudioJs.includes('انتهت مهلة انتظار نهاية الفيديو')) fail('Video export must have a bounded wait for the video ended event.');
+  if (!process.exitCode) pass('Video Studio controls, metadata guard, reusable audio graph and export timeout are covered.');
 }
 
 if (storage) {
