@@ -8,26 +8,39 @@ const time=s=>{s=Math.max(0,Number(s)||0);return String(Math.floor(s/60)).padSta
 const syncUI=()=>{$('vsSyncReadout').textContent=Number($('vsOffset').value).toFixed(1)+' ثانية'};
 const ready=()=>{const ok=!!videoUrl;$('vsPreviewBtn').disabled=!ok;$('vsExportBtn').disabled=!ok||recording;$('vsEmpty').hidden=ok};
 const release=url=>{if(url)URL.revokeObjectURL(url)};
-function updateGains(){if(videoGain)videoGain.gain.value=+$('vsVideoVolume').value;if(narrationGain)narrationGain.gain.value=+$('vsAudioVolume').value}
+function updateGains(){if(videoGain)videoGain.gain.value=+$('vsVideoVolume').value;if(narrationGain)narrationGain.gain.value=audioUrl?+$('vsAudioVolume').value:0}
 function ensureAudioGraph(){
- if(!audioContext)audioContext=new(window.AudioContext||window.webkitAudioContext)();
+ if(!audioContext){const Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)throw Error('معالجة الصوت غير مدعومة في هذا المتصفح.');audioContext=new Ctx()}
  if(!recordingDestination)recordingDestination=audioContext.createMediaStreamDestination();
  if(!videoSource){videoSource=audioContext.createMediaElementSource(video);videoGain=audioContext.createGain();videoSource.connect(videoGain);videoGain.connect(audioContext.destination);videoGain.connect(recordingDestination)}
- if(audioUrl&&!narrationSource){narrationSource=audioContext.createMediaElementSource(audio);narrationGain=audioContext.createGain();narrationSource.connect(narrationGain);narrationGain.connect(audioContext.destination);narrationGain.connect(recordingDestination)}
+ // Create this node once only: browsers forbid createMediaElementSource() twice for one element.
+ if(!narrationSource){narrationSource=audioContext.createMediaElementSource(audio);narrationGain=audioContext.createGain();narrationSource.connect(narrationGain);narrationGain.connect(audioContext.destination);narrationGain.connect(recordingDestination)}
  updateGains();
  return audioContext;
 }
 videoInput.addEventListener('change',()=>{const file=videoInput.files?.[0];if(!file)return;if(!file.type.startsWith('video/')){status('الملف المختار ليس فيديو مدعومًا.');return}release(videoUrl);videoUrl=URL.createObjectURL(file);video.src=videoUrl;video.load();$('vsVideoInfo').textContent=file.name+' · '+(file.size/1048576).toFixed(1)+' MB';$('vsVideoTrackLabel').textContent=file.name;status('تم تحميل الفيديو. أضف التعليق الصوتي أو ابدأ المعاينة.');ready()});
 audioInput.addEventListener('change',()=>{const file=audioInput.files?.[0];if(!file)return;if(!file.type.startsWith('audio/')){status('الملف المختار ليس ملفًا صوتيًا.');return}release(audioUrl);audioUrl=URL.createObjectURL(file);audio.src=audioUrl;audio.load();$('vsAudioInfo').textContent=file.name+' · '+(file.size/1048576).toFixed(1)+' MB';$('vsAudioTrackLabel').textContent=file.name;status('تم تحميل التعليق الصوتي. اضبط توقيت بدايته ثم عاين النتيجة.');ready()});
 $('vsOffset').addEventListener('input',syncUI);
-$('vsAudioVolume').addEventListener('input',e=>{$('vsVolumeValue').textContent=Math.round(+e.target.value*100)+'%';if(narrationGain)narrationGain.gain.value=+e.target.value;else audio.volume=+e.target.value});
+$('vsAudioVolume').addEventListener('input',e=>{$('vsVolumeValue').textContent=Math.round(+e.target.value*100)+'%';if(narrationGain)narrationGain.gain.value=audioUrl?+e.target.value:0;else audio.volume=+e.target.value});
 $('vsVideoVolume').addEventListener('input',e=>{$('vsVideoVolumeValue').textContent=Math.round(+e.target.value*100)+'%';if(videoGain)videoGain.gain.value=+e.target.value;else video.volume=+e.target.value});
-$('vsClearAudio').addEventListener('click',()=>{audio.pause();release(audioUrl);audioUrl=null;audio.removeAttribute('src');audio.load();audioInput.value='';$('vsAudioInfo').textContent='لم يتم اختيار ملف صوتي.';$('vsAudioTrackLabel').textContent='بدون تعليق صوتي';if(narrationSource){try{narrationSource.disconnect();narrationGain?.disconnect()}catch{}narrationSource=null;narrationGain=null}status('تمت إزالة التعليق الصوتي.');});
+$('vsClearAudio').addEventListener('click',()=>{audio.pause();release(audioUrl);audioUrl=null;audio.removeAttribute('src');audio.load();audioInput.value='';$('vsAudioInfo').textContent='لم يتم اختيار ملف صوتي.';$('vsAudioTrackLabel').textContent='بدون تعليق صوتي';if(narrationGain)narrationGain.gain.value=0status('تمت إزالة التعليق الصوتي.');});
 $('vsUseLibrary').addEventListener('click',()=>window.open('./index.html#voiceLibraryPage','_blank','noopener'));
 async function stopPreview(){video.pause();audio.pause();try{video.currentTime=0;audio.currentTime=0}catch{}$('vsPreviewBtn').disabled=!videoUrl;$('vsStopBtn').disabled=true}
 $('vsPreviewBtn').addEventListener('click',async()=>{if(!videoUrl)return;await stopPreview();updateGains();const offset=+$('vsOffset').value;try{if(audioContext)await audioContext.resume();await video.play();if(audioUrl){audio.currentTime=0;if(offset===0)await audio.play();else setTimeout(()=>{if(!video.paused&&audioUrl)audio.play().catch(()=>{})},offset*1000)}$('vsStopBtn').disabled=false;$('vsPreviewBtn').disabled=true;video.onended=stopPreview;audio.onended=()=>{status('انتهى التعليق الصوتي؛ يستمر الفيديو بصوته الأصلي حتى نهاية المقطع.')};status('المعاينة تعمل.');}catch(err){status('تعذر تشغيل المعاينة: '+err.message)}});
 $('vsStopBtn').addEventListener('click',stopPreview);
 video.addEventListener('loadedmetadata',()=>{$('vsDuration').textContent=time(video.duration);$('vsVideoTrackLabel').textContent=$('vsVideoTrackLabel').textContent.split(' · ')[0]+' · '+time(video.duration);ready()});
+async function waitForVideoMetadata(){
+ if(video.readyState>=1&&Number.isFinite(video.duration)&&video.duration>0&&video.videoWidth>0&&video.videoHeight>0)return;
+ await new Promise((resolve,reject)=>{
+  let settled=false;
+  const cleanup=()=>{clearTimeout(timer);video.removeEventListener('loadedmetadata',check);video.removeEventListener('error',onError)};
+  const finish=()=>{if(settled)return;settled=true;cleanup();resolve()};
+  const check=()=>{if(video.readyState>=1&&Number.isFinite(video.duration)&&video.duration>0&&video.videoWidth>0&&video.videoHeight>0)finish()};
+  const onError=()=>{if(settled)return;settled=true;cleanup();reject(Error('تعذر قراءة الفيديو. جرّب ملف MP4 أو WebM سليمًا.'))};
+  const timer=setTimeout(()=>{if(settled)return;settled=true;cleanup();reject(Error('استغرق تحميل بيانات الفيديو وقتًا طويلًا. انتظر ظهور مدة الفيديو ثم أعد التصدير.'))},15000);
+  video.addEventListener('loadedmetadata',check);video.addEventListener('error',onError);check();
+ });
+}
 async function exportVideo(){
  if(!videoUrl||recording)return;
  if(!('MediaRecorder'in window)||!HTMLCanvasElement.prototype.captureStream){status('تسجيل الفيديو غير مدعوم في هذا المتصفح. جرّب Chrome محدّثًا.');return}
@@ -36,6 +49,8 @@ async function exportVideo(){
  recording=true;ready();$('vsProgress').hidden=false;$('vsProgressBar').value=0;$('vsProgressLabel').textContent='جارٍ تجهيز الفيديو والصوت…';
  try{
   await stopPreview();
+  $('vsProgressLabel').textContent='جارٍ تحميل بيانات الفيديو…';
+  await waitForVideoMetadata();
   const ac=ensureAudioGraph();await ac.resume();
   if(ac.state!=='running')throw Error('تعذر تشغيل الصوت في المتصفح. اضغط تصدير مرة أخرى.');
   video.currentTime=0;audio.currentTime=0;updateGains();
@@ -67,7 +82,8 @@ async function exportVideo(){
   recorder.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
   recorder.onstop=()=>resolveRecording();
   recorder.onerror=e=>rejectRecording(e.error||Error('فشل تسجيل الفيديو'));
-  const duration=Math.max(.1,Number.isFinite(video.duration)?video.duration:0);
+  const duration=Number(video.duration);
+  if(!Number.isFinite(duration)||duration<=0)throw Error('مدة الفيديو غير صالحة؛ تعذر بدء التصدير.');
   startedAt=performance.now();startTime=startedAt;
   recorder.start(1000);
   await video.play();
