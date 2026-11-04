@@ -19,6 +19,20 @@
 <p>اكتب كلماتك، اختر اللون والإيقاع والمقام، كوّن خلفية موسيقية تجريبية، ثم أضف تسجيلًا صوتيًا وصدّر مزيج WAV.</p>
 <div class="music-status"><span class="status-dot"></span> المعالجة محليًا داخل المتصفح</div>
 </section>
+
+<section class="panel engine-panel" aria-labelledby="aiEngineHeading">
+ <div class="panelhead"><span id="aiEngineHeading">محرك الغناء بالذكاء الاصطناعي</span><span class="badge engine-badge">ACE-Step 1.5 · Open Source</span></div>
+ <p class="engine-intro">ولّد أغنية كاملة بكلمات عربية وغناء اصطناعي. شغّل جلسة المحرك المجانية أولًا من دفتر Colab، ثم الصق رابطها ورمز الجلسة هنا. لا نستخدم خدمة مدفوعة؛ تُرسل الكلمات مباشرة إلى جلسة المحرك المؤقتة.</p>
+ <div class="engine-connect-grid">
+  <div class="music-field"><label for="aiEngineUrl">رابط جلسة المحرك</label><input id="aiEngineUrl" type="url" inputmode="url" placeholder="https://....trycloudflare.com" autocomplete="url"></div>
+  <div class="music-field"><label for="aiEngineToken">رمز الجلسة</label><input id="aiEngineToken" type="password" placeholder="الصق الرمز الذي ظهر في Colab" autocomplete="off"></div>
+ </div>
+ <div class="music-actions engine-actions"><button class="btn" id="aiEngineCheckBtn" type="button">فحص الاتصال</button><button class="btn primary" id="aiGenerateBtn" type="button" disabled>♫ توليد الأغنية العربية</button></div>
+ <p class="music-note" id="aiEngineStatus" role="status" aria-live="polite">المحرك غير متصل. افتح دفتر التشغيل المجاني أولًا، ثم أدخل الرابط والرمز.</p>
+ <div class="engine-progress" id="aiEngineProgress" hidden><div id="aiEngineProgressFill"></div></div>
+ <div class="engine-result" id="aiEngineResult" hidden><audio id="aiGeneratedAudio" controls preload="none"></audio><a class="btn primary" id="aiDownloadBtn" href="#" download>تنزيل الأغنية</a><small id="aiGeneratedMeta"></small></div>
+ <p class="engine-launch"><a href="https://colab.research.google.com/github/arkanws513-spec/Zereos-AI-Shorts/blob/main/music-engine/ACE-Step-Free-GPU.ipynb" target="_blank" rel="noopener">① تشغيل محرك الغناء المجاني في Google Colab ↗</a><span>يتطلب حساب Google وتوفر GPU مجانية، وهذا غير مضمون. أبقِ الجلسة مفتوحة أثناء التوليد.</span></p>
+</section>
 <div class="music-grid">
 <section class="panel music-panel">
 <div class="panelhead"><span>١ · هوية الأغنية</span><span class="badge">مشروع جديد</span></div>
