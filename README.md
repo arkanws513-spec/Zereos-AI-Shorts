@@ -111,3 +111,8 @@ The app does not require a paid inference API key for its built-in local TTS wor
 - It includes lyric sections, Arabic style/maqam/tempo controls, a browser-local electronic arrangement sketcher, optional user-provided vocal/audio import, local mix rendering, and WAV export.
 - Important limitation: the current arrangement engine is a procedural electronic sketch tool. It does **not** generate natural Arabic singing or a finished commercial-quality song. AI singing is not yet integrated; a candidate model must pass Arabic-language quality tests, model/weight license checks, and realistic hardware/runtime tests before being included.
 - No paid inference API or third-party voice cloning is required by this workspace. Imported recordings remain in the browser session and are not uploaded.
+
+
+## ZEREOS Quran
+
+A separate Quran listening workspace is available at [quran-studio.html](https://arkanws513-spec.github.io/Zereos-AI-Shorts/quran-studio.html). It supports local audio files and user-supplied HTTPS audio URLs, with a permission confirmation before playback. It links to Quran.com for verified Quran text and recitation browsing. The browser's ordinary text-to-speech engine is intentionally not used for Quran recitation: no synthetic reciter is presented as accurate until a Quran-specific model, source text, tajweed review, and verse-by-verse audio validation are established. Recitation recordings remain subject to their own rights; do not redistribute or embed recordings without permission.
