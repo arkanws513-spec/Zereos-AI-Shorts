@@ -38,5 +38,57 @@ $('vocalGain').addEventListener('input',e=>{$('vocalGainValue').textContent=Math
 $('exportWavBtn').addEventListener('click',()=>{if(!renderedBuffer)return;const blob=wavBlob(renderedBuffer),url=URL.createObjectURL(blob),a=document.createElement('a'),name=($('songTitle').value.trim()||'zereos-song').replace(/[^\p{L}\p{N}_ -]/gu,'').slice(0,50);a.href=url;a.download=name+'-draft.wav';a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);status('بدأ تنزيل ملف WAV. تحقق من اكتمال التنزيل قبل إغلاق الصفحة.')});
 function lyrics(){return ['# '+($('songTitle').value.trim()||'أغنية جديدة'),'الفكرة: '+$('songTheme').value,'','[المقطع الأول]',$('songVerse').value,'','[اللازمة]',$('songChorus').value,'','[المقطع الثاني / الجسر]',$('songBridge').value].join('\n')}
 $('copyLyricsBtn').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(lyrics());status('تم نسخ الكلمات.')}catch{status('تعذر النسخ التلقائي؛ استخدم حفظ الكلمات TXT.')}});$('downloadLyricsBtn').addEventListener('click',()=>{const b=new Blob(['\ufeff'+lyrics()],{type:'text/plain;charset=utf-8'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download='zereos-lyrics.txt';a.click();setTimeout(()=>URL.revokeObjectURL(u),10000)});
+
+const aiState={connected:false,busy:false,token:'',base:''};
+const aiStatus=(message)=>$('aiEngineStatus').textContent=message;
+function aiBaseUrl(){return $('aiEngineUrl').value.trim().replace(/\\/+$/,'')}
+function aiHeaders(){return {'Content-Type':'application/json','Authorization':'Bearer '+aiState.token}}
+function aiSetBusy(value){aiState.busy=value;$('aiGenerateBtn').disabled=!aiState.connected||value;$('aiEngineCheckBtn').disabled=value}
+function aiGenrePrompt(){const styles={tarab:'Arabic classical tarab, expressive melismatic lead vocals, orchestral strings, qanun and oud, traditional Arabic percussion',shaabi:'Egyptian shaabi pop, lively tabla, energetic original male vocals',arabpop:'Modern Arabic pop, polished contemporary production, catchy melodic chorus',khaleeji:'Khaleeji Gulf Arabic music, mirwas percussion, oud, warm melodic vocals',rap:'Arabic hip-hop, rhythmic rap delivery, deep bass, modern drums'};return styles[$('musicStyle').value]||styles.arabpop}
+function aiLyricsPayload(){const verse=$('songVerse').value.trim(),chorus=$('songChorus').value.trim(),bridge=$('songBridge').value.trim();return [verse?'[Verse 1]\\n'+verse:'',chorus?'[Chorus]\\n'+chorus:'',bridge?'[Verse 2]\\n'+bridge:''].filter(Boolean).join('\\n\\n')}
+async function aiCheckConnection(){
+ const base=aiBaseUrl(),token=$('aiEngineToken').value.trim();
+ if(!/^https:\/\//i.test(base)){aiStatus('أدخل رابط HTTPS صحيحًا لجلسة المحرك.');return}
+ if(!token){aiStatus('أدخل رمز الجلسة الذي ظهر في دفتر Colab.');return}
+ aiSetBusy(true);aiStatus('جارٍ فحص جلسة ACE-Step…');
+ try{const response=await fetch(base+'/health');if(!response.ok)throw Error('HTTP '+response.status);const payload=await response.json();const data=payload.data||payload;if(payload.code&&payload.code!==200)throw Error(payload.error||'استجابة غير صالحة');aiState.base=base;aiState.token=token;aiState.connected=true;$('aiGenerateBtn').disabled=false;aiStatus('اتصلنا بالمحرك. '+(data.models_initialized?'النموذج جاهز.':'الخادم يعمل؛ قد يحتاج تحميل النموذج عند أول توليد.'))}
+ catch(error){aiState.connected=false;$('aiGenerateBtn').disabled=true;aiStatus('فشل الاتصال: '+error.message+'. تأكد أن جلسة Colab ما زالت تعمل وأن الرابط صحيح.')}
+ finally{$('aiEngineCheckBtn').disabled=false}
+}
+async function aiGenerateSong(){
+ if(!aiState.connected||aiState.busy)return;
+ const lyrics=aiLyricsPayload();if(!lyrics){aiStatus('اكتب كلمات المقطع واللازمة أولًا.');return}
+ const duration=Number($('musicLength').value)||60,bpm=clamp(Number($('musicTempo').value)||96,60,160);
+ const maqams={nahawand:'Nahawand',rast:'Rast',hijaz:'Hijaz',minor:'Minor',major:'Major'},keys={C:'C',D:'D',E:'E',F:'F',G:'G',A:'A',Bb:'Bb'},moods={warm:'warm and emotional',dramatic:'dramatic and epic',bright:'bright and joyful',calm:'calm and reflective'};
+ const prompt=aiGenrePrompt()+', Arabic lyrics and Arabic lead singing, '+(moods[$('musicMood').value]||'warm')+' mood, '+(maqams[$('musicMaqam').value]||'Nahawand')+' maqam, studio quality, original fictional singer, no imitation of any real singer';
+ aiSetBusy(true);$('aiEngineProgress').hidden=false;$('aiEngineProgressFill').style.width='4%';$('aiEngineResult').hidden=true;
+ aiStatus('جارٍ إرسال الكلمات إلى محرك ACE-Step…');
+ try{
+  const submitted=await fetch(aiState.base+'/release_task',{method:'POST',headers:aiHeaders(),body:JSON.stringify({prompt,lyrics,vocal_language:'ar',thinking:true,use_format:true,bpm,key_scale:(keys[$('musicKey').value]||'D')+' '+(maqams[$('musicMaqam').value]||'Nahawand'),audio_duration:duration,audio_format:'mp3',model:'acestep-v15-turbo',inference_steps:8,batch_size:1,use_random_seed:true})});
+  const created=await submitted.json();if(!submitted.ok||created.code!==200)throw Error(created.error||'تعذر إنشاء مهمة التوليد (HTTP '+submitted.status+')');
+  const taskId=created.data&&created.data.task_id;if(!taskId)throw Error('لم يرجع المحرك رقم المهمة.');
+  aiStatus('تم استلام المهمة. يجري توليد اللحن والغناء؛ قد يستغرق ذلك عدة دقائق…');
+  let completed=null;
+  for(let attempt=0;attempt<240;attempt++){
+   await new Promise(resolve=>setTimeout(resolve,3000));
+   const response=await fetch(aiState.base+'/query_result',{method:'POST',headers:aiHeaders(),body:JSON.stringify({task_id_list:[taskId]})});
+   const result=await response.json();if(!response.ok||result.code!==200)throw Error(result.error||'تعذر متابعة مهمة التوليد.');
+   const item=Array.isArray(result.data)?result.data[0]:null;
+   if(item&&item.status===2)throw Error(item.error||item.result||'فشل توليد الأغنية.');
+   if(item&&item.status===1){completed=item;break}
+   $('aiEngineProgressFill').style.width=Math.min(94,8+attempt*.36)+'%';
+   if(attempt%4===0)aiStatus('المحرك يعمل على الأغنية… ('+Math.floor((attempt+1)*3/60)+' دقيقة تقريبًا)');
+  }
+  if(!completed)throw Error('انتهت مهلة الانتظار. قد تكون جلسة GPU المجانية توقفت؛ افحصها ثم حاول مجددًا.');
+  let parsed=completed.result;if(typeof parsed==='string')parsed=JSON.parse(parsed);if(!Array.isArray(parsed))parsed=[parsed];
+  const track=parsed.find(x=>x&&x.status===1&&x.file)||parsed.find(x=>x&&x.file);if(!track||!track.file)throw Error('اكتملت المهمة لكن لم يظهر ملف صوت.');
+  const audioUrl=new URL(track.file,aiState.base).href;$('aiGeneratedAudio').src=audioUrl;$('aiDownloadBtn').href=audioUrl;
+  const safeName=($('songTitle').value.trim()||'zereos-song').replace(/[^\\p{L}\\p{N}_ -]/gu,'').slice(0,50)||'zereos-song';$('aiDownloadBtn').download=safeName+'.mp3';
+  $('aiGeneratedMeta').textContent='ACE-Step 1.5 · '+duration+' ثانية · '+bpm+' BPM · العربية';$('aiEngineResult').hidden=false;$('aiEngineProgressFill').style.width='100%';aiStatus('اكتمل توليد الأغنية. استمع إليها ثم نزّل ملف MP3.');
+ }catch(error){aiStatus('لم يكتمل التوليد: '+error.message);$('aiEngineProgressFill').style.width='0%'}
+ finally{aiSetBusy(false)}
+}
+$('aiEngineCheckBtn').addEventListener('click',aiCheckConnection);$('aiGenerateBtn').addEventListener('click',aiGenerateSong);
+
 window.addEventListener('pagehide',stopPlayback);
 })();
