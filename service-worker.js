@@ -1,7 +1,7 @@
 /* ZEREOS app shell cache. Large model/WASM assets are intentionally not precached. */
 'use strict';
 
-const CACHE_NAME = 'zereos-shell-v14';
+const CACHE_NAME = 'zereos-shell-v15';
 const BASE_URL = new URL('./', self.location.href);
 const SHELL_URLS = [
   BASE_URL.href,
@@ -22,6 +22,9 @@ const SHELL_URLS = [
   new URL('music-studio.html', BASE_URL).href,
   new URL('music-studio.js', BASE_URL).href,
   new URL('music-studio.css', BASE_URL).href,
+  new URL('quran-studio.html', BASE_URL).href,
+  new URL('quran-studio.js', BASE_URL).href,
+  new URL('quran-studio.css', BASE_URL).href,
   new URL('manifest.webmanifest', BASE_URL).href,
   new URL('assets/zereos-icon.svg', BASE_URL).href,
   new URL('assets/template-zereos-ivory.svg', BASE_URL).href,
