@@ -374,7 +374,7 @@ if (quranStudioHtml && quranStudioJs && quranStudioCss) {
     if (!quranStudioHtml.includes('id="' + id + '"')) fail('Quran Studio is missing required control: #' + id);
   }
   if (!quranStudioHtml.includes('src="./quran-studio.js"')) fail('Quran Studio page does not load its controller.');
-  for (const feature of ['URL.canParse', 'URL.createObjectURL', 'audio.load()', 'quranPermission']) {
+  for (const feature of ['new URL(raw)', 'URL.createObjectURL', 'player.load()', 'permission.checked']) {
     if (!quranStudioJs.includes(feature)) fail('Quran Studio audio workflow is incomplete: missing ' + feature);
   }
   if (!quranStudioHtml.includes('لا يستخدم تحويل النص إلى كلام العادي') || !quranStudioHtml.includes('quran.com')) {
