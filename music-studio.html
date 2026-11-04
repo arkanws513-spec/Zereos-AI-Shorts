@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#080c16"><meta name="description" content="ZEREOS AI Music Studio — استوديو كتابة وتجهيز الموسيقى العربية محليًا.">
+<title>ZEREOS AI Music Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./app.css"><link rel="stylesheet" href="./music-studio.css">
+</head>
+<body class="music-page">
+<header class="top music-top">
+<a class="btn" href="./index.html">← العودة إلى ZEREOS Shorts</a>
+<div class="brand"><div class="logo">♫</div><div><h1>ZEREOS AI MUSIC</h1><p>استوديو الموسيقى العربية · Voice Vault</p></div></div>
+</header>
+<main class="music-shell">
+<section class="music-hero">
+<span class="music-eyebrow">LOCAL MUSIC WORKSPACE · NO PAID API</span>
+<h2>من الفكرة إلى مسودة موسيقية</h2>
+<p>اكتب كلماتك، اختر اللون والإيقاع والمقام، كوّن خلفية موسيقية تجريبية، ثم أضف تسجيلًا صوتيًا وصدّر مزيج WAV.</p>
+<div class="music-status"><span class="status-dot"></span> المعالجة محليًا داخل المتصفح</div>
+</section>
+<div class="music-grid">
+<section class="panel music-panel">
+<div class="panelhead"><span>١ · هوية الأغنية</span><span class="badge">مشروع جديد</span></div>
+<div class="music-field"><label for="songTitle">اسم الأغنية</label><input id="songTitle" type="text" maxlength="80" value="مسودة موسيقية جديدة" placeholder="اكتب اسم الأغنية"></div>
+<div class="music-field"><label for="musicStyle">اللون الموسيقي</label><select id="musicStyle"><option value="tarab">طرب شرقي</option><option value="shaabi">شعبي مصري</option><option value="arabpop">بوب عربي</option><option value="khaleeji">خليجي</option><option value="rap">راب / هيب هوب</option></select></div>
+<div class="music-two">
+<div class="music-field"><label for="musicTempo">السرعة · BPM</label><input id="musicTempo" type="number" min="60" max="160" value="96"></div>
+<div class="music-field"><label for="musicMaqam">المقام / السلم</label><select id="musicMaqam"><option value="nahawand">نهاوند</option><option value="rast">راست مبسط</option><option value="hijaz">حجاز مبسط</option><option value="minor">مينور</option><option value="major">ماجور</option></select></div>
+</div>
+<div class="music-two">
+<div class="music-field"><label for="musicKey">النغمة الأساسية</label><select id="musicKey"><option value="D">ري</option><option value="C">دو</option><option value="E">مي</option><option value="F">فا</option><option value="G">صول</option><option value="A">لا</option><option value="Bb">سي بيمول</option></select></div>
+<div class="music-field"><label for="musicLength">طول المسودة</label><select id="musicLength"><option value="30">30 ثانية</option><option value="45">45 ثانية</option><option value="60">60 ثانية</option></select></div>
+</div>
+<div class="music-field"><label for="musicMood">الإحساس</label><select id="musicMood"><option value="warm">دافئ وعاطفي</option><option value="dramatic">درامي وملحمي</option><option value="bright">مبهج وخفيف</option><option value="calm">هادئ وتأملي</option></select></div>
+<div class="music-actions"><button class="btn primary" id="buildTrackBtn" type="button">♫ تكوين الخلفية الموسيقية</button><button class="btn" id="playTrackBtn" type="button" disabled>▶ استماع</button><button class="btn" id="stopTrackBtn" type="button" disabled>إيقاف</button></div>
+<div class="music-meter"><div id="musicMeterFill"></div></div>
+<p class="music-note" id="engineStatus" role="status" aria-live="polite">لم يتم تكوين مسودة بعد. هذه أداة تأليف تجريبية بالأصوات الإلكترونية، وليست محرك غناء بالذكاء الاصطناعي.</p>
+<div class="music-divider"></div>
+<div class="panelhead"><span>٢ · مسار صوت المغني</span><span class="badge">ملف من جهازك</span></div>
+<div class="music-field"><label for="vocalFile">استيراد تسجيل غنائي أو صوتي</label><input id="vocalFile" type="file" accept="audio/*"><small id="vocalStatus">يمكنك إضافة تسجيل تملكه أو لديك إذن باستخدامه. لا يوجد استنساخ لأصوات المطربين.</small></div>
+<div class="music-field"><label for="vocalGain">مستوى صوت التسجيل <output id="vocalGainValue">100%</output></label><input id="vocalGain" type="range" min="0" max="1.5" step=".05" value="1"></div>
+<div class="music-field"><label for="instrumentGain">مستوى الخلفية <output id="instrumentGainValue">70%</output></label><input id="instrumentGain" type="range" min="0" max="1.5" step=".05" value=".7"></div>
+<div class="music-actions"><button class="btn" id="exportWavBtn" type="button" disabled>⇩ تصدير المزيج WAV</button><button class="btn" id="clearVocalBtn" type="button">إزالة التسجيل</button></div>
+<p class="music-note">التصدير الحالي يدمج الخلفية الإلكترونية والتسجيل المستورد. لا يتم رفع ملفاتك إلى خادم.</p>
+</section>
+<section class="panel lyrics-panel">
+<div class="panelhead"><span>٣ · ورشة الكلمات</span><span class="badge">حفظ محلي أثناء الجلسة</span></div>
+<div class="music-field"><label for="songTheme">فكرة الأغنية</label><input id="songTheme" type="text" placeholder="مثال: الحنين، الأمل، بداية جديدة"></div>
+<div class="music-field"><label for="songVerse">المقطع الأول</label><textarea id="songVerse" rows="5" placeholder="اكتب كلمات المقطع الأول هنا..."></textarea></div>
+<div class="music-field"><label for="songChorus">اللازمة / الكورس</label><textarea id="songChorus" rows="4" placeholder="اكتب اللازمة التي تتكرر في الأغنية..."></textarea></div>
+<div class="music-field"><label for="songBridge">الكوبليه الثاني أو الجسر</label><textarea id="songBridge" rows="4" placeholder="أضف مقطعًا ثانيًا أو جسرًا موسيقيًا..."></textarea></div>
+<div class="music-actions"><button class="btn" id="copyLyricsBtn" type="button">نسخ الكلمات</button><button class="btn" id="downloadLyricsBtn" type="button">حفظ الكلمات TXT</button></div>
+<div class="music-divider"></div>
+<div class="panelhead"><span>٤ · خريطة التوزيع</span><span class="badge">اقتراح قابل للتعديل</span></div>
+<div class="arrangement-list" id="arrangementList">
+<div><b>مقدمة</b><span>4 موازير · تمهيد لحني</span></div><div><b>المقطع الأول</b><span>8 موازير · دخول الإيقاع</span></div><div><b>اللازمة</b><span>8 موازير · طاقة أعلى</span></div><div><b>الخاتمة</b><span>4 موازير · قفلة موسيقية</span></div>
+</div>
+<div class="voice-vault">
+<div class="vault-mark">✦</div><div><b>Voice Vault</b><p>مكتبة الشخصيات الصوتية الأصلية ستُربط بمحرك الغناء بعد اجتياز اختبار العربية والترخيص والأداء.</p></div>
+</div>
+</section>
+</div>
+<footer class="music-footer">ZEREOS AI MUSIC STUDIO · نسخة تجريبية للتأليف والمزج المحلي</footer>
+</main>
+<script src="./music-studio.js"></script>
+</body></html>
