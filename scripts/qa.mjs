@@ -32,6 +32,9 @@ const manifest = readRequired('manifest.webmanifest');
 const serviceWorker = readRequired('service-worker.js');
 const videoStudioHtml = readRequired('video-studio.html');
 const videoStudioJs = readRequired('video-studio.js');
+const musicStudioHtml = readRequired('music-studio.html');
+const musicStudioJs = readRequired('music-studio.js');
+const musicStudioCss = readRequired('music-studio.css');
 
 if (html) {
   if (!/<html\b[^>]*lang=["']ar["']/i.test(html)) fail('index.html should declare Arabic language.');
@@ -350,4 +353,20 @@ if (process.exitCode) {
   console.error('ZEREOS QA failed.');
 } else {
   console.log('ZEREOS QA passed.');
+}
+
+if (musicStudioHtml && musicStudioJs && musicStudioCss) {
+  for (const id of ['songTitle','musicStyle','musicTempo','musicMaqam','musicKey','musicLength','buildTrackBtn','playTrackBtn','vocalFile','exportWavBtn','songVerse','songChorus']) {
+    if (!musicStudioHtml.includes('id="' + id + '"')) fail('Music Studio is missing required control: #' + id);
+  }
+  if (!musicStudioHtml.includes('src="./music-studio.js"')) fail('Music Studio page does not load its controller.');
+  for (const feature of ['function scheduleArrangement(', 'async function buildMix()', 'function wavBlob(', 'createBufferSource()', 'decodeAudioData', 'audio/wav']) {
+    if (!musicStudioJs.includes(feature)) fail('Music Studio audio workflow is incomplete: missing ' + feature);
+  }
+  if (!musicStudioHtml.includes('ليست محرك غناء') && !musicStudioHtml.includes('ليست محرك غناء')) {
+    if (!musicStudioHtml.includes('محرك غناء بالذكاء الاصطناعي')) fail('Music Studio must clearly disclose that the current synthesizer is not an AI singing engine.');
+  }
+  if (!musicStudioCss.includes('@media(max-width:850px)')) fail('Music Studio mobile layout rules are missing.');
+  if (!serviceWorker.includes("new URL('music-studio.html', BASE_URL).href")) fail('Music Studio page is not included in the offline app shell.');
+  if (!process.exitCode) pass('Music Studio page, mobile layout, local arrangement rendering and WAV export checks passed.');
 }
