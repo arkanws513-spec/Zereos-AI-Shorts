@@ -36,6 +36,7 @@ jobs:
           node --check studio-pro.js
           node --check video-studio.js
           node --check music-studio.js
+          python -m json.tool music-engine/ACE-Step-Free-GPU.ipynb > /dev/null
           node --input-type=module --check < tts-engine.js
           node --input-type=module --check < avatar-studio.js
           python -m py_compile avatar-engine/worker.py
