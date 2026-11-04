@@ -96,3 +96,11 @@ The app does not require a paid inference API key for its built-in local TTS wor
 - يمكن تسجيل التعليق من الميكروفون داخل المتصفح بعد منح إذن الوصول، مع إظهار نص المشاهد الأربعة أثناء القراءة.
 - استمع إلى التسجيل قبل اعتماده، ثم يجهّز التطبيق الصوت للمعاينة والتصدير ويحفظ نسخة في مكتبة الأصوات المحلية عندما يكون التخزين متاحًا.
 - يعتمد دعم التسجيل وترميز الصوت على المتصفح والجهاز؛ يتطلب الميكروفون عادةً HTTPS أو localhost. يجب تجربة التسجيل والتصدير فعليًا على الهاتف المستهدف قبل الاعتماد الإنتاجي.
+
+
+## ZEREOS AI Music Studio
+
+- A separate Arabic RTL music workspace is available at [music-studio.html](https://arkanws513-spec.github.io/Zereos-AI-Shorts/music-studio.html).
+- It includes lyric sections, Arabic style/maqam/tempo controls, a browser-local electronic arrangement sketcher, optional user-provided vocal/audio import, local mix rendering, and WAV export.
+- Important limitation: the current arrangement engine is a procedural electronic sketch tool. It does **not** generate natural Arabic singing or a finished commercial-quality song. AI singing is not yet integrated; a candidate model must pass Arabic-language quality tests, model/weight license checks, and realistic hardware/runtime tests before being included.
+- No paid inference API or third-party voice cloning is required by this workspace. Imported recordings remain in the browser session and are not uploaded.
