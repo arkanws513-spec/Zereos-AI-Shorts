@@ -327,7 +327,7 @@ if (html) {
   ]) {
     if (!source.includes(feature)) fail('Cinematic studio regression: missing expected feature or persistence hook: ' + feature);
   }
-  if (!serviceWorker.includes("const CACHE_NAME = 'zereos-shell-v13'") ||
+  if (!serviceWorker.includes("const CACHE_NAME = 'zereos-shell-v14'") ||
       !serviceWorker.includes("new URL('avatar-studio.js', BASE_URL).href") ||
       !serviceWorker.includes("new URL('app.js', BASE_URL).href") ||
       !serviceWorker.includes("new URL('audio-workflows.js', BASE_URL).href") ||
