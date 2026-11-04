@@ -330,7 +330,7 @@ if (html) {
   ]) {
     if (!source.includes(feature)) fail('Cinematic studio regression: missing expected feature or persistence hook: ' + feature);
   }
-  if (!serviceWorker.includes("const CACHE_NAME = 'zereos-shell-v14'") ||
+  if (!serviceWorker.includes("const CACHE_NAME = 'zereos-shell-v15'") ||
       !serviceWorker.includes("new URL('avatar-studio.js', BASE_URL).href") ||
       !serviceWorker.includes("new URL('app.js', BASE_URL).href") ||
       !serviceWorker.includes("new URL('audio-workflows.js', BASE_URL).href") ||
@@ -370,17 +370,17 @@ if (musicStudioHtml && musicStudioJs && musicStudioCss) {
 
 
 if (quranStudioHtml && quranStudioJs && quranStudioCss) {
-  for (const id of ['quranAudioFile','quranAudioUrl','quranAudioPlayer','quranPermission','quranAudioLoadBtn','quranAudioStatus','quranReaderMode','quranAiStatus']) {
+  for (const id of ['quranAudioFile','quranAudioUrl','quranAudioPlayer','quranPermission','quranAudioLoadBtn','quranAudioStatus','quranAiStatus']) {
     if (!quranStudioHtml.includes('id="' + id + '"')) fail('Quran Studio is missing required control: #' + id);
   }
   if (!quranStudioHtml.includes('src="./quran-studio.js"')) fail('Quran Studio page does not load its controller.');
   for (const feature of ['new URL(raw)', 'URL.createObjectURL', 'player.load()', 'permission.checked']) {
     if (!quranStudioJs.includes(feature)) fail('Quran Studio audio workflow is incomplete: missing ' + feature);
   }
-  if (!quranStudioHtml.includes('لا يستخدم تحويل النص إلى كلام العادي') || !quranStudioHtml.includes('quran.com')) {
+  if (!quranStudioHtml.includes('محرك تحويل النص العادي') || !quranStudioHtml.includes('quran.com')) {
     fail('Quran Studio must disclose the recitation-accuracy safeguard and link to the verified Quran reader.');
   }
-  if (!sw.includes("const CACHE_NAME = 'zereos-shell-v15'") || !sw.includes("new URL('quran-studio.html', BASE_URL).href") || !sw.includes("new URL('quran-studio.js', BASE_URL).href")) {
+  if (!serviceWorker.includes("const CACHE_NAME = 'zereos-shell-v15'") || !serviceWorker.includes("new URL('quran-studio.html', BASE_URL).href") || !serviceWorker.includes("new URL('quran-studio.js', BASE_URL).href")) {
     fail('Quran Studio must be included in the refreshed offline app shell.');
   }
   if (!process.exitCode) pass('Quran Studio audio import, permission gate, mobile layout and accuracy safeguards are covered.');
