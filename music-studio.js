@@ -41,11 +41,11 @@ $('copyLyricsBtn').addEventListener('click',async()=>{try{await navigator.clipbo
 
 const aiState={connected:false,busy:false,token:'',base:''};
 const aiStatus=(message)=>$('aiEngineStatus').textContent=message;
-function aiBaseUrl(){return $('aiEngineUrl').value.trim().replace(/\\/+$/,'')}
+function aiBaseUrl(){return $('aiEngineUrl').value.trim().replace(/\/+$/,'')}
 function aiHeaders(){return {'Content-Type':'application/json','Authorization':'Bearer '+aiState.token}}
 function aiSetBusy(value){aiState.busy=value;$('aiGenerateBtn').disabled=!aiState.connected||value;$('aiEngineCheckBtn').disabled=value}
 function aiGenrePrompt(){const styles={tarab:'Arabic classical tarab, expressive melismatic lead vocals, orchestral strings, qanun and oud, traditional Arabic percussion',shaabi:'Egyptian shaabi pop, lively tabla, energetic original male vocals',arabpop:'Modern Arabic pop, polished contemporary production, catchy melodic chorus',khaleeji:'Khaleeji Gulf Arabic music, mirwas percussion, oud, warm melodic vocals',rap:'Arabic hip-hop, rhythmic rap delivery, deep bass, modern drums'};return styles[$('musicStyle').value]||styles.arabpop}
-function aiLyricsPayload(){const verse=$('songVerse').value.trim(),chorus=$('songChorus').value.trim(),bridge=$('songBridge').value.trim();return [verse?'[Verse 1]\\n'+verse:'',chorus?'[Chorus]\\n'+chorus:'',bridge?'[Verse 2]\\n'+bridge:''].filter(Boolean).join('\\n\\n')}
+function aiLyricsPayload(){const verse=$('songVerse').value.trim(),chorus=$('songChorus').value.trim(),bridge=$('songBridge').value.trim();return [verse?'[Verse 1]\n'+verse:'',chorus?'[Chorus]\n'+chorus:'',bridge?'[Verse 2]\n'+bridge:''].filter(Boolean).join('\n\n')}
 async function aiCheckConnection(){
  const base=aiBaseUrl(),token=$('aiEngineToken').value.trim();
  if(!/^https:\/\//i.test(base)){aiStatus('أدخل رابط HTTPS صحيحًا لجلسة المحرك.');return}
@@ -83,7 +83,7 @@ async function aiGenerateSong(){
   let parsed=completed.result;if(typeof parsed==='string')parsed=JSON.parse(parsed);if(!Array.isArray(parsed))parsed=[parsed];
   const track=parsed.find(x=>x&&x.status===1&&x.file)||parsed.find(x=>x&&x.file);if(!track||!track.file)throw Error('اكتملت المهمة لكن لم يظهر ملف صوت.');
   const audioUrl=new URL(track.file,aiState.base).href;$('aiGeneratedAudio').src=audioUrl;$('aiDownloadBtn').href=audioUrl;
-  const safeName=($('songTitle').value.trim()||'zereos-song').replace(/[^\\p{L}\\p{N}_ -]/gu,'').slice(0,50)||'zereos-song';$('aiDownloadBtn').download=safeName+'.mp3';
+   const safeName=($('songTitle').value.trim()||'zereos-song').replace(/[^\p{L}\p{N}_ -]/gu,'').slice(0,50)||'zereos-song';$('aiDownloadBtn').download=safeName+'.mp3';
   $('aiGeneratedMeta').textContent='ACE-Step 1.5 · '+duration+' ثانية · '+bpm+' BPM · العربية';$('aiEngineResult').hidden=false;$('aiEngineProgressFill').style.width='100%';aiStatus('اكتمل توليد الأغنية. استمع إليها ثم نزّل ملف MP3.');
  }catch(error){aiStatus('لم يكتمل التوليد: '+error.message);$('aiEngineProgressFill').style.width='0%'}
  finally{aiSetBusy(false)}
