@@ -100,6 +100,13 @@ The app does not require a paid inference API key for its built-in local TTS wor
 
 ## ZEREOS AI Music Studio
 
+- The studio includes a real ACE-Step 1.5 generation connector for Arabic lyrics, style prompts, tempo, duration, and MP3 playback/download.
+- Start a temporary GPU API session using [the free Colab launcher notebook](music-engine/ACE-Step-Free-GPU.ipynb). It checks for an available NVIDIA GPU, installs the open-source engine, allows the GitHub Pages origin, starts an API-key-protected server, and creates a temporary HTTPS tunnel. Free GPU access is not guaranteed; keep the Colab session running while generating.
+- Paste the temporary URL and session token into the studio. The token is held in page memory only and is not saved in browser storage. Song prompts and lyrics are sent directly to the temporary engine session.
+- ACE-Step 1.5 is MIT-licensed and its official musician guide lists Arabic among 50+ vocal languages. Arabic pronunciation and dialect quality still need listening tests; generation can fail or sound imperfect. The notebook is a launcher, not a guarantee of free compute or uninterrupted availability.
+- The procedural browser arrangement and user audio import remain available as separate fallback tools; they are not AI singing.
+
+
 - A separate Arabic RTL music workspace is available at [music-studio.html](https://arkanws513-spec.github.io/Zereos-AI-Shorts/music-studio.html).
 - It includes lyric sections, Arabic style/maqam/tempo controls, a browser-local electronic arrangement sketcher, optional user-provided vocal/audio import, local mix rendering, and WAV export.
 - Important limitation: the current arrangement engine is a procedural electronic sketch tool. It does **not** generate natural Arabic singing or a finished commercial-quality song. AI singing is not yet integrated; a candidate model must pass Arabic-language quality tests, model/weight license checks, and realistic hardware/runtime tests before being included.
