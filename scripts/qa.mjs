@@ -36,6 +36,9 @@ const musicStudioHtml = readRequired('music-studio.html');
 const musicStudioJs = readRequired('music-studio.js');
 const musicStudioCss = readRequired('music-studio.css');
 const musicEngineNotebook = readRequired('music-engine/ACE-Step-Free-GPU.ipynb');
+const quranStudioHtml = readRequired('quran-studio.html');
+const quranStudioJs = readRequired('quran-studio.js');
+const quranStudioCss = readRequired('quran-studio.css');
 
 if (html) {
   if (!/<html\b[^>]*lang=["']ar["']/i.test(html)) fail('index.html should declare Arabic language.');
@@ -364,6 +367,24 @@ if (musicStudioHtml && musicStudioJs && musicStudioCss) {
   if (!process.exitCode) pass('Music Studio page, mobile layout, local arrangement rendering and WAV export checks passed.');
 }
 
+
+
+if (quranStudioHtml && quranStudioJs && quranStudioCss) {
+  for (const id of ['quranAudioFile','quranAudioUrl','quranAudioPlayer','quranPermission','quranAudioLoadBtn','quranAudioStatus','quranReaderMode','quranAiStatus']) {
+    if (!quranStudioHtml.includes('id="' + id + '"')) fail('Quran Studio is missing required control: #' + id);
+  }
+  if (!quranStudioHtml.includes('src="./quran-studio.js"')) fail('Quran Studio page does not load its controller.');
+  for (const feature of ['URL.canParse', 'URL.createObjectURL', 'audio.load()', 'quranPermission']) {
+    if (!quranStudioJs.includes(feature)) fail('Quran Studio audio workflow is incomplete: missing ' + feature);
+  }
+  if (!quranStudioHtml.includes('لا يستخدم تحويل النص إلى كلام العادي') || !quranStudioHtml.includes('quran.com')) {
+    fail('Quran Studio must disclose the recitation-accuracy safeguard and link to the verified Quran reader.');
+  }
+  if (!sw.includes("const CACHE_NAME = 'zereos-shell-v15'") || !sw.includes("new URL('quran-studio.html', BASE_URL).href") || !sw.includes("new URL('quran-studio.js', BASE_URL).href")) {
+    fail('Quran Studio must be included in the refreshed offline app shell.');
+  }
+  if (!process.exitCode) pass('Quran Studio audio import, permission gate, mobile layout and accuracy safeguards are covered.');
+}
 
 if (process.exitCode) {
   console.error('ZEREOS QA failed.');
