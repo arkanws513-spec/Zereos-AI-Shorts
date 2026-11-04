@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#07130f">
+<meta name="description" content="ZEREOS Quran — مساحة هادئة للاستماع إلى تلاوات القرآن الكريم.">
+<title>ZEREOS Quran | تلاوة وسكينة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./quran-studio.css">
+</head>
+<body>
+<header class="q-top">
+<a href="./index.html" class="back-link">← العودة إلى ZEREOS</a>
+<div class="q-brand"><span class="q-mark">۞</span><div><strong>ZEREOS QURAN</strong><small>مساحة التلاوة والسكينة</small></div></div>
+</header>
+<main class="q-shell">
+<section class="q-hero">
+<div class="q-ornament">۞</div>
+<p class="q-kicker">THE QURAN RECITATION SPACE</p>
+<h1>تلاوةٌ بسكينة</h1>
+<p>استمع بهدوء، وتدبّر، واجعل صحة التلاوة قبل جمال الصوت.</p>
+<div class="q-pills"><span>حفص عن عاصم · إعداد مبدئي</span><span>بدون موسيقى أو مؤثرات</span><span>تشغيل محلي للملفات</span></div>
+</section>
+
+<section class="q-panel">
+<div class="q-panel-head"><div><span class="q-step">01</span><h2>الاستماع إلى تلاوة</h2></div><span class="q-tag">مشغّل التلاوة</span></div>
+<p class="q-copy">يمكنك اختيار تسجيل تملك حق استخدامه من جهازك، أو إدخال رابط مباشر لملف صوتي مسموح بتشغيله. لا نعيد توزيع التسجيلات.</p>
+<div class="q-fields">
+<label class="q-field"><span>اختيار ملف صوتي من جهازك</span><input id="quranAudioFile" type="file" accept="audio/*"><small>يظل الملف على جهازك ولا يُرفع إلى خوادمنا.</small></label>
+<label class="q-field"><span>أو رابط مباشر لملف صوتي HTTPS</span><input id="quranAudioUrl" type="url" inputmode="url" placeholder="https://example.com/recitation.mp3"><small>يجب أن يسمح مصدر الملف بالتشغيل المباشر.</small></label>
+</div>
+<label class="q-permission"><input id="quranPermission" type="checkbox"><span>أؤكد أن لدي الإذن باستخدام هذا التسجيل أو أن مصدره يسمح بهذا الاستخدام.</span></label>
+<div class="q-actions"><button id="quranAudioLoadBtn" class="q-primary" type="button" disabled>تحميل التلاوة</button><a class="q-secondary" href="https://quran.com/" target="_blank" rel="noopener noreferrer">فتح المصحف والاستماع على Quran.com ↗</a></div>
+<p id="quranAudioStatus" class="q-status" role="status" aria-live="polite">اختر ملفًا أو أدخل رابطًا، ثم أكد الإذن لتفعيل التشغيل.</p>
+<div class="q-player-wrap"><audio id="quranAudioPlayer" controls preload="metadata" aria-label="مشغل تلاوة القرآن"></audio></div>
+</section>
+
+<section class="q-grid">
+<article class="q-card">
+<span class="q-step">02</span><h2>القارئ الاصطناعي</h2>
+<div class="q-voice-icon">۞</div>
+<h3>صوت السكينة والخشوع</h3>
+<p>المواصفات المعتمدة للصوت المستقبلي: هدوء ووقار، سرعة متأنية، وضوح المخارج، ومدود وغنن ووقف صحيح دون مبالغة صوتية.</p>
+<div class="q-alert"><strong>قيد الدقة:</strong> التوليد الاصطناعي غير مفعّل بعد. لن نستخدم قارئ النظام أو محرك تحويل النص العادي؛ لأنه لا يضمن نطق كل حرف وحكم تجويد على الوجه الصحيح.</div>
+<div class="q-status" id="quranAiStatus" role="status">الحالة: بانتظار نموذج قرآني متخصص ومراجعة تلاوة آية بآية.</div>
+</article>
+<article class="q-card">
+<span class="q-step">03</span><h2>مكتبة القرّاء</h2>
+<p>يمكن إضافة تسجيلات قرّاء حقيقيين بعد التحقق من ترخيص كل تسجيل ومصدره. وجود التسجيل على الإنترنت لا يعني أن إعادة نشره مسموحة.</p>
+<a class="q-resource" href="https://quran.com/reciters" target="_blank" rel="noopener noreferrer">استعراض القرّاء على Quran.com ↗</a>
+<a class="q-resource" href="https://qul.tarteel.ai/faq" target="_blank" rel="noopener noreferrer">سياسة موارد QUL وتراخيصها ↗</a>
+</article>
+</section>
+<footer class="q-footer">اللهم اجعل القرآن ربيع قلوبنا ونور صدورنا.</footer>
+</main>
+<script src="./quran-studio.js"></script>
+</body>
+</html>
