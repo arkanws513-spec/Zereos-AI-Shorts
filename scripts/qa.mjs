@@ -35,6 +35,7 @@ const videoStudioJs = readRequired('video-studio.js');
 const musicStudioHtml = readRequired('music-studio.html');
 const musicStudioJs = readRequired('music-studio.js');
 const musicStudioCss = readRequired('music-studio.css');
+const musicEngineNotebook = readRequired('music-engine/ACE-Step-Free-GPU.ipynb');
 
 if (html) {
   if (!/<html\b[^>]*lang=["']ar["']/i.test(html)) fail('index.html should declare Arabic language.');
