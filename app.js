@@ -142,7 +142,7 @@ function exportSubtitles(){const trimOffset=narrationBuffer?Math.min(narrationTr
 function exportWordSubtitles(format='srt'){const lines=texts(),timeline=sceneTimeline(),cues=[];lines.forEach((line,index)=>{if(!String(line||'').trim())return;wordTimings(line,timeline[index].start,timeline[index].end).forEach(item=>cues.push(item))});if(!cues.length){$('status').textContent='اكتب نصًا في مشهد واحد على الأقل قبل تصدير الترجمة.';return}const stamp=(ms,webvtt=false)=>{const total=Math.max(0,Math.floor(ms/1000)),hours=Math.floor(total/3600),minutes=Math.floor(total%3600/60),seconds=total%60,millis=Math.floor(ms%1000);return String(hours).padStart(2,'0')+':'+String(minutes).padStart(2,'0')+':'+String(seconds).padStart(2,'0')+(webvtt?'.':',')+String(millis).padStart(3,'0')};const webvtt=format==='vtt',body=cues.map((cue,index)=>(webvtt?'':(index+1)+'\n')+stamp(cue.start,webvtt)+' --> '+stamp(cue.end,webvtt)+'\n'+cue.word).join('\n\n');const content=(webvtt?'WEBVTT\n\n':'\uFEFF')+body+'\n';const blob=new Blob([content],{type:webvtt?'text/vtt;charset=utf-8':'application/x-subrip;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='zereos-word-captions-'+Date.now()+'.'+(webvtt?'vtt':'srt');document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);$('status').textContent='تم تنزيل ترجمة كلمة بكلمة بتوقيت تقديري موزّع حسب طول الكلمات وعلامات الوقف؛ ليست محاذاة صوتية دقيقة.'}
 function switchTab(name){document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));['script','style','audio','export'].forEach(n=>{const el=$('tab-'+n);if(el)el.classList.toggle('hidden',n!==name)});const titles={script:['المحتوى والمشاهد','اكتب القصة ووزّعها على أربعة مشاهد.'],style:['تصميم المشاهد','اضبط الخلفيات والخط والحركة والهوية البصرية.'],audio:['الصوت والتعليق','اختر الموسيقى وسجّل أو أضف التعليق الصوتي.'],export:['تصدير الفيديو والمشروع','أنشئ الفيديو واحفظ مشروعك أو صدّره.']};if(titles[name]){$('workspaceTitle').textContent=titles[name][0];$('workspaceDescription').textContent=titles[name][1]}document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.page===name));}
 function showToolPage(name){const layout=document.querySelector('main.layout'),editor=$('editorWorkspace'),preview=document.querySelector('.preview'),media=$('mediaPanel'),projects=$('projectsPanel'),standalone=['voiceDesignPage','neuralVoicePage','voiceLibraryPage'],customPages=['templatesPage','sceneStudioPage','avatarPage'],solo=standalone.includes(name);layout.classList.toggle('workspace-library',name==='media'||name==='projects'||solo);if(preview)preview.classList.toggle('hidden',name==='media'||name==='projects'||solo);if(media)media.classList.toggle('hidden',name!=='media');if(projects)projects.classList.toggle('hidden',name!=='projects');editor.classList.toggle('hidden',name==='media'||name==='projects'||solo||customPages.includes(name));customPages.forEach(id=>{const p=$(id);if(p){p.hidden=id!==name;p.classList.toggle('hidden',id!==name)}});standalone.forEach(id=>{const p=$(id);if(p){p.hidden=id!==name;p.classList.toggle('hidden',id!==name)}});document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.page===name));if(name==='media'){$('mediaBtn')?.click();media?.classList.remove('hidden')}if(name==='projects'){$('projectsBtn')?.click();projects?.classList.remove('hidden')}if(['script','style','audio','export'].includes(name)){if(media)media.classList.add('hidden');if(projects)projects.classList.add('hidden');switchTab(name)}if(name==='voiceLibraryPage')window.ZereosRefreshVoiceLibrary?.();if(name==='templatesPage')setVideoTemplate(activeTemplate);if(name==='sceneStudioPage')updateSceneTextPreviews();if(name==='avatarPage')connectAvatarStudio();if(name==='export'){setTimeout(()=>$('tab-export')?.scrollIntoView({behavior:'smooth',block:'start'}),30)}}
-document.querySelectorAll('.nav-item').forEach(button=>button.addEventListener('click',()=>showToolPage(button.dataset.page)));
+document.querySelectorAll('.nav-item[data-page]').forEach(button=>button.addEventListener('click',()=>showToolPage(button.dataset.page)));
 const leaveCover=()=>{$('appCover')?.classList.add('is-gone');try{sessionStorage.setItem('zereos-cover-seen','1')}catch(_){}};
 $('startAppBtn').addEventListener('click',leaveCover);
 document.querySelector('.skip-link')?.addEventListener('click',leaveCover);
@@ -214,24 +214,22 @@ async function beginVideoStreamDownload(mime){
 }
 let activeVideoDownloadUrl=null,activeVideoBlob=null,activeVideoFilename='';
 function setExportMessage(message){$('status').firstChild?.remove();$('status').prepend(document.createTextNode(message))}
-async function saveVideoToDevice(){
+function saveVideoToDevice(){
  const blob=activeVideoBlob;
  if(!blob)throw Error('ملف الفيديو غير جاهز. أعد التصدير.');
- const extension=blob.type.toLowerCase().includes('mp4')?'mp4':'webm';
- const file=new File([blob],activeVideoFilename,{type:blob.type||'video/webm'});
- if(typeof window.showSaveFilePicker==='function'){
-  try{
-   const handle=await window.showSaveFilePicker({suggestedName:activeVideoFilename,types:[{description:'ملف فيديو',accept:{[file.type]:['.'+extension]}}]});
-   const writable=await handle.createWritable();await writable.write(blob);await writable.close();
-   setExportMessage('تم حفظ الفيديو على الجهاز باسم '+activeVideoFilename);
-   return;
-  }catch(error){if(error?.name==='AbortError'){setExportMessage('ألغيت عملية الحفظ. ملف الفيديو ما زال جاهزًا بالأسفل.');return}console.warn('File picker save failed; trying Android share:',error)}
- }
- if(typeof navigator.share==='function'&&typeof navigator.canShare==='function'&&navigator.canShare({files:[file]})){
-  try{await navigator.share({files:[file],title:'فيديو من ZEREOS AI'});setExportMessage('تم فتح قائمة المشاركة. اختر "الملفات" أو "حفظ" لإيداع الفيديو على هاتفك.');return}
-  catch(error){if(error?.name==='AbortError'){setExportMessage('أغلقت قائمة المشاركة. الفيديو ما زال جاهزًا.');return}throw error}
- }
- throw Error('المتصفح لا يدعم نافذة حفظ الملفات أو مشاركة الفيديو. استخدم زر "فتح الفيديو" ثم قائمة المتصفح.');
+ if(!activeVideoDownloadUrl)activeVideoDownloadUrl=URL.createObjectURL(blob);
+ // Trigger the browser download synchronously inside the user's tap.
+ // This avoids permission prompts and preserves transient user activation.
+ const link=document.createElement('a');
+ link.href=activeVideoDownloadUrl;
+ link.download=activeVideoFilename||('zereos-shorts-'+Date.now()+'.webm');
+ link.rel='noopener';
+ link.style.display='none';
+ document.body.appendChild(link);
+ link.click();
+ link.remove();
+ setExportMessage('أرسل المتصفح طلب تنزيل الفيديو. راجع إشعار التنزيلات؛ وإذا لم يبدأ التنزيل فاستخدم «فتح / معاينة الفيديو» ثم قائمة المتصفح.');
+ return true;
 }
 async function shareVideoFile(){
  const blob=activeVideoBlob;if(!blob)throw Error('ملف الفيديو غير جاهز.');
