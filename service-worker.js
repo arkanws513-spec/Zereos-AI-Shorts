@@ -67,11 +67,20 @@ self.addEventListener('message', event => {
   let controller, keepAliveResolve, finished = false;
   const keepAlive = new Promise(resolve => { keepAliveResolve = resolve; });
   event.waitUntil(keepAlive);
-  const stream = new ReadableStream({ start(c) { controller = c; } });
-  const entry = { stream, filename: data.filename, mime: data.mime, port, keepAliveResolve, expiry: null };
+  const stream = new ReadableStream({
+    start(c) { controller = c; },
+    cancel() {
+      if (zereosStreams.get(data.token) === entry) zereosStreams.delete(data.token);
+      clearTimeout(entry.expiry);
+      controller = null;
+      finish();
+    }
+  });
+  const entry = { stream, filename: data.filename, mime: data.mime, port, keepAliveResolve, expiry: null, requested: false };
   const finish = () => {
     if (finished) return;
     finished = true;
+    clearTimeout(entry.expiry);
     keepAliveResolve?.();
   };
   entry.expiry = setTimeout(() => {
@@ -120,7 +129,7 @@ self.addEventListener('fetch', event => {
     zereosStreams.delete(streamMatch[1]);
     // Keep the message event alive until the producer closes or aborts the stream.
     // Resolving here can let mobile browsers terminate the worker mid-download.
-    clearTimeout(entry.expiry);
+    entry.requested = true;
     event.respondWith(new Response(entry.stream, { headers: {
       'Content-Type': entry.mime || 'application/octet-stream',
       'Content-Disposition': 'attachment; filename="' + String(entry.filename).replace(/["\\\\\\r\\n]/g, '') + '"',
