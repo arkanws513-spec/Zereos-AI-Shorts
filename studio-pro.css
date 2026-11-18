@@ -201,3 +201,88 @@
     transition: none !important;
   }
 }
+
+
+/* Compact navigation: keep primary editing visible and tuck secondary tools away. */
+.nav-group,
+.nav-search {
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid #34415b;
+  border-radius: 13px;
+  background: rgba(10, 16, 28, .72);
+}
+.nav-group > summary,
+.nav-search > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 42px;
+  padding: 9px 11px;
+  color: #d7dff0;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  list-style: none;
+}
+.nav-group > summary::-webkit-details-marker,
+.nav-search > summary::-webkit-details-marker { display: none; }
+.nav-group > summary::after,
+.nav-search > summary::after {
+  content: '+';
+  color: #c5b4eb;
+  font-size: 17px;
+  line-height: 1;
+}
+.nav-group[open] > summary::after,
+.nav-search[open] > summary::after { content: '−'; }
+.nav-group-items {
+  display: grid;
+  gap: 5px;
+  padding: 7px;
+  border-top: 1px solid #26334a;
+}
+.nav-group .nav-item {
+  min-height: 39px;
+  padding: 7px 8px;
+  font-size: 12px;
+}
+.nav-group .nav-item .nav-icon { width: 25px; height: 25px; }
+.nav-search { padding-bottom: 7px; }
+.nav-search > summary { min-height: 38px; }
+.nav-search-label {
+  display: block;
+  padding: 4px 10px 5px;
+  color: #9eabc2;
+  font-size: 11px;
+}
+.nav-page-search {
+  display: block;
+  width: calc(100% - 16px);
+  margin: 0 8px;
+  padding: 9px 10px;
+  color: #f1e8d7;
+  background: #090e18;
+  border: 1px solid #34415b;
+  border-radius: 9px;
+}
+.nav-search-empty { padding: 8px 10px; color: #e7b3a6; font-size: 11px; }
+.nav-search-empty[hidden] { display: none; }
+@media (max-width: 850px) {
+  .tool-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+  .tool-nav > .nav-caption,
+  .tool-nav > .nav-search,
+  .tool-nav > .nav-item[data-page="script"],
+  .tool-nav > .nav-group { grid-column: 1 / -1; }
+  .nav-group-items { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .app-layout > .tool-nav { grid-row: 1; }
+  .app-layout > #editorWorkspace { grid-row: 2; }
+  .app-layout > .z-page { grid-row: 2; }
+  .app-layout > .preview { grid-row: 3; }
+}
+@media (max-width: 440px) {
+  .nav-group-items { grid-template-columns: 1fr; }
+  .nav-group > summary { min-height: 40px; }
+  .workspace-local-status { display: none; }
+}
