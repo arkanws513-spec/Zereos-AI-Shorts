@@ -22,7 +22,8 @@ const audioWorkflows = readRequired('audio-workflows.js');
 const projectLibrary = readRequired('project-library.js');
 const sceneRenderer = readRequired('scene-renderer.js');
 const appCss = readRequired('app.css');
-const source = html + '\n' + sceneRenderer + '\n' + appScript + '\n' + audioWorkflows + '\n' + projectLibrary + '\n' + appCss;
+const studioProCss = readRequired('studio-pro.css');
+const source = html + '\n' + sceneRenderer + '\n' + appScript + '\n' + audioWorkflows + '\n' + projectLibrary + '\n' + appCss + '\n' + studioProCss;
 const appScriptPath = html.match(/<script\b[^>]*src=["']\.\/(app\.js(?:\?[^"']*)?)["']/i)?.[1];
 const appShellPath = appScriptPath?.replace(/^\.\//, '');
 const storage = readRequired('storage.js');
@@ -88,6 +89,29 @@ if (html) {
     fs.rmSync(tempDir, { recursive: true, force: true });
   }
   if (inlineCount && !process.exitCode) pass(`JavaScript syntax validated for ${inlineCount} inline script(s).`);
+  const syntaxFiles = [
+    'storage.js', 'scene-renderer.js', 'app.js', 'audio-workflows.js',
+    'project-library.js', 'tts-engine.js', 'real-avatar-studio.js',
+    'avatar-studio.js', 'video-studio.js', 'music-studio.js',
+    'quran-studio.js', 'studio-pro.js', 'service-worker.js'
+  ];
+  const syntaxDir = fs.mkdtempSync(path.join(os.tmpdir(), 'zereos-js-check-'));
+  try {
+    for (const relativePath of syntaxFiles) {
+      const absolutePath = path.join(root, relativePath);
+      if (!fs.existsSync(absolutePath)) {
+        fail('JavaScript source file is missing: ' + relativePath);
+        continue;
+      }
+      const checkPath = path.join(syntaxDir, relativePath.replace(/[\\/]/g, '_') + '.mjs');
+      fs.copyFileSync(absolutePath, checkPath);
+      const result = spawnSync(process.execPath, ['--check', checkPath], { encoding: 'utf8' });
+      if (result.status !== 0) fail('JavaScript syntax check failed for ' + relativePath + ': ' + (result.stderr || result.stdout));
+      else pass('JavaScript syntax is valid: ' + relativePath);
+    }
+  } finally {
+    fs.rmSync(syntaxDir, { recursive: true, force: true });
+  }
 }
 
 if (videoStudioHtml && videoStudioJs) {
@@ -135,9 +159,13 @@ if (ttsEngine && realAvatar && avatarStudio && html) {
   for (const token of ["dtype: 'fp16'", "wasmPaths: new URL('./vendor/ort/'", 'enginePromise']) {
     if (!ttsEngine.includes(token)) fail('Shared TTS loader is missing expected runtime configuration: ' + token);
   }
-  if (!html.includes('href="#mainContent"') || !html.includes('id="mainContent"') || !html.includes('nav-section-label')) {
-    fail('The main workspace must include a skip link and grouped navigation.');
+  if (!html.includes('href="#mainContent"') || !html.includes('id="mainContent"') || !html.includes('class="nav-group"') || !html.includes('class="nav-search"')) {
+    fail('The main workspace must include a skip link and compact grouped navigation.');
   }
+  const navMarkup = html.match(/<aside class="tool-nav"[\s\S]*?<\/aside>/i)?.[0] || '';
+  const primaryNav = navMarkup.replace(/<details class="nav-group">[\s\S]*?<\/details>/gi, '');
+  if (!navMarkup || (primaryNav.match(/class="nav-item/g) || []).length > 1) fail('Only the main content action should remain outside the collapsible tool groups.');
+  if (!studioProCss.includes('.app-layout > #editorWorkspace { grid-row: 2; }') || !studioProCss.includes('.app-layout > .preview { grid-row: 3; }')) fail('Mobile layout should show editing controls before the tall video preview.');
   if (html.includes('id="saveFromPageBtn"') || html.includes('id="saveProjectBtn"') || !html.includes("id='workspaceQuickSave'")) {
     fail('Project saving should use one canonical visible save action.');
   }
@@ -387,6 +415,13 @@ if (quranStudioHtml && quranStudioJs && quranStudioCss) {
   }
   if (!process.exitCode) pass('Quran Studio audio import, permission gate, mobile layout and accuracy safeguards are covered.');
 }
+
+  const saveStart = appScript.indexOf('function saveVideoToDevice()');
+  const saveEnd = appScript.indexOf('async function shareVideoFile()', saveStart);
+  const saveSource = saveStart >= 0 && saveEnd > saveStart ? appScript.slice(saveStart, saveEnd) : '';
+  if (!saveSource.includes('link.download=activeVideoFilename') || !saveSource.includes('link.click()') || saveSource.includes('await window.showSaveFilePicker')) {
+    fail('Phone video saving must use a synchronous native download fallback without a delayed permission prompt.');
+  }
 
 if (process.exitCode) {
   console.error('ZEREOS QA failed.');
