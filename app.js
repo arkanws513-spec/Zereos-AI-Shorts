@@ -198,9 +198,19 @@ function saveVideoToDevice(){
 }
 async function shareVideoFile(){
  const blob=activeVideoBlob;if(!blob)throw Error('ملف الفيديو غير جاهز.');
- const file=new File([blob],activeVideoFilename,{type:blob.type||'video/webm'});
- if(!navigator.share||!navigator.canShare||!navigator.canShare({files:[file]}))throw Error('مشاركة الملفات غير مدعومة في هذا المتصفح. استخدم زر حفظ الفيديو.');
- await navigator.share({files:[file],title:'فيديو من ZEREOS AI'});
+ let file;
+ try{file=new File([blob],activeVideoFilename,{type:blob.type||'video/webm'})}
+ catch(error){saveVideoToDevice();return 'download'}
+ let supported=false;
+ try{supported=!!navigator.share&&!!navigator.canShare&&navigator.canShare({files:[file]})}catch(_){}
+ if(!supported){saveVideoToDevice();return 'download'}
+ try{await navigator.share({files:[file],title:'فيديو من ZEREOS AI'});return 'shared'}
+ catch(error){
+  if(error?.name==='AbortError')return 'cancelled';
+  console.warn('Native video sharing failed; falling back to browser download:',error);
+  saveVideoToDevice();
+  return 'download';
+ }
 }
 function prepareVideoDownload(chunks,mime){
  const valid=chunks.filter(chunk=>chunk&&chunk.size);
@@ -217,7 +227,14 @@ function prepareVideoDownload(chunks,mime){
  const save=document.createElement('button');save.type='button';save.className='btn primary';save.textContent='⬇ حفظ الفيديو على الهاتف';
  save.addEventListener('click',async()=>{save.disabled=true;save.textContent='جارٍ الحفظ…';try{await saveVideoToDevice()}catch(error){setExportMessage('تعذر الحفظ: '+(error?.message||String(error)))}finally{save.disabled=false;save.textContent='⬇ حفظ الفيديو على الهاتف'}});
  const share=document.createElement('button');share.type='button';share.className='btn';share.textContent='مشاركة الفيديو';
- share.addEventListener('click',async()=>{try{await shareVideoFile();setExportMessage('تم فتح قائمة مشاركة أندرويد. اختر تطبيق الملفات أو وجهة الحفظ.')}catch(error){setExportMessage('تعذرت المشاركة: '+(error?.message||String(error)))}});
+ share.addEventListener('click',async()=>{
+  try{
+   const outcome=await shareVideoFile();
+   if(outcome==='shared')setExportMessage('تم فتح قائمة المشاركة. اختر تطبيقًا أو وجهة للحفظ.');
+   else if(outcome==='download')setExportMessage('المشاركة غير متاحة أو رفضها المتصفح؛ أرسلنا طلب تنزيل مباشر بديلًا. راجع التنزيلات.');
+   else setExportMessage('ألغيت المشاركة. الفيديو ما زال جاهزًا ويمكنك حفظه من الزر المجاور.');
+  }catch(error){setExportMessage('تعذرت المشاركة: '+(error?.message||String(error))+' — يمكنك استخدام زر حفظ الفيديو.')}
+ });
  const open=document.createElement('button');open.type='button';open.className='btn';open.textContent='فتح / معاينة الفيديو';
  open.addEventListener('click',()=>{const win=window.open(activeVideoDownloadUrl,'_blank');if(!win)setExportMessage('تعذر فتح تبويب جديد؛ شغّل معاينة الفيديو بالأسفل.')});
  actions.append(save,share,open);
