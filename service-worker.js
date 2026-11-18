@@ -73,6 +73,7 @@ self.addEventListener('message', event => {
       if (zereosStreams.get(data.token) === entry) zereosStreams.delete(data.token);
       clearTimeout(entry.expiry);
       controller = null;
+      try { port.postMessage({ type: 'cancelled', message: 'أُلغي تنزيل الملف من المتصفح.' }); } catch (_) {}
       finish();
     }
   });
@@ -111,6 +112,7 @@ self.addEventListener('message', event => {
       if (controller) { try { controller.error(error); } catch (_) {} controller = null; }
       if (zereosStreams.get(data.token) === entry) zereosStreams.delete(data.token);
       clearTimeout(entry.expiry);
+      try { port.postMessage({ type: 'error', message: error?.message || 'تعذر نقل بيانات الفيديو.' }); } catch (_) {}
       finish();
     }
   };
