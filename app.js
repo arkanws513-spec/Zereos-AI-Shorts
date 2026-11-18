@@ -274,6 +274,12 @@ recorder.onerror=e=>reject(e.error||Error('تعذر تسجيل الفيديو'))
 const outputMime=recorder.mimeType||selectedMime||'video/webm';
 try{
  streamDownload=await beginVideoStreamDownload(outputMime);
+ streamDownload.port.onmessage=e=>{
+  if(e.data?.type==='cancelled'||e.data?.type==='error'){
+   streamFailure=Error(e.data.message||'أوقف المتصفح تنزيل الفيديو.');
+   try{if(recorder&&recorder.state!=='inactive')recorder.stop()}catch(_){}
+  }
+ };
  $('status').textContent='جارٍ تسجيل الفيديو والصوت وتجهيز التنزيل…';
 }catch(error){
  console.warn('Streaming download unavailable; using Blob fallback:',error);
