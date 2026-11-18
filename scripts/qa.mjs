@@ -416,6 +416,12 @@ if (quranStudioHtml && quranStudioJs && quranStudioCss) {
   if (!process.exitCode) pass('Quran Studio audio import, permission gate, mobile layout and accuracy safeguards are covered.');
 }
 
+  const shareStart = appScript.indexOf('async function shareVideoFile()');
+  const shareEnd = appScript.indexOf('function prepareVideoDownload(', shareStart);
+  const shareSource = shareStart >= 0 && shareEnd > shareStart ? appScript.slice(shareStart, shareEnd) : '';
+  if (!shareSource.includes("saveVideoToDevice();return 'download'") || !shareSource.includes("return 'cancelled'")) {
+    fail('Video sharing must fall back to direct download when native sharing is unavailable or denied.');
+  }
   const saveStart = appScript.indexOf('function saveVideoToDevice()');
   const saveEnd = appScript.indexOf('async function shareVideoFile()', saveStart);
   const saveSource = saveStart >= 0 && saveEnd > saveStart ? appScript.slice(saveStart, saveEnd) : '';
