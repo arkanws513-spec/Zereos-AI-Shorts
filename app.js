@@ -212,24 +212,28 @@ async function beginVideoStreamDownload(mime){
   return {port:channel.port1,filename};
  }catch(error){try{channel.port1.close()}catch(_){}throw error}
 }
-function downloadVideoBlob(chunks,mime){
+let activeVideoDownloadUrl=null;
+function prepareVideoDownload(chunks,mime){
  const valid=chunks.filter(chunk=>chunk&&chunk.size);
  if(!valid.length)throw Error('لم ينتج مسجل الفيديو أي بيانات؛ أعد المحاولة.');
  const blob=new Blob(valid,{type:mime||'video/webm'});
  if(!blob.size)throw Error('ملف الفيديو الناتج فارغ؛ أعد التصدير.');
  const extension=String(mime||blob.type).toLowerCase().includes('mp4')?'mp4':'webm';
  const filename='zereos-shorts-'+Date.now()+'.'+extension;
- const url=URL.createObjectURL(blob),a=document.createElement('a');
- a.href=url;a.download=filename;a.style.display='none';
- document.body.appendChild(a);a.click();a.remove();
- setTimeout(()=>URL.revokeObjectURL(url),60000);
+ if(activeVideoDownloadUrl){try{URL.revokeObjectURL(activeVideoDownloadUrl)}catch(_){}}
+ activeVideoDownloadUrl=URL.createObjectURL(blob);
+ const link=document.createElement('a');
+ link.href=activeVideoDownloadUrl;link.download=filename;link.className='btn primary';
+ link.style.display='inline-flex';link.style.marginTop='10px';link.style.textDecoration='none';
+ link.textContent='⬇ اضغط هنا لتنزيل الفيديو';
+ $('status').textContent='اكتمل إنشاء الفيديو ('+Math.round(totalMs()/1000)+' ثانية) بصيغة '+extension.toUpperCase()+' · حجم الملف '+(blob.size/1024/1024).toFixed(1)+' ميجابايت. اضغط زر التنزيل أدناه.';
+ $('status').append(document.createTextNode(' '),link);
  return {filename,size:blob.size,extension};
 }
-
 async function exportVideo(){
 if(recording)return;
 if(!('MediaRecorder'in window)||!canvas.captureStream){$('status').textContent='تسجيل الفيديو غير مدعوم في هذا المتصفح. افتح الصفحة في Chrome محدّث.';return}
-let ac=null,recorder=null,canvasStream=null,localRaf=0,narrationSource=null,streamDownload=null,streamQueue=Promise.resolve(),streamFailure=null,streamFinished=false,fallbackChunks=[],fallbackBytes=0,fallbackLimit=300*1024*1024;
+let ac=null,recorder=null,canvasStream=null,localRaf=0,narrationSource=null,fallbackChunks=[],fallbackBytes=0,fallbackLimit=300*1024*1024;
 try{
 if(playing){playing=false;previewOnlyScene=null;cancelAnimationFrame(raf);$('playBtn').textContent='▶ تشغيل المعاينة'}stopPreviewNarration();
 recording=true;$('exportBtn').disabled=true;$('exportBtn').textContent='جارٍ تجهيز الفيديو والصوت…';$('status').textContent='يتم تسجيل الفيديو والصوت. اترك الصفحة مفتوحة حتى يبدأ التنزيل.';
@@ -271,33 +275,11 @@ rejectRecording=reject;
 recorder.onstop=resolve;
 recorder.onerror=e=>reject(e.error||Error('تعذر تسجيل الفيديو'));
 });
-const outputMime=recorder.mimeType||selectedMime||'video/webm';
-try{
- streamDownload=await beginVideoStreamDownload(outputMime);
- streamDownload.port.onmessage=e=>{
-  if(e.data?.type==='cancelled'||e.data?.type==='error'){
-   streamFailure=Error(e.data.message||'أوقف المتصفح تنزيل الفيديو.');
-   try{if(recorder&&recorder.state!=='inactive')recorder.stop()}catch(_){}
-  }
- };
- $('status').textContent='جارٍ تسجيل الفيديو والصوت وتجهيز التنزيل…';
-}catch(error){
- console.warn('Streaming download unavailable; using Blob fallback:',error);
- streamDownload=null;
- $('status').textContent='التنزيل المباشر غير متاح؛ يتم تجهيز ملف بديل. اترك الصفحة مفتوحة حتى يكتمل.';
-}
+$('status').textContent='جارٍ تسجيل الفيديو والصوت. بعد اكتماله سيظهر زر تنزيل تضغط عليه.';
 recorder.ondataavailable=e=>{
  if(!e.data||!e.data.size)return;
  if(fallbackBytes+e.data.size<=fallbackLimit){fallbackChunks.push(e.data);fallbackBytes+=e.data.size}
  else{fallbackChunks.length=0;fallbackBytes=fallbackLimit+1}
- if(!streamDownload||streamFailure)return;
- streamQueue=streamQueue.then(async()=>{
-  const bytes=await e.data.arrayBuffer();
-  streamDownload.port.postMessage({type:'chunk',bytes},[bytes]);
- }).catch(error=>{
-  streamFailure=error;
-  try{if(recorder&&recorder.state!=='inactive')recorder.stop()}catch(_){}
- });
 };
 const duration=Math.max(10000,totalMs()),start=performance.now(),fadeIn=Math.max(0,Number($('musicFadeIn')?.value||0)),fadeOut=Math.max(0,Number($('musicFadeOut')?.value||0)),fadeOutAt=Math.max(ac.currentTime+fadeIn,ac.currentTime+duration/1000-fadeOut);
 if(fadeOut>0){musicGain.gain.setValueAtTime(Number($('volume').value),Math.min(fadeOutAt,ac.currentTime+duration/1000-.01));musicGain.gain.linearRampToValueAtTime(0,ac.currentTime+duration/1000)}
@@ -315,30 +297,19 @@ try{if(recorder&&recorder.state!=='inactive')recorder.stop()}catch(error){reject
 };
 localRaf=requestAnimationFrame(paint);
 await doneRecording;
-await streamQueue;
 const mime=recorder.mimeType||selectedMime||'video/webm';
-let extension=mime.toLowerCase().includes('mp4')?'mp4':'webm',downloadInfo=null;
-if(streamDownload&&!streamFailure){
- streamDownload.port.postMessage({type:'finish'});
- streamFinished=true;
-}else{
- if(streamDownload&&!streamFinished){try{streamDownload.port.postMessage({type:'abort'})}catch(_){}}
- if(fallbackBytes>fallbackLimit)throw Error('تعذر التنزيل المباشر، وحجم النسخة الاحتياطية تجاوز 300 ميجابايت. اختر جودة أخف ثم أعد التصدير.');
- downloadInfo=downloadVideoBlob(fallbackChunks,mime);
- extension=downloadInfo.extension;
-}
+if(fallbackBytes>fallbackLimit)throw Error('حجم ملف الفيديو تجاوز 300 ميجابايت. اختر جودة أخف ثم أعد التصدير.');
+const downloadInfo=prepareVideoDownload(fallbackChunks,mime);
 fallbackChunks.length=0;fallbackBytes=0;
 drawFrame(0);
-$('status').textContent='اكتمل إنشاء الفيديو ('+Math.round(duration/1000)+' ثانية) بصيغة '+extension.toUpperCase()+' · جودة '+({'mobile':'خفيف','standard':'قياسي','high':'مرتفعة'}[$('exportProfile')?.value||'standard'])+'. '+(downloadInfo?'تم التنزيل بالطريقة الاحتياطية.':'جرّب تشغيل الملف من المعرض قبل مشاركته.');
+$('status').setAttribute('data-export-quality',({'mobile':'خفيف','standard':'قياسي','high':'مرتفعة'}[$('exportProfile')?.value||'standard']));
 }catch(err){
-if(streamDownload&&!streamFinished){try{streamDownload.port.postMessage({type:'abort'})}catch(_){}}
 fallbackChunks.length=0;fallbackBytes=0;
 console.error(err);
 $('status').textContent='لم يكتمل التصدير: '+(err.message||'خطأ غير معروف');
 }finally{
 if(localRaf)cancelAnimationFrame(localRaf);
 if(recorder&&recorder.state!=='inactive'){try{recorder.stop()}catch(e){}}
-if(streamDownload){try{streamDownload.port.close()}catch(_){}streamDownload=null;}
 if(canvasStream)canvasStream.getTracks().forEach(track=>track.stop());
 if(narrationSource){try{narrationSource.stop()}catch(e){}try{narrationSource.disconnect()}catch(e){}}
 stopMusic();if(importedSceneVideo)importedSceneVideo.pause();
