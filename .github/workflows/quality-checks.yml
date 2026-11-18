@@ -35,6 +35,7 @@ jobs:
           node --check storage.js
           node --check studio-pro.js
           node --check video-studio.js
+          node --check photo-studio.js
           node --check music-studio.js
           python -m json.tool music-engine/ACE-Step-Free-GPU.ipynb > /dev/null
           node --input-type=module --check < tts-engine.js
