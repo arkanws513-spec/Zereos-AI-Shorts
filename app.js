@@ -177,41 +177,6 @@ function startPreviewNarration(offsetMs=0,durationMs=null){stopPreviewNarration(
 function stopMusic(){musicOsc.forEach(o=>{try{o.stop()}catch(e){}});musicOsc=[];if(musicBufferSource){try{musicBufferSource.stop()}catch(e){}try{musicBufferSource.disconnect()}catch(e){}musicBufferSource=null}}
 function startMusic(){const ac=ensureAudio();stopMusic();const target=Number($('volume').value),fadeIn=Math.max(0,Number($('musicFadeIn')?.value||0));musicGain.gain.cancelScheduledValues(ac.currentTime);musicGain.gain.setValueAtTime(0,ac.currentTime);if($('music').value==='none'&&!musicBuffer)return;musicGain.gain.linearRampToValueAtTime(target,ac.currentTime+fadeIn);if(musicBuffer){musicBufferSource=ac.createBufferSource();musicBufferSource.buffer=musicBuffer;musicBufferSource.loop=true;musicBufferSource.connect(musicGain);musicBufferSource.start(0);return}const notes=$('music').value==='dramatic'?[110,146.83,164.81,123.47]:[130.81,164.81,196,146.83];notes.forEach((hz,i)=>{const osc=ac.createOscillator(),gain=ac.createGain(),filter=ac.createBiquadFilter();osc.type=i===0?'sine':'triangle';osc.frequency.value=hz;filter.type='lowpass';filter.frequency.value=500;gain.gain.value=i===0?.12:.035;osc.connect(filter);filter.connect(gain);gain.connect(musicGain);osc.start();musicOsc.push(osc)})}
 
-async function beginVideoStreamDownload(mime){
- if(!('serviceWorker'in navigator)||!window.MessageChannel)throw Error('التنزيل المتدفق غير متاح في هذا المتصفح.');
- await navigator.serviceWorker.register('./service-worker.js',{scope:'./'});
- await navigator.serviceWorker.ready;
- let controller=navigator.serviceWorker.controller;
- if(!controller){
-  await new Promise(resolve=>{
-   const finish=()=>{clearTimeout(timer);navigator.serviceWorker.removeEventListener('controllerchange',finish);resolve()};
-   const timer=setTimeout(finish,2500);
-   navigator.serviceWorker.addEventListener('controllerchange',finish);
-  });
-  controller=navigator.serviceWorker.controller;
- }
- if(!controller)throw Error('المتصفح لم يفعّل عامل الخدمة بعد؛ سيُستخدم التنزيل الاحتياطي.');
- const token='z'+Date.now().toString(36)+Math.random().toString(36).slice(2);
- const ext=String(mime).toLowerCase().includes('mp4')?'mp4':'webm';
- const filename='zereos-shorts-'+Date.now()+'.'+ext;
- const channel=new MessageChannel();
- const ready=new Promise((resolve,reject)=>{
-  const timer=setTimeout(()=>reject(Error('انتهت مهلة تهيئة التنزيل المتدفق.')),10000);
-  channel.port1.onmessage=e=>{
-   if(e.data?.type==='ready'){clearTimeout(timer);resolve(true)}
-   else if(e.data?.type==='error'){clearTimeout(timer);reject(Error(e.data.message||'تعذر تجهيز التنزيل'))}
-  };
- });
- try{
-  controller.postMessage({type:'ZEREOS_STREAM_START',token,filename,mime},[channel.port2]);
-  await ready;
-  const a=document.createElement('a');
-  a.href=new URL('./__zereos_stream__/'+token,location.href).href;
-  a.download=filename;a.style.display='none';
-  document.body.appendChild(a);a.click();a.remove();
-  return {port:channel.port1,filename};
- }catch(error){try{channel.port1.close()}catch(_){}throw error}
-}
 let activeVideoDownloadUrl=null,activeVideoBlob=null,activeVideoFilename='';
 function setExportMessage(message){$('status').firstChild?.remove();$('status').prepend(document.createTextNode(message))}
 function saveVideoToDevice(){
