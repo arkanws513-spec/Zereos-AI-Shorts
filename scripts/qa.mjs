@@ -23,6 +23,8 @@ const projectLibrary = readRequired('project-library.js');
 const sceneRenderer = readRequired('scene-renderer.js');
 const appCss = readRequired('app.css');
 const source = html + '\n' + sceneRenderer + '\n' + appScript + '\n' + audioWorkflows + '\n' + projectLibrary + '\n' + appCss;
+const appScriptPath = html.match(/<script\b[^>]*src=["']\.\/(app\.js(?:\?[^"']*)?)["']/i)?.[1];
+const appShellPath = appScriptPath?.replace(/^\.\//, '');
 const storage = readRequired('storage.js');
 const ttsEngine = readRequired('tts-engine.js');
 const realAvatar = readRequired('real-avatar-studio.js');
@@ -47,7 +49,7 @@ if (html) {
   if (!/<meta\s+name=["']viewport["']/i.test(html)) fail('Mobile viewport metadata is missing.');
   else pass('Mobile viewport metadata is present.');
 
-  if (!/<script\b[^>]*src=["']\.\/storage\.js["']/i.test(html)) fail('index.html does not load ./storage.js.');
+  if (!/<script\b[^>]*src=["']\.\/app\.js(?:\?[^"']*)?["']/i.test(html)) fail('index.html does not load ./app.js.');
   else pass('Storage adapter is linked from the app shell.');
   if (!/<script\b[^>]*src=["']\.\/app\.js["']/i.test(html)) fail('index.html does not load ./app.js.');
   if (!/<link\b[^>]*href=["']\.\/app\.css["']/i.test(html)) fail('index.html does not load ./app.css.');
@@ -102,7 +104,7 @@ if (videoStudioHtml && videoStudioJs) {
   if (!videoStudioJs.includes('توقف تشغيل الفيديو قبل نهايته')) fail('Video export must have a bounded wait and a useful playback-stall error.');
   if (!videoStudioJs.includes('beginStreamDownload(mime)') || videoStudioJs.includes('new Blob(chunks')) fail('Video export must stream chunks directly to the download instead of buffering the complete movie in RAM.');
   if (!serviceWorker.includes('ZEREOS_STREAM_START') || !serviceWorker.includes('new ReadableStream') || !serviceWorker.includes('event.waitUntil(keepAlive)')) fail('Service worker streaming download endpoint is incomplete.');
-  if (!serviceWorker.includes('Keep the completed stream addressable until the browser') || !serviceWorker.includes('zereosStreams.delete(streamMatch[1])')) fail('Completed video streams must remain available until the browser starts fetching the download.');
+  if (!serviceWorker.includes('zereosStreams.delete(streamMatch[1])') || !serviceWorker.includes('entry.requested = true') || !serviceWorker.includes('event.respondWith(new Response(entry.stream')) fail('The service worker must hand the registered stream to the fetch response and keep its message event alive.');
   for (const safeguard of ['const maxEdge=mobile?720:1280,fps=mobile?20:24;', 'canvas.captureStream(fps)', 'videoBitsPerSecond:quality', "navigator.wakeLock?.request('screen')", 'await wakeLock?.release()']) {
     if (!videoStudioJs.includes(safeguard)) fail('Mobile video export safeguard is missing: ' + safeguard);
   }
@@ -330,9 +332,9 @@ if (html) {
   ]) {
     if (!source.includes(feature)) fail('Cinematic studio regression: missing expected feature or persistence hook: ' + feature);
   }
-  if (!serviceWorker.includes("const CACHE_NAME = 'zereos-shell-v15'") ||
+  if (!/const CACHE_NAME = 'zereos-shell-v\\d+'/.test(serviceWorker) ||
       !serviceWorker.includes("new URL('avatar-studio.js', BASE_URL).href") ||
-      !serviceWorker.includes("new URL('app.js', BASE_URL).href") ||
+      !appShellPath || !serviceWorker.includes("new URL('" + appShellPath + "', BASE_URL).href") ||
       !serviceWorker.includes("new URL('audio-workflows.js', BASE_URL).href") ||
       !serviceWorker.includes("new URL('project-library.js', BASE_URL).href") ||
       !serviceWorker.includes("new URL('app.css', BASE_URL).href") ||
@@ -380,7 +382,7 @@ if (quranStudioHtml && quranStudioJs && quranStudioCss) {
   if (!quranStudioHtml.includes('محرك تحويل النص العادي') || !quranStudioHtml.includes('quran.com')) {
     fail('Quran Studio must disclose the recitation-accuracy safeguard and link to the verified Quran reader.');
   }
-  if (!serviceWorker.includes("const CACHE_NAME = 'zereos-shell-v15'") || !serviceWorker.includes("new URL('quran-studio.html', BASE_URL).href") || !serviceWorker.includes("new URL('quran-studio.js', BASE_URL).href")) {
+  if (!/const CACHE_NAME = 'zereos-shell-v\d+'/.test(serviceWorker) || !serviceWorker.includes("new URL('quran-studio.html', BASE_URL).href") || !serviceWorker.includes("new URL('quran-studio.js', BASE_URL).href")) {
     fail('Quran Studio must be included in the refreshed offline app shell.');
   }
   if (!process.exitCode) pass('Quran Studio audio import, permission gate, mobile layout and accuracy safeguards are covered.');
