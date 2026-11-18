@@ -159,7 +159,7 @@ if (ttsEngine && realAvatar && avatarStudio && html) {
   for (const token of ["dtype: 'fp16'", "wasmPaths: new URL('./vendor/ort/'", 'enginePromise']) {
     if (!ttsEngine.includes(token)) fail('Shared TTS loader is missing expected runtime configuration: ' + token);
   }
-  if (!html.includes('href="#mainContent"') || !html.includes('id="mainContent"') || !html.includes('class="nav-group"') || !html.includes('class="nav-search"')) {
+  if (!html.includes('href="#mainContent"') || !html.includes('id="mainContent"') || !html.includes('class="nav-group"') || !html.includes("searchWrap.className='nav-search'")) {
     fail('The main workspace must include a skip link and compact grouped navigation.');
   }
   const navMarkup = html.match(/<aside class="tool-nav"[\s\S]*?<\/aside>/i)?.[0] || '';
