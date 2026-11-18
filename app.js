@@ -212,23 +212,55 @@ async function beginVideoStreamDownload(mime){
   return {port:channel.port1,filename};
  }catch(error){try{channel.port1.close()}catch(_){}throw error}
 }
-let activeVideoDownloadUrl=null;
+let activeVideoDownloadUrl=null,activeVideoBlob=null,activeVideoFilename='';
+function setExportMessage(message){$('status').firstChild?.remove();$('status').prepend(document.createTextNode(message))}
+async function saveVideoToDevice(){
+ const blob=activeVideoBlob;
+ if(!blob)throw Error('ملف الفيديو غير جاهز. أعد التصدير.');
+ const extension=blob.type.toLowerCase().includes('mp4')?'mp4':'webm';
+ const file=new File([blob],activeVideoFilename,{type:blob.type||'video/webm'});
+ if(typeof window.showSaveFilePicker==='function'){
+  try{
+   const handle=await window.showSaveFilePicker({suggestedName:activeVideoFilename,types:[{description:'ملف فيديو',accept:{[file.type]:['.'+extension]}}]});
+   const writable=await handle.createWritable();await writable.write(blob);await writable.close();
+   setExportMessage('تم حفظ الفيديو على الجهاز باسم '+activeVideoFilename);
+   return;
+  }catch(error){if(error?.name==='AbortError'){setExportMessage('ألغيت عملية الحفظ. ملف الفيديو ما زال جاهزًا بالأسفل.');return}console.warn('File picker save failed; trying Android share:',error)}
+ }
+ if(typeof navigator.share==='function'&&typeof navigator.canShare==='function'&&navigator.canShare({files:[file]})){
+  try{await navigator.share({files:[file],title:'فيديو من ZEREOS AI'});setExportMessage('تم فتح قائمة المشاركة. اختر "الملفات" أو "حفظ" لإيداع الفيديو على هاتفك.');return}
+  catch(error){if(error?.name==='AbortError'){setExportMessage('أغلقت قائمة المشاركة. الفيديو ما زال جاهزًا.');return}throw error}
+ }
+ throw Error('المتصفح لا يدعم نافذة حفظ الملفات أو مشاركة الفيديو. استخدم زر "فتح الفيديو" ثم قائمة المتصفح.');
+}
+async function shareVideoFile(){
+ const blob=activeVideoBlob;if(!blob)throw Error('ملف الفيديو غير جاهز.');
+ const file=new File([blob],activeVideoFilename,{type:blob.type||'video/webm'});
+ if(!navigator.share||!navigator.canShare||!navigator.canShare({files:[file]}))throw Error('مشاركة الملفات غير مدعومة في هذا المتصفح. استخدم زر حفظ الفيديو.');
+ await navigator.share({files:[file],title:'فيديو من ZEREOS AI'});
+}
 function prepareVideoDownload(chunks,mime){
  const valid=chunks.filter(chunk=>chunk&&chunk.size);
  if(!valid.length)throw Error('لم ينتج مسجل الفيديو أي بيانات؛ أعد المحاولة.');
  const blob=new Blob(valid,{type:mime||'video/webm'});
  if(!blob.size)throw Error('ملف الفيديو الناتج فارغ؛ أعد التصدير.');
  const extension=String(mime||blob.type).toLowerCase().includes('mp4')?'mp4':'webm';
- const filename='zereos-shorts-'+Date.now()+'.'+extension;
+ activeVideoFilename='zereos-shorts-'+Date.now()+'.'+extension;
  if(activeVideoDownloadUrl){try{URL.revokeObjectURL(activeVideoDownloadUrl)}catch(_){}}
- activeVideoDownloadUrl=URL.createObjectURL(blob);
- const link=document.createElement('a');
- link.href=activeVideoDownloadUrl;link.download=filename;link.className='btn primary';
- link.style.display='inline-flex';link.style.marginTop='10px';link.style.textDecoration='none';
- link.textContent='⬇ اضغط هنا لتنزيل الفيديو';
- $('status').textContent='اكتمل إنشاء الفيديو ('+Math.round(totalMs()/1000)+' ثانية) بصيغة '+extension.toUpperCase()+' · حجم الملف '+(blob.size/1024/1024).toFixed(1)+' ميجابايت. اضغط زر التنزيل أدناه.';
- $('status').append(document.createTextNode(' '),link);
- return {filename,size:blob.size,extension};
+ activeVideoBlob=blob;activeVideoDownloadUrl=URL.createObjectURL(blob);
+ const status=$('status');status.replaceChildren();
+ status.append(document.createTextNode('اكتمل إنشاء الفيديو بصيغة '+extension.toUpperCase()+' · '+(blob.size/1024/1024).toFixed(1)+' ميجابايت. اختر طريقة الحفظ:'));
+ const actions=document.createElement('div');actions.className='tool-actions';actions.style.justifyContent='center';
+ const save=document.createElement('button');save.type='button';save.className='btn primary';save.textContent='⬇ حفظ الفيديو على الهاتف';
+ save.addEventListener('click',async()=>{save.disabled=true;save.textContent='جارٍ الحفظ…';try{await saveVideoToDevice()}catch(error){setExportMessage('تعذر الحفظ: '+(error?.message||String(error)))}finally{save.disabled=false;save.textContent='⬇ حفظ الفيديو على الهاتف'}});
+ const share=document.createElement('button');share.type='button';share.className='btn';share.textContent='مشاركة الفيديو';
+ share.addEventListener('click',async()=>{try{await shareVideoFile();setExportMessage('تم فتح قائمة مشاركة أندرويد. اختر تطبيق الملفات أو وجهة الحفظ.')}catch(error){setExportMessage('تعذرت المشاركة: '+(error?.message||String(error)))}});
+ const open=document.createElement('button');open.type='button';open.className='btn';open.textContent='فتح / معاينة الفيديو';
+ open.addEventListener('click',()=>{const win=window.open(activeVideoDownloadUrl,'_blank');if(!win)setExportMessage('تعذر فتح تبويب جديد؛ شغّل معاينة الفيديو بالأسفل.')});
+ actions.append(save,share,open);
+ const preview=document.createElement('video');preview.controls=true;preview.playsInline=true;preview.preload='metadata';preview.src=activeVideoDownloadUrl;preview.style.cssText='display:block;width:min(100%,280px);max-height:420px;margin:12px auto;border-radius:12px;background:#000';
+ status.append(actions,preview);
+ return {filename:activeVideoFilename,size:blob.size,extension};
 }
 async function exportVideo(){
 if(recording)return;
