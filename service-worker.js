@@ -1,7 +1,7 @@
 /* ZEREOS app shell cache. Large model/WASM assets are intentionally not precached. */
 'use strict';
 
-const CACHE_NAME = 'zereos-shell-v15';
+const CACHE_NAME = 'zereos-shell-v16';
 const BASE_URL = new URL('./', self.location.href);
 const SHELL_URLS = [
   BASE_URL.href,
@@ -64,22 +64,46 @@ self.addEventListener('message', event => {
   const data = event.data || {};
   if (data.type !== 'ZEREOS_STREAM_START' || !event.ports[0]) return;
   const port = event.ports[0];
-  let controller, keepAliveResolve;
+  let controller, keepAliveResolve, finished = false;
   const keepAlive = new Promise(resolve => { keepAliveResolve = resolve; });
   event.waitUntil(keepAlive);
   const stream = new ReadableStream({ start(c) { controller = c; } });
-  const expiry = setTimeout(() => {
-    const stale = zereosStreams.get(data.token);
-    if (stale) { zereosStreams.delete(data.token); stale.keepAliveResolve?.(); }
-  }, 120000);
-  zereosStreams.set(data.token, { stream, controller, filename: data.filename, mime: data.mime, port, keepAliveResolve, expiry });
+  const entry = { stream, filename: data.filename, mime: data.mime, port, keepAliveResolve, expiry: null };
+  const finish = () => {
+    if (finished) return;
+    finished = true;
+    keepAliveResolve?.();
+  };
+  entry.expiry = setTimeout(() => {
+    if (zereosStreams.get(data.token) === entry) zereosStreams.delete(data.token);
+    if (controller) {
+      try { controller.error(new Error('Export stream timed out')); } catch (_) {}
+      controller = null;
+    }
+    try { port.close(); } catch (_) {}
+    finish();
+  }, 300000);
+  zereosStreams.set(data.token, entry);
   port.onmessage = message => {
     const item = message.data || {};
     try {
       if (item.type === 'chunk' && controller) controller.enqueue(new Uint8Array(item.bytes));
-      else if ((item.type === 'close' || item.type === 'finish') && controller) { controller.close(); controller = null; /* Keep the completed stream addressable until the browser's download request arrives. */ }
-      else if (item.type === 'abort' && controller) { controller.error(new Error('Export cancelled')); controller = null; zereosStreams.delete(data.token); keepAliveResolve?.(); }
-    } catch (_) { zereosStreams.delete(data.token); }
+      else if ((item.type === 'close' || item.type === 'finish') && controller) {
+        controller.close();
+        controller = null;
+        finish();
+      } else if (item.type === 'abort') {
+        if (controller) { controller.error(new Error('Export cancelled')); controller = null; }
+        if (zereosStreams.get(data.token) === entry) zereosStreams.delete(data.token);
+        clearTimeout(entry.expiry);
+        finish();
+      }
+    } catch (error) {
+      if (controller) { try { controller.error(error); } catch (_) {} controller = null; }
+      if (zereosStreams.get(data.token) === entry) zereosStreams.delete(data.token);
+      clearTimeout(entry.expiry);
+      finish();
+    }
   };
   port.postMessage({ type: 'ready' });
 });
@@ -94,8 +118,9 @@ self.addEventListener('fetch', event => {
     const entry = zereosStreams.get(streamMatch[1]);
     if (!entry) { event.respondWith(new Response('Export stream not found', { status: 404 })); return; }
     zereosStreams.delete(streamMatch[1]);
+    // Keep the message event alive until the producer closes or aborts the stream.
+    // Resolving here can let mobile browsers terminate the worker mid-download.
     clearTimeout(entry.expiry);
-    entry.keepAliveResolve?.();
     event.respondWith(new Response(entry.stream, { headers: {
       'Content-Type': entry.mime || 'application/octet-stream',
       'Content-Disposition': 'attachment; filename="' + String(entry.filename).replace(/["\\\\\\r\\n]/g, '') + '"',
