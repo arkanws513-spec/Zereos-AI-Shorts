@@ -15,7 +15,7 @@
 <div class="ps-layout">
 <section class="panel ps-editor">
 <div class="ps-section-head"><div><span class="eyebrow">01 / MEDIA</span><h3>أضف الصور والموسيقى</h3></div><span class="ps-count" id="photoCount">0 صورة</span></div>
-<label class="ps-drop" for="photosInput"><span>＋</span><strong>اختر الصور من الهاتف</strong><small>JPG · PNG · WEBP · حتى 80 صورة</small><input id="photosInput" type="file" accept="image/*" multiple></label>
+<label class="ps-drop" for="photosInput"><span>＋</span><strong>اختر الصور من الهاتف</strong><small>JPG · PNG · WEBP · حتى 80 صورة (20MB للصورة)</small><input id="photosInput" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>
 <div class="ps-photo-list" id="photoList"><div class="ps-empty-list">ستظهر صورك هنا بعد اختيارها</div></div>
 <div class="ps-field"><label for="musicInput">الموسيقى أو الأغنية</label><input id="musicInput" type="file" accept="audio/*"><small id="musicName">لم يتم اختيار ملف صوتي بعد</small></div>
 <div class="ps-audio-row"><button class="btn" id="musicPreview" disabled type="button">▶ استمع</button><button class="btn" id="removeMusic" disabled type="button">إزالة الصوت</button><label class="ps-check"><input id="musicLoop" type="checkbox" checked> تكرار الموسيقى عند الحاجة</label></div>
@@ -23,7 +23,7 @@
 <div class="ps-section-head"><div><span class="eyebrow">02 / LOOK & FEEL</span><h3>إعدادات الفيديو</h3></div></div>
 <div class="ps-fields-grid">
 <div class="ps-field"><label for="aspect">أبعاد الفيديو</label><select id="aspect"><option value="portrait">عمودي 9:16 · Shorts/Reels</option><option value="landscape">أفقي 16:9 · YouTube</option><option value="square">مربع 1:1 · منشورات</option></select></div>
-<div class="ps-field"><label for="resolution">دقة التصدير</label><select id="resolution"><option value="720">HD · 720p</option><option value="1080" selected>Full HD · 1080p</option></select></div>
+<div class="ps-field"><label for="resolution">دقة التصدير</label><select id="resolution"><option value="720" selected>HD · 720p (أنسب للهاتف)</option><option value="1080">Full HD · 1080p</option></select></div>
 <div class="ps-field"><label for="seconds">مدة الصورة</label><select id="seconds"><option value="2">ثانيتان</option><option value="3" selected>3 ثوانٍ</option><option value="4">4 ثوانٍ</option><option value="5">5 ثوانٍ</option><option value="6">6 ثوانٍ</option><option value="8">8 ثوانٍ</option></select></div>
 <div class="ps-field"><label for="transition">الانتقال بين الصور</label><select id="transition"><option value="fade">تلاشي سينمائي</option><option value="flash">وميض ناعم</option><option value="cut">قطع مباشر</option></select></div>
 <div class="ps-field"><label for="fit">طريقة عرض الصورة</label><select id="fit"><option value="cover">ملء الإطار</option><option value="contain">إظهار الصورة كاملة</option></select></div>
@@ -35,7 +35,7 @@
 <div class="ps-field"><label for="musicVolume">مستوى الموسيقى <output id="volumeValue">80%</output></label><input id="musicVolume" type="range" min="0" max="100" value="80"></div>
 </div>
 <div class="ps-actions"><button class="btn" id="saveProject" type="button">⇩ حفظ المشروع</button><button class="btn" id="loadProject" type="button">↥ فتح مشروع</button><input id="projectInput" type="file" accept=".zereos-show,.json,application/json" hidden></div>
-<p class="ps-note">حفظ المشروع ينزّل نسخة احتياطية تشمل الصور والموسيقى والإعدادات. يمكنك فتحها لاحقًا من أي جهاز.</p>
+<p class="ps-note">حفظ المشروع ينزّل نسخة تشمل الصور والموسيقى والإعدادات؛ قد يكون حجمها كبيرًا لأن الوسائط تُضمّن داخل الملف.</p>
 </section>
 <section class="panel ps-preview">
 <div class="ps-section-head"><div><span class="eyebrow">03 / PREVIEW</span><h3>معاينة النتيجة</h3></div><span class="ps-live-dot">LIVE PREVIEW</span></div>
@@ -46,7 +46,7 @@
 <div class="ps-section-head"><div><span class="eyebrow">04 / EXPORT</span><h3>إنشاء الفيديو النهائي</h3></div><span class="ps-format" id="formatLabel">MP4 إن كان مدعومًا</span></div>
 <button class="btn export ps-export-btn" id="exportVideo" disabled type="button">✦ إنشاء وتنزيل الفيديو</button>
 <div class="ps-export-progress" id="exportPanel" hidden><div><span id="exportStatus">جارٍ تجهيز الفيديو…</span><strong id="exportPercent">0%</strong></div><progress id="exportProgress" max="100" value="0"></progress></div>
-<p class="ps-note" id="status" aria-live="polite">اختر الصور والموسيقى للبدء. التصدير يتم على جهازك دون رفع الملفات إلى خادم.</p>
+<p class="ps-note" id="status" aria-live="polite">اختر الصور والموسيقى للبدء. ابدأ بدقة 720p على الهاتف، وأبقِ الصفحة مفتوحة حتى يكتمل التصدير. الملفات لا تُرفع إلى خادم.</p>
 </div>
 </section>
 </div>
