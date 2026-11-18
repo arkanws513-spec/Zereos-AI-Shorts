@@ -49,9 +49,9 @@ if (html) {
   if (!/<meta\s+name=["']viewport["']/i.test(html)) fail('Mobile viewport metadata is missing.');
   else pass('Mobile viewport metadata is present.');
 
-  if (!/<script\b[^>]*src=["']\.\/app\.js(?:\?[^"']*)?["']/i.test(html)) fail('index.html does not load ./app.js.');
+  if (!/<script\b[^>]*src=["']\.\/storage\.js["']/i.test(html)) fail('index.html does not load ./storage.js.');
   else pass('Storage adapter is linked from the app shell.');
-  if (!/<script\b[^>]*src=["']\.\/app\.js["']/i.test(html)) fail('index.html does not load ./app.js.');
+  if (!/<script\b[^>]*src=["']\.\/app\.js(?:\?[^"']*)?["']/i.test(html)) fail('index.html does not load ./app.js.');
   if (!/<link\b[^>]*href=["']\.\/app\.css["']/i.test(html)) fail('index.html does not load ./app.css.');
   else if (!process.exitCode) pass('Main app logic and styles are separated into version-controlled files.');
 
@@ -332,7 +332,7 @@ if (html) {
   ]) {
     if (!source.includes(feature)) fail('Cinematic studio regression: missing expected feature or persistence hook: ' + feature);
   }
-  if (!/const CACHE_NAME = 'zereos-shell-v\\d+'/.test(serviceWorker) ||
+  if (!/const CACHE_NAME = 'zereos-shell-v[0-9]+'/.test(serviceWorker) ||
       !serviceWorker.includes("new URL('avatar-studio.js', BASE_URL).href") ||
       !appShellPath || !serviceWorker.includes("new URL('" + appShellPath + "', BASE_URL).href") ||
       !serviceWorker.includes("new URL('audio-workflows.js', BASE_URL).href") ||
