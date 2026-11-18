@@ -116,3 +116,13 @@ The app does not require a paid inference API key for its built-in local TTS wor
 ## ZEREOS Quran
 
 A separate Quran listening workspace is available at [quran-studio.html](https://arkanws513-spec.github.io/Zereos-AI-Shorts/quran-studio.html). It supports local audio files and user-supplied HTTPS audio URLs, with a permission confirmation before playback. It links to Quran.com for verified Quran text and recitation browsing. The browser's ordinary text-to-speech engine is intentionally not used for Quran recitation: no synthetic reciter is presented as accurate until a Quran-specific model, source text, tajweed review, and verse-by-verse audio validation are established. Recitation recordings remain subject to their own rights; do not redistribute or embed recordings without permission.
+
+
+## Photo Slideshow Studio
+
+- Standalone Arabic RTL editor at `photo-studio.html`, linked from the main navigation.
+- Import up to 80 local photos, reorder them, add a local music track, and preview a 9:16, 16:9, or square slideshow.
+- Controls include duration per photo, cross-fade / soft flash / cut transitions, contain or cover fit, gentle Ken Burns motion, optional title, and music level.
+- Export uses the browser's MediaRecorder and canvas capture APIs, choosing MP4 only when the current browser supports it and otherwise falling back to WebM. Rendering is local; no paid API or upload is required.
+- Save/open portable `.zereos-show` project backups that include the selected images, music, and settings.
+- Browser codec support and available device memory determine maximum practical resolution and export duration; test the downloaded file before sharing.
